@@ -4,12 +4,17 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { AppProvider } from '@/context/AppProvider';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import React from 'react';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'SF Pro': require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Open Sans': require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Raleway': require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Nunito Sans': require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   if (!loaded) {
@@ -18,12 +23,21 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AppProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="vendor/sign-in" />
+          <Stack.Screen name="vendor/register" />
+          <Stack.Screen name="vendor/verify" />
+          <Stack.Screen name="vendor/selfie" />
+          <Stack.Screen name="vendor/camera" />
+          <Stack.Screen name="vendor/verified" />
+          <Stack.Screen name="vendor/online" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </AppProvider>
   );
 }
