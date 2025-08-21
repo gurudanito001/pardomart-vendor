@@ -30,7 +30,6 @@ export default function RootLayout() {
           <Stack.Screen name="vendor/sign-in" />
           <Stack.Screen name="vendor/register" />
           <Stack.Screen name="vendor/verify" />
-          <Stack.Screen name="vendor/selfie" />
           <Stack.Screen name="vendor/camera" />
           <Stack.Screen name="vendor/verified" />
           <Stack.Screen name="vendor/online" />
