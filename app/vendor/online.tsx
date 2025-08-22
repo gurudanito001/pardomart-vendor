@@ -1,14 +1,12 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ImageBackground,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function OnlineScreen() {
@@ -24,8 +22,6 @@ export default function OnlineScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
-      
       {/* Background Map Image */}
       <ImageBackground
         source={{
@@ -34,30 +30,6 @@ export default function OnlineScreen() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        {/* Status Bar Component */}
-        <SafeAreaView style={styles.statusBarContainer}>
-          <View style={styles.statusBar}>
-            <View style={styles.timeSection}>
-              <Text style={styles.timeText}>9:41</Text>
-            </View>
-            <View style={styles.spacer} />
-            <View style={styles.batterySection}>
-              {/* Signal bars */}
-              <View style={styles.signalBars}>
-                <View style={[styles.signalBar, { height: 4 }]} />
-                <View style={[styles.signalBar, { height: 6 }]} />
-                <View style={[styles.signalBar, { height: 8 }]} />
-                <View style={[styles.signalBar, { height: 10 }]} />
-              </View>
-              {/* WiFi icon */}
-              <View style={styles.wifiIcon} />
-              {/* Battery */}
-              <View style={styles.battery}>
-                <View style={styles.batteryLevel} />
-              </View>
-            </View>
-          </View>
-        </SafeAreaView>
 
         {/* Content Modal */}
         <View style={styles.modalContainer}>
@@ -106,78 +78,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-  },
-  statusBarContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 21,
-    height: 50,
-  },
-  timeSection: {
-    flex: 1,
-    paddingLeft: 6,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  timeText: {
-    fontSize: 17,
-    fontWeight: '600',
-    fontFamily: 'SF Pro',
-    color: '#000',
-    textAlign: 'center',
-  },
-  spacer: {
-    width: 124,
-    height: 10,
-  },
-  batterySection: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingRight: 16,
-    gap: 7,
-  },
-  signalBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 1,
-  },
-  signalBar: {
-    width: 3,
-    backgroundColor: '#000',
-    borderRadius: 0.5,
-  },
-  wifiIcon: {
-    width: 15,
-    height: 11,
-    backgroundColor: '#000',
-    borderRadius: 2,
-  },
-  battery: {
-    width: 24,
-    height: 12,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 3.8,
-    opacity: 0.35,
-    justifyContent: 'center',
-    paddingHorizontal: 1.5,
-  },
-  batteryLevel: {
-    width: 21,
-    height: 9,
-    backgroundColor: '#000',
-    borderRadius: 2.5,
   },
   modalContainer: {
     position: 'absolute',

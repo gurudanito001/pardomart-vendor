@@ -30,9 +30,11 @@ export default function RootLayout() {
           <Stack.Screen name="vendor/sign-in" />
           <Stack.Screen name="vendor/register" />
           <Stack.Screen name="vendor/verify" />
-          <Stack.Screen name="vendor/camera" />
           <Stack.Screen name="vendor/verified" />
+          <Stack.Screen name="vendor/take-photo" />
+          <Stack.Screen name="vendor/edit-store" />
           <Stack.Screen name="vendor/online" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />

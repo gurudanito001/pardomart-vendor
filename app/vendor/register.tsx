@@ -1,3 +1,5 @@
+import TabSelector from '@/components/ui/TabSelector';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -9,11 +11,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import {
-  useSharedValue,
-  withTiming
+  useSharedValue
 } from 'react-native-reanimated';
 
 export default function RegisterScreen() {
@@ -25,11 +25,12 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const { width: screenWidth } = useWindowDimensions();
-  const tabSelectorWidth = screenWidth - 60; // 30px padding on each side
-  const singleTabWidth = (tabSelectorWidth - 6) / 2; // Account for 3px padding inside the selector
-
+  // Animation values
   const tabIndicatorPosition = useSharedValue(0);
+
+  const handleBack = () => {
+    router.back();
+  };
 
   const handleCreateAccount = () => {
     router.push('/vendor/verify');
@@ -39,11 +40,10 @@ export default function RegisterScreen() {
     router.push('/vendor/sign-in');
   };
 
-  const handleTabSwitch = (tab: 'email' | 'phone') => {
-    setActiveTab(tab);
-    tabIndicatorPosition.value = withTiming(tab === 'email' ? 0 : 1, {
-      duration: 300,
-    });
+  const handlePhoneInput = (text: string) => {
+    // Only allow numbers and some formatting characters
+    const cleanedText = text.replace(/[^0-9+\-\s()]/g, '');
+    setPhone(cleanedText);
   };
 
   return (
@@ -52,9 +52,9 @@ export default function RegisterScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <View style={styles.backButtonCircle}>
-            <Text style={styles.backArrow}>‹</Text>
+            <AntDesign name="left" size={18} color="#100A37" />
           </View>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Sign up</Text>
@@ -62,26 +62,11 @@ export default function RegisterScreen() {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Tab Selector */}
-        <View style={styles.tabContainer}>
-          <View style={styles.tabSelector}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'email' && styles.activeTab]}
-              onPress={() => setActiveTab('email')}
-            >
-              <Text style={[styles.tabText, activeTab === 'email' && styles.activeTabText]}>
-                Email
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'phone' && styles.activeTab]}
-              onPress={() => setActiveTab('phone')}
-            >
-              <Text style={[styles.tabText, activeTab === 'phone' && styles.activeTabText]}>
-                Phone Number
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <TabSelector 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          tabIndicatorPosition={tabIndicatorPosition}
+        />
 
         {/* Form Fields */}
         <View style={styles.formContainer}>
@@ -90,23 +75,24 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="Name"
-              placeholderTextColor="#7C8BA0"
+              placeholderTextColor="rgba(111, 115, 128, 0.27)"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
             />
           </View>
 
-          {/* Email Input */}
+          {/* Dynamic Email/Phone Input */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.textInput}
-              placeholder="Email"
-              placeholderTextColor="#7C8BA0"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+              placeholder={activeTab === 'email' ? 'Email' : 'Phone'}
+              placeholderTextColor="rgba(111, 115, 128, 0.27)"
+              value={activeTab === 'email' ? email : phone}
+              onChangeText={activeTab === 'email' ? setEmail : handlePhoneInput}
+              keyboardType={activeTab === 'email' ? 'email-address' : 'phone-pad'}
               autoCapitalize="none"
+              textContentType={activeTab === 'email' ? 'emailAddress' : 'telephoneNumber'}
             />
           </View>
 
@@ -116,7 +102,7 @@ export default function RegisterScreen() {
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Password"
-                placeholderTextColor="#7C8BA0"
+                placeholderTextColor="rgba(111, 115, 128, 0.27)"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -126,7 +112,11 @@ export default function RegisterScreen() {
                 style={styles.passwordToggle}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Text style={styles.passwordToggleIcon}>👁</Text>
+                <Ionicons
+                  name={showPassword ? "eye-outline" : "eye-off-outline"}
+                  size={20}
+                  color="#6F7380"
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -176,9 +166,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 21,
     paddingTop: 14,
     gap: 12,
+    height: 50,
   },
   backButton: {
     padding: 6,
@@ -196,11 +187,6 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  backArrow: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#100A37',
-  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -210,38 +196,8 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  tabContainer: {
-    paddingHorizontal: 30,
-    paddingTop: 59,
-    marginBottom: 29,
-  },
-  tabSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#D9D9D9',
-    borderRadius: 16,
-    padding: 3,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: '#06888C',
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: 'Raleway',
-    color: '#7C7B7B',
-  },
-  activeTabText: {
-    color: '#FFF',
-  },
   formContainer: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 33,
     gap: 16,
     marginBottom: 16,
   },
@@ -249,34 +205,36 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   textInput: {
-    height: 60,
-    backgroundColor: '#F5F9FE',
+    height: 48,
     borderRadius: 16,
-    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FFF',
+    paddingHorizontal: 12,
     fontSize: 16,
-    fontFamily: 'Open Sans',
-    color: '#7C8BA0',
+    fontFamily: 'Nunito Sans',
+    color: '#6F7380',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F9FE',
+    height: 48,
     borderRadius: 16,
-    height: 60,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FFF',
   },
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 12,
     fontSize: 16,
-    fontFamily: 'Open Sans',
-    color: '#7C8BA0',
+    fontFamily: 'Nunito Sans',
+    color: '#6F7380',
   },
   passwordToggle: {
     paddingHorizontal: 16,
-  },
-  passwordToggleIcon: {
-    fontSize: 24,
-    color: '#7C8BA0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   termsContainer: {
     flexDirection: 'row',
@@ -291,9 +249,9 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 5,
-    backgroundColor: '#F5F9FE',
+    backgroundColor: '#FFF',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#B4BED4',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -310,14 +268,16 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontFamily: 'Open Sans',
-    color: '#3B4054',
-    lineHeight: 22,
+    fontWeight: '600',
+    color: '#7C7B7B',
+    lineHeight: 24,
   },
   linkText: {
-    color: '#06888C',
+    color: '#01891C',
+    fontWeight: '700',
   },
   buttonContainer: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 33,
     gap: 16,
     paddingBottom: 40,
   },
@@ -325,8 +285,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#06888C',
     borderRadius: 16,
     paddingVertical: 14,
-    paddingHorizontal: 120,
     alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'stretch',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -343,16 +304,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 6,
   },
   signInText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Open Sans',
-    color: '#3B4054',
+    fontWeight: '400',
+    color: '#888',
+    letterSpacing: 0.32,
   },
   signInLink: {
-    fontSize: 14,
-    fontFamily: 'Open Sans',
+    fontSize: 16,
+    fontFamily: 'Raleway',
+    fontWeight: '600',
     color: '#06888C',
-    fontWeight: '400',
+    letterSpacing: 0.32,
   },
 });
