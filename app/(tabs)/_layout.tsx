@@ -12,7 +12,7 @@ export default function TabLayout() {
           paddingTop: 20,
           paddingBottom: 25,
           paddingHorizontal: 17,
-          height: 103,
+          height: 105,
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
@@ -144,6 +144,96 @@ export default function TabLayout() {
       />
       <Tabs.Screen 
         name='setting-up-store'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen 
+        name='add-store'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen 
+        name='edit-store'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='upload-documents'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='unpublished-store'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='my-shoppers'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='earnings-wallet'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='transactions'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='customers'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='customer-details'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='my-stores'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='view-shopper'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='select-category'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='add-product'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='support'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='order-details'
         options={{
           href: null,
         }}

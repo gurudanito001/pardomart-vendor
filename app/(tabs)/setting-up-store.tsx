@@ -20,15 +20,13 @@ export default function SettingUpStoreScreen() {
 
     switch (actionType) {
       case 'edit-profile':
-        router.push('/vendor/edit-store' as any);
+        router.push('/edit-store' as any);
         break;
       case 'add-store':
-        // Navigate to add store screen
-        console.log('Navigate to add store');
+        router.push('/store?empty=true' as any);
         break;
       case 'upload-documents':
-        // Navigate to upload documents screen
-        console.log('Navigate to upload documents');
+        router.push('/upload-documents' as any);
         break;
       case 'settings':
         // Navigate to settings screen

@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function EditStoreScreen() {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#06888C',
     borderRadius: 16,
     paddingVertical: 14,
-    paddingHorizontal: 120,
+    paddingHorizontal: 50,
     alignItems: 'center',
     alignSelf: 'stretch',
     shadowColor: '#000',

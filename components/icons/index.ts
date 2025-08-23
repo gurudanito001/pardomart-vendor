@@ -1,0 +1,9 @@
+export { ArrowBackSVG } from './ArrowBackSVG';
+export { ArrowBackButtonSVG } from './ArrowBackButtonSVG';
+export { NotificationSVG } from './NotificationSVG';
+export { SupportSVG } from './SupportSVG';
+export { OrderSVG } from './OrderSVG';
+export { GoogleSVG } from './GoogleSVG';
+export { LocationSVG } from './LocationSVG';
+export { ChatFilledSVG } from './ChatFilledSVG';
+export { PhoneOutlineSVG } from './PhoneOutlineSVG';

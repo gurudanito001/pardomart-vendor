@@ -301,6 +301,48 @@ export interface LocationData {
   speed?: number;
 }
 
+// Customer Types
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  orderCount: number;
+  totalAmount: number;
+  avatar: string;
+}
+
+export interface Transaction {
+  id: string;
+  orderId: string;
+  date: string;
+  amount: number;
+}
+
+export interface Shopper {
+  id: string;
+  name: string;
+  // email: string;
+  // phone: string;
+  // storeAddress: string;
+  isAvailable: boolean;
+  avatar: string;
+}
+
+export interface Store {
+  id: string;
+  name: string;
+  address: string;
+  logo: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 // Order Types (for future use)
 export interface Order {
   id: string;
