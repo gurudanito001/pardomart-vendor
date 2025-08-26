@@ -133,26 +133,6 @@ export default function OrderDetailsScreen() {
           source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/1aec3e87a8b4b88db60323cecb75b8585664780e?width=858' }}
           style={styles.mapImage}
         />
-        
-        {/* Status Bar */}
-        <View style={styles.statusBar}>
-          <Text style={styles.timeText}>9:41</Text>
-          <View style={styles.statusIcons}>
-            {/* Signal bars */}
-            <View style={styles.signalBars}>
-              <View style={[styles.signalBar, { height: 4 }]} />
-              <View style={[styles.signalBar, { height: 6 }]} />
-              <View style={[styles.signalBar, { height: 8 }]} />
-              <View style={[styles.signalBar, { height: 10 }]} />
-            </View>
-            {/* WiFi icon */}
-            <View style={styles.wifiIcon} />
-            {/* Battery */}
-            <View style={styles.battery}>
-              <View style={styles.batteryLevel} />
-            </View>
-          </View>
-        </View>
 
         {/* Map overlay with delivery route */}
         <View style={styles.mapOverlay}>
@@ -350,54 +330,11 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  statusBar: {
-    position: 'absolute',
-    top: 21,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   timeText: {
     fontSize: 17,
     fontWeight: '400',
     color: '#000',
     fontFamily: 'SF Pro',
-  },
-  statusIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-  },
-  signalBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 2,
-  },
-  signalBar: {
-    width: 3,
-    backgroundColor: '#000',
-    borderRadius: 1,
-  },
-  wifiIcon: {
-    width: 15,
-    height: 11,
-    backgroundColor: 'transparent',
-  },
-  battery: {
-    width: 24,
-    height: 12,
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 2,
-    padding: 1,
-  },
-  batteryLevel: {
-    flex: 1,
-    backgroundColor: '#000',
-    borderRadius: 1,
   },
   mapOverlay: {
     position: 'absolute',
