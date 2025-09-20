@@ -238,6 +238,66 @@ export default function TabLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name='finding-item'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='finding-items'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='item-substitution'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='complete-shopping'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='success'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='preview-page'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='shopping-list'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='completed-orders'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='verify-order-code'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='order-verified'
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

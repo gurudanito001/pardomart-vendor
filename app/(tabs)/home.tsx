@@ -40,6 +40,9 @@ export default function HomeScreen() {
       case 'stores':
         router.push('/my-stores' as any);
         break;
+      case 'shopping':
+        router.push('/complete-shopping' as any);
+        break;
       // Add other navigation cases as needed
       default:
         console.log(`Navigation not implemented for ${cardType}`);
@@ -262,6 +265,15 @@ export default function HomeScreen() {
               subtitle="Checkout your store informations now"
               iconComponent={<SettingsIcon />}
               onPress={() => handleCardPress('settings')}
+            />
+          </View>
+
+          <View style={styles.gridRow}>
+            <DashboardCard
+              title="🛒 Test Shopping Flow"
+              subtitle="Test the complete shopping and success pages"
+              iconComponent={<OrdersIcon />}
+              onPress={() => handleCardPress('shopping')}
             />
           </View>
         </View>
