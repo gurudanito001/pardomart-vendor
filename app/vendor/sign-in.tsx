@@ -3,26 +3,31 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    useWindowDimensions
 } from 'react-native';
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
 } from 'react-native-reanimated';
+import { ERROR_MESSAGES, VALIDATION_RULES } from '../../constants';
+import { useLoading } from '../../hooks/useLoading';
+import { authService } from '../../services/auth';
+import { errorHandler } from '../../utils/errorHandler';
 
 export default function SignInScreen() {
   const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [errors, setErrors] = useState<{ email?: string; phone?: string }>({});
 
   // Get screen dimensions for responsive design using the hook for dynamic updates
   const { width: screenWidth } = useWindowDimensions();
@@ -32,15 +37,62 @@ export default function SignInScreen() {
   // Animation values
   const tabIndicatorPosition = useSharedValue(0);
   
+  // Loading state
+  const { execute: executeLogin, isLoading } = useLoading({
+    onSuccess: (data) => {
+      console.log('Login successful:', data);
+      router.push('/vendor/verify');
+    },
+    onError: (error) => {
+      console.error('Login failed:', error);
+    },
+  });
+  
   const handleBack = () => {
     router.back();
   };
 
-  const handleContinue = () => {
-    // Handle sign in logic here
+  const validateInput = (): boolean => {
+    const newErrors: { email?: string; phone?: string } = {};
+
+    if (activeTab === 'email') {
+      if (!email.trim()) {
+        newErrors.email = ERROR_MESSAGES.EMAIL_REQUIRED;
+      } else if (!VALIDATION_RULES.EMAIL.PATTERN.test(email)) {
+        newErrors.email = ERROR_MESSAGES.EMAIL_INVALID;
+      }
+    } else {
+      if (!phone.trim()) {
+        newErrors.phone = ERROR_MESSAGES.PHONE_REQUIRED;
+      } else if (!VALIDATION_RULES.PHONE.PATTERN.test(phone.replace(/\s/g, ''))) {
+        newErrors.phone = ERROR_MESSAGES.PHONE_INVALID;
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContinue = async () => {
+    if (!validateInput()) return;
+
     const value = activeTab === 'email' ? email : phone;
-    console.log('Sign in with:', activeTab, value);
-    router.push('/vendor/verify');
+    
+    try {
+      await executeLogin(async () => {
+        const response = await authService.login({
+          email: activeTab === 'email' ? value : '',
+          phone: activeTab === 'phone' ? value : '',
+          password: '', // This will be handled in the verify step
+        });
+        return response;
+      });
+    } catch (error) {
+      errorHandler.handleApiError(error, { 
+        screen: 'SignInScreen',
+        action: 'login_attempt'
+      });
+    }
   };
 
   const handleTabSwitch = (tab: 'email' | 'phone') => {
@@ -74,7 +126,7 @@ export default function SignInScreen() {
         case 'facebook':
           return <FontAwesome name="facebook" size={24} color="#0085FF" />;
         case 'apple':
-          return <AntDesign name="apple1" size={24} color="#2B2829" />;
+          return <AntDesign name="apple" size={24} color="#2B2829" />;
         default: return null;
       }
     };
@@ -138,15 +190,36 @@ export default function SignInScreen() {
         {/* Dynamic Input */}
         <View style={styles.formContainer}>
           <TextInput
-            style={styles.emailInput}
+            style={[
+              styles.emailInput,
+              (activeTab === 'email' ? errors.email : errors.phone) && styles.inputError
+            ]}
             placeholder={activeTab === 'email' ? 'Email' : 'Phone'}
             placeholderTextColor="rgba(111, 115, 128, 0.27)"
             value={activeTab === 'email' ? email : phone}
-            onChangeText={activeTab === 'email' ? setEmail : handlePhoneInput}
+            onChangeText={(text) => {
+              if (activeTab === 'email') {
+                setEmail(text);
+                if (errors.email) {
+                  setErrors(prev => ({ ...prev, email: undefined }));
+                }
+              } else {
+                handlePhoneInput(text);
+                if (errors.phone) {
+                  setErrors(prev => ({ ...prev, phone: undefined }));
+                }
+              }
+            }}
             keyboardType={activeTab === 'email' ? 'email-address' : 'phone-pad'}
             autoCapitalize="none"
             textContentType={activeTab === 'email' ? 'emailAddress' : 'telephoneNumber'}
+            editable={!isLoading}
           />
+          {(activeTab === 'email' ? errors.email : errors.phone) && (
+            <Text style={styles.errorText}>
+              {activeTab === 'email' ? errors.email : errors.phone}
+            </Text>
+          )}
         </View>
 
         {/* Terms Text */}
@@ -160,8 +233,17 @@ export default function SignInScreen() {
 
         {/* Continue Button */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <Text style={styles.continueButtonText}>Continue</Text>
+          <TouchableOpacity 
+            style={[
+              styles.continueButton,
+              isLoading && styles.continueButtonDisabled
+            ]} 
+            onPress={handleContinue}
+            disabled={isLoading}
+          >
+            <Text style={styles.continueButtonText}>
+              {isLoading ? 'Signing in...' : 'Continue'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -325,6 +407,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  continueButtonDisabled: {
+    backgroundColor: '#B4BED4',
+    opacity: 0.7,
+  },
+  inputError: {
+    borderColor: '#FF6B6B',
+    borderWidth: 2,
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 12,
+    fontFamily: 'Nunito Sans',
+    marginTop: 4,
+    marginLeft: 4,
   },
   socialContainer: {
     paddingHorizontal: 33,

@@ -1,14 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import EmptyStore from '../../components/EmptyStore';
 
@@ -44,11 +44,11 @@ export default function StoreScreen() {
   };
 
   const handleAddNewStore = () => {
-    router.push('/add-store' as any);
+    router.push('/(main)/screens/store/add-store' as any);
   };
 
   const handleViewUnpublishedStore = () => {
-    router.push('/unpublished-store' as any);
+    router.push('/(main)/screens/store/unpublished-store' as any);
   };
 
   const StoreCard = ({ 
