@@ -21,7 +21,7 @@ interface UploadedFile {
 }
 
 export default function UploadDocumentsScreen() {
-  const [storeCertificate, setStoreCertificate] = useState<UploadedFile | null>(null);
+  const [storeCertificates, setStoreCertificates] = useState<UploadedFile[]>([]);
   const [idCard, setIdCard] = useState<UploadedFile | null>(null);
   
   const storeCertificatePicker = useDocumentPicker({
@@ -56,11 +56,10 @@ export default function UploadDocumentsScreen() {
     idCardPicker.showImagePicker();
   };
 
-  const handleRemoveFile = (type: 'certificate' | 'id') => {
-    if (type === 'certificate') {
-      setStoreCertificate(null);
-      storeCertificatePicker.clearImage();
-    } else {
+  const handleRemoveFile = (type: 'certificate' | 'id', index?: number) => {
+    if (type === 'certificate' && typeof index === 'number') {
+      setStoreCertificates(prev => prev.filter((_, i) => i !== index));
+    } else if (type === 'id') {
       setIdCard(null);
       idCardPicker.clearImage();
     }
@@ -68,26 +67,29 @@ export default function UploadDocumentsScreen() {
 
   const handleSubmit = () => {
     console.log('Submit documents:', {
-      storeCertificate: storeCertificatePicker.selectedImage,
+      storeCertificates: storeCertificates,
       idCard: idCardPicker.selectedImage,
     });
     // Here you would typically upload the documents to your server
-    // For now, we'll just navigate back
-    router.back();
+    // Navigate to verification screen
+    router.push('/document-verification' as any);
   };
 
   // Create uploaded file objects from picker results
   React.useEffect(() => {
-    if (storeCertificatePicker.selectedImage && !storeCertificate) {
-      setStoreCertificate({
-        id: '1',
-        name: 'Jewel Osco Certificate',
+    if (storeCertificatePicker.selectedImage) {
+      const newCertificate: UploadedFile = {
+        id: `cert-${Date.now()}`,
+        name: storeCertificatePicker.selectedImage.fileName ?? 'Store Certificate',
         uri: storeCertificatePicker.selectedImage.uri ?? '',
         fileSize: storeCertificatePicker.selectedImage.fileSize,
         progress: 100,
-      });
+      };
+
+      setStoreCertificates(prev => [...prev, newCertificate]);
+      storeCertificatePicker.clearImage();
     }
-  }, [storeCertificate, storeCertificatePicker.selectedImage]);
+  }, [storeCertificatePicker.selectedImage]);
 
   React.useEffect(() => {
     if (idCardPicker.selectedImage && !idCard) {
@@ -210,17 +212,22 @@ export default function UploadDocumentsScreen() {
               <Text style={styles.sectionTitle}>Store Certificate</Text>
             </View>
 
-            {storeCertificate ? (
-              <UploadedFileCard 
-                file={storeCertificate} 
-                onRemove={() => handleRemoveFile('certificate')}
-              />
-            ) : (
-              <UploadZone 
-                onPress={handleStoreCertificateUpload}
-                isLoading={storeCertificatePicker.isLoading}
-              />
+            {storeCertificates.length > 0 && (
+              <View style={styles.uploadedFilesContainer}>
+                {storeCertificates.map((certificate, index) => (
+                  <UploadedFileCard
+                    key={certificate.id}
+                    file={certificate}
+                    onRemove={() => handleRemoveFile('certificate', index)}
+                  />
+                ))}
+              </View>
             )}
+
+            <UploadZone
+              onPress={handleStoreCertificateUpload}
+              isLoading={storeCertificatePicker.isLoading}
+            />
 
             {storeCertificatePicker.error && (
               <Text style={styles.errorText}>{storeCertificatePicker.error}</Text>
@@ -470,5 +477,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     textAlign: 'center',
     lineHeight: 25,
+  },
+  uploadedFilesContainer: {
+    gap: 12,
+    marginBottom: 12,
   },
 });

@@ -167,6 +167,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name='document-verification'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name='unpublished-store'
         options={{
           href: null,
@@ -294,6 +300,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name='order-verified'
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name='fully-set-up-store'
         options={{
           href: null,
         }}
