@@ -15,8 +15,6 @@ export default function OrdersLayout() {
       <Stack.Screen name="shopping-list" />
       <Stack.Screen name="verify-order-code" />
       <Stack.Screen name="order-verified" />
-      <Stack.Screen name="completed-list" />
-      <Stack.Screen name="remaining-list" />
     </Stack>
   );
 }
