@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
 
@@ -57,7 +57,11 @@ const MOCK_ORDERS: Order[] = [
 
 export default function OrdersScreen() {
   const handleGoBack = () => {
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/home');
+    }
   };
 
   const handleNotifications = () => {
