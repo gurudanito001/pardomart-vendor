@@ -23,12 +23,12 @@ export const API_ENDPOINTS = {
   
   // Vendor endpoints
   VENDOR: {
-    PROFILE: '/vendor/profile',
-    UPDATE_PROFILE: '/vendor/profile',
-    UPLOAD_DOCUMENT: '/vendor/documents',
-    GO_ONLINE: '/vendor/status/online',
-    GO_OFFLINE: '/vendor/status/offline',
-    UPLOAD_SELFIE: '/vendor/selfie',
+    PROFILE: '/auth/profile',
+    UPDATE_PROFILE: '/auth/profile',
+    UPLOAD_DOCUMENT: '/auth/documents',
+    GO_ONLINE: '/auth/status/online',
+    GO_OFFLINE: '/auth/status/offline',
+    UPLOAD_SELFIE: '/auth/selfie',
   },
   
   // File upload

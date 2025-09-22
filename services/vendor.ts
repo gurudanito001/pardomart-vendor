@@ -1,11 +1,11 @@
-import { apiService } from './api';
 import { API_ENDPOINTS } from '../constants';
 import {
-  VendorProfile,
-  VendorDocument,
-  UploadedFile,
-  ApiResponse,
+    ApiResponse,
+    UploadedFile,
+    VendorDocument,
+    VendorProfile,
 } from '../types';
+import { apiService } from './api';
 
 interface VendorStats {
   totalOrders: number;
@@ -62,7 +62,7 @@ class VendorService {
 
   // Document management
   async getDocuments(): Promise<ApiResponse<VendorDocument[]>> {
-    return apiService.get<VendorDocument[]>('/vendor/documents');
+    return apiService.get<VendorDocument[]>('/auth/documents');
   }
 
   async deleteDocument(documentId: string): Promise<ApiResponse<{ message: string }>> {
@@ -84,7 +84,7 @@ class VendorService {
       endTime: string;
     }>;
   }>>> {
-    return apiService.get('/vendor/business-hours');
+    return apiService.get('/auth/business-hours');
   }
 
   async updateBusinessHours(hours: Array<{
@@ -97,19 +97,19 @@ class VendorService {
       endTime: string;
     }>;
   }>): Promise<ApiResponse<{ message: string }>> {
-    return apiService.put('/vendor/business-hours', { hours });
+    return apiService.put('/auth/business-hours', { hours });
   }
 
   // Statistics and analytics
   async getStats(period: 'today' | 'week' | 'month' | 'year' = 'month'): Promise<ApiResponse<VendorStats>> {
-    return apiService.get<VendorStats>('/vendor/stats', { period });
+    return apiService.get<VendorStats>('/auth/stats', { period });
   }
 
   async getAnalytics(
     startDate: string,
     endDate: string
   ): Promise<ApiResponse<VendorAnalytics>> {
-    return apiService.get<VendorAnalytics>('/vendor/analytics', {
+    return apiService.get<VendorAnalytics>('/auth/analytics', {
       startDate,
       endDate,
     });
@@ -133,7 +133,7 @@ class VendorService {
       totalPages: number;
     };
   }>> {
-    return apiService.get('/vendor/reviews', { page, limit });
+    return apiService.get('/auth/reviews', { page, limit });
   }
 
   async respondToReview(reviewId: string, response: string): Promise<ApiResponse<{ message: string }>> {
@@ -158,7 +158,7 @@ class VendorService {
       totalPages: number;
     };
   }>> {
-    return apiService.get('/vendor/notifications', { page, limit });
+    return apiService.get('/auth/notifications', { page, limit });
   }
 
   async markNotificationAsRead(notificationId: string): Promise<ApiResponse<{ message: string }>> {
@@ -166,7 +166,7 @@ class VendorService {
   }
 
   async markAllNotificationsAsRead(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.patch('/vendor/notifications/read-all');
+    return apiService.patch('/auth/notifications/read-all');
   }
 
   // Settings
@@ -187,7 +187,7 @@ class VendorService {
       language: string;
     };
   }>> {
-    return apiService.get('/vendor/settings');
+    return apiService.get('/auth/settings');
   }
 
   async updateSettings(settings: {
@@ -207,7 +207,7 @@ class VendorService {
       language?: string;
     };
   }): Promise<ApiResponse<{ message: string }>> {
-    return apiService.patch('/vendor/settings', settings);
+    return apiService.patch('/auth/settings', settings);
   }
 
   // Verification
@@ -222,11 +222,11 @@ class VendorService {
       reason: string;
     }>;
   }>> {
-    return apiService.get('/vendor/verification-status');
+    return apiService.get('/auth/verification-status');
   }
 
   async requestVerification(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post('/vendor/request-verification');
+    return apiService.post('/auth/request-verification');
   }
 
   // Bank account management
@@ -239,7 +239,7 @@ class VendorService {
     isVerified: boolean;
     createdAt: string;
   }>>> {
-    return apiService.get('/vendor/bank-accounts');
+    return apiService.get('/auth/bank-accounts');
   }
 
   async addBankAccount(bankDetails: {
@@ -249,7 +249,7 @@ class VendorService {
     accountHolderName: string;
     accountType: 'checking' | 'savings';
   }): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post('/vendor/bank-accounts', bankDetails);
+    return apiService.post('/auth/bank-accounts', bankDetails);
   }
 
   async setDefaultBankAccount(accountId: string): Promise<ApiResponse<{ message: string }>> {
@@ -278,11 +278,11 @@ class VendorService {
       totalPages: number;
     };
   }>> {
-    return apiService.get('/vendor/payouts', { page, limit });
+    return apiService.get('/auth/payouts', { page, limit });
   }
 
   async requestPayout(amount: number, bankAccountId: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post('/vendor/payouts/request', {
+    return apiService.post('/auth/payouts/request', {
       amount,
       bankAccountId,
     });
@@ -293,7 +293,7 @@ class VendorService {
     ticketId: string;
     message: string;
   }>> {
-    return apiService.post('/vendor/support/tickets', {
+    return apiService.post('/auth/support/tickets', {
       subject,
       message,
       category,
@@ -316,7 +316,7 @@ class VendorService {
       totalPages: number;
     };
   }>> {
-    return apiService.get('/vendor/support/tickets', { page, limit });
+    return apiService.get('/auth/support/tickets', { page, limit });
   }
 
   async getSupportTicket(ticketId: string): Promise<ApiResponse<{

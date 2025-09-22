@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface EmptyStoreProps {
@@ -22,7 +22,7 @@ export default function EmptyStore({
 }: EmptyStoreProps) {
 
   const handleAddStore = () => {
-    router.push('/add-store' as any);
+    router.push('/(tabs)/store/add-store' as any);
   };
   return (
     <SafeAreaView style={styles.container}>

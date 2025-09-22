@@ -94,7 +94,7 @@ interface CompletedTabContentProps {
 export default function CompletedTabContent({ onProceedToReview }: CompletedTabContentProps) {
   const handleProceedToReview = () => {
     console.log('Proceed to Review');
-    router.push('/preview-page' as any);
+    router.push('/(tabs)/orders/preview-page' as any);
     onProceedToReview?.();
   };
 

@@ -1,10 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
 
 export default function TabLayout() {
   return (
     <Tabs
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -57,6 +58,12 @@ export default function TabLayout() {
             </View>
           ),
         }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/home');
+          },
+        }}
       />
       <Tabs.Screen
         name="orders"
@@ -80,6 +87,12 @@ export default function TabLayout() {
             </View>
           ),
         }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/orders');
+          },
+        }}
       />
       <Tabs.Screen
         name="inbox"
@@ -99,6 +112,12 @@ export default function TabLayout() {
             </View>
           ),
         }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/inbox');
+          },
+        }}
       />
       <Tabs.Screen
         name="help"
@@ -114,6 +133,12 @@ export default function TabLayout() {
               </svg>
             </View>
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/help');
+          },
         }}
       />
       <Tabs.Screen
@@ -141,173 +166,11 @@ export default function TabLayout() {
             </View>
           ),
         }}
-      />
-      <Tabs.Screen 
-        name='setting-up-store'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen 
-        name='add-store'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen 
-        name='edit-store'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='upload-documents'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='document-verification'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='unpublished-store'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='my-shoppers'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='earnings-wallet'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='transactions'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='customers'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='customer-details'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='my-stores'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='view-shopper'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='select-category'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='add-product'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='support'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='order-details'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='finding-item'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='finding-items'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='item-substitution'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='complete-shopping'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='success'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='preview-page'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='shopping-list'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='completed-orders'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='verify-order-code'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='order-verified'
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name='fully-set-up-store'
-        options={{
-          href: null,
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(tabs)/store');
+          },
         }}
       />
     </Tabs>

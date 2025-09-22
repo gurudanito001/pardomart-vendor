@@ -1,7 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { shadows } from '../../styles/theme';
 
 type Props = {
   title: string;

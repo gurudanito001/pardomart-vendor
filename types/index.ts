@@ -323,9 +323,9 @@ export interface Transaction {
 export interface Shopper {
   id: string;
   name: string;
-  // email: string;
-  // phone: string;
-  // storeAddress: string;
+  email: string;
+  phone: string;
+  storeAddress: string;
   isAvailable: boolean;
   avatar: string;
 }
