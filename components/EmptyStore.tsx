@@ -22,7 +22,7 @@ export default function EmptyStore({
 }: EmptyStoreProps) {
 
   const handleAddStore = () => {
-    router.push('/(tabs)/store/add-store' as any);
+    router.push('/(private)/store/add-store' as any);
   };
   return (
     <SafeAreaView style={styles.container}>

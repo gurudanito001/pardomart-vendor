@@ -2,17 +2,17 @@ import { BackArrowIcon, VerifiedIcon } from '@/components/icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function VerifiedScreen() {
   const handleContinue = () => {
-    router.push('/(tabs)/home');
+    router.push('/(private)/home');
   };
 
   const handleBack = () => {

@@ -8,7 +8,11 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "update-api-client": "powershell -ExecutionPolicy Bypass -File ./scripts/generate-api.ps1",
+    "update-api-client:unix": "bash ./scripts/generate-api.sh",
+    "update-api-client:pwsh": "pwsh -ExecutionPolicy Bypass -File ./scripts/generate-api.ps1",
+    "generate-api": "npm run update-api-client"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -17,6 +21,7 @@
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "@tanstack/react-query": "^5.90.2",
     "expo": "^54.0.10",
     "expo-blur": "~15.0.7",
     "expo-constants": "~18.0.9",
@@ -47,6 +52,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@openapitools/openapi-generator-cli": "^2.23.4",
     "@types/react": "^19.1.13",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",

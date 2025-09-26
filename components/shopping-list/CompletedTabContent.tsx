@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { borderRadius, colors, shadows, spacing, typography } from '../../styles/theme';
 
@@ -94,7 +94,7 @@ interface CompletedTabContentProps {
 export default function CompletedTabContent({ onProceedToReview }: CompletedTabContentProps) {
   const handleProceedToReview = () => {
     console.log('Proceed to Review');
-    router.push('/(tabs)/orders/preview-page' as any);
+    router.push('/(private)/orders/preview-page' as any);
     onProceedToReview?.();
   };
 
