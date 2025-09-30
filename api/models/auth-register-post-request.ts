@@ -22,11 +22,11 @@ export interface AuthRegisterPostRequest {
     /**
      * The user\'s email address.
      */
-    'email': string;
+    'email'?: string;
     /**
      * The user\'s mobile number in E.164 format.
      */
-    'mobileNumber': string;
+    'mobileNumber'?: string;
     /**
      * The role for the new user.
      */

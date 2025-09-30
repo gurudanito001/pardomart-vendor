@@ -11,8 +11,7 @@ import {
 
 export default function OnlineScreen() {
   const handleGoOnline = () => {
-    // In a real app, this would navigate to the main vendor dashboard
-    console.log('Vendor is now online!');
+    router.replace('/auth/sign-in');
   };
 
   const handleClose = () => {
@@ -36,9 +35,9 @@ export default function OnlineScreen() {
           <View style={styles.modal}>
             {/* Close Button */}
             <View style={styles.closeButtonContainer}>
-              <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              {/* <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                 <Text style={styles.closeIcon}>×</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
             {/* Modal Content */}

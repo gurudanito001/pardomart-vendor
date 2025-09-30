@@ -1,60 +1,50 @@
 import { GoogleSVG } from '@/components/icons/GoogleSVG';
+import PhoneInputWithCountry from '@/components/PhoneInputWithCountry';
+import { useAuth } from '@/context/AppProvider';
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
-  useWindowDimensions,
+  View
 } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
-} from 'react-native-reanimated';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 export default function SignInScreen() {
-  const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
-  const [email, setEmail] = useState('');
+  const { state, initiateLogin } = useAuth();
   const [phone, setPhone] = useState('');
-
-  // Get screen dimensions for responsive design using the hook for dynamic updates
-  const { width: screenWidth } = useWindowDimensions();
-  const tabSelectorWidth = screenWidth - 66; // 33px padding on each side of the container
-  const singleTabWidth = (tabSelectorWidth - 6) / 2; // Account for 3px padding inside the selector
-
-  // Animation values
-  const tabIndicatorPosition = useSharedValue(0);
   
   const handleBack = () => {
     router.back();
   };
 
-  const handleContinue = () => {
-    // Handle sign in logic here
-    const value = activeTab === 'email' ? email : phone;
-    console.log('Sign in with:', activeTab, value);
-    router.push('/auth/verify');
-  };
-
-  const handleTabSwitch = (tab: 'email' | 'phone') => {
-    setActiveTab(tab);
-    // Animate tab indicator
-    tabIndicatorPosition.value = withTiming(tab === 'email' ? 0 : 1, {
-      duration: 300,
-    });
-  };
-
-  const handlePhoneInput = (text: string) => {
-    // Only allow numbers and some formatting characters
-    const cleanedText = text.replace(/[^0-9+\-\s()]/g, '');
-    setPhone(cleanedText);
+  const handleContinue = async () => {
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) {
+      toast.error('Please enter your phone number.');
+      return;
+    }
+    // Basic length validation (e.g., country code + at least 7 digits)
+    if (trimmedPhone.length < 8) {
+      toast.error('Please enter a valid phone number.');
+      return;
+    }
+    try {
+      await initiateLogin(trimmedPhone, 'vendor');
+      toast.success('Verification code sent!');
+      router.push({ pathname: '/auth/verify', params: { identifier: trimmedPhone } });
+    } catch (err: any) {
+      // Correctly access the nested error message from our custom ApiError
+      const errorMessage = err?.error?.message || 'An unexpected error occurred.';
+      toast.error(errorMessage);
+    }
   };
 
   const handleSignUp = () => {
@@ -104,48 +94,15 @@ export default function SignInScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Tab Selector */}
-        <View style={styles.tabContainer}>
-          <View style={styles.tabSelector}>
-            <Animated.View style={[
-              styles.tabIndicator,
-              { width: singleTabWidth },
-              useAnimatedStyle(() => ({
-                transform: [{
-                  translateX: tabIndicatorPosition.value * singleTabWidth
-                }]
-              }))
-            ]} />
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => handleTabSwitch('email')}
-            >
-              <Text style={[styles.tabText, activeTab === 'email' && styles.activeTabText]}>
-                Email
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.tab}
-              onPress={() => handleTabSwitch('phone')}
-            >
-              <Text style={[styles.tabText, activeTab === 'phone' && styles.activeTabText]}>
-                Phone Number
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Dynamic Input */}
+        {/* Phone Number Input */}
         <View style={styles.formContainer}>
-          <TextInput
-            style={styles.emailInput}
-            placeholder={activeTab === 'email' ? 'Email' : 'Phone'}
-            placeholderTextColor="rgba(111, 115, 128, 0.27)"
-            value={activeTab === 'email' ? email : phone}
-            onChangeText={activeTab === 'email' ? setEmail : handlePhoneInput}
-            keyboardType={activeTab === 'email' ? 'email-address' : 'phone-pad'}
-            autoCapitalize="none"
-            textContentType={activeTab === 'email' ? 'emailAddress' : 'telephoneNumber'}
+          <Text style={styles.inputLabel}>Phone Number</Text>
+          <PhoneInputWithCountry
+            value={phone} // Keep controlled component behavior
+            onChangeText={setPhone} // Pass setter function directly
+            editable={!state.isLoading}
+            placeholder="e.g. +234 801 234 5678"
+            autoFocus
           />
         </View>
 
@@ -160,8 +117,12 @@ export default function SignInScreen() {
 
         {/* Continue Button */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <Text style={styles.continueButtonText}>Continue</Text>
+          <TouchableOpacity style={[styles.continueButton, state.isLoading && styles.disabledButton]} onPress={handleContinue} disabled={state.isLoading}>
+            {state.isLoading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.continueButtonText}>Continue</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -179,7 +140,7 @@ export default function SignInScreen() {
           <View style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Don&apos;t have an account? </Text>
             <TouchableOpacity onPress={handleSignUp}>
-              <Text style={styles.signUpLink}>SIGN UP</Text>
+              <Text style={styles.signUpLink}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -197,7 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 21,
-    paddingTop: 14,
+    paddingTop: 20,
     gap: 12,
     height: 50,
   },
@@ -226,56 +187,23 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  tabContainer: {
+  formContainer: {
     paddingHorizontal: 33,
     paddingTop: 35,
     marginBottom: 27,
   },
-  tabSelector: {
-    flexDirection: 'row',
-    backgroundColor: '#D9D9D9',
-    borderRadius: 16,
-    padding: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
-    position: 'relative',
-    alignSelf: 'stretch',
-  },
-  tabIndicator: {
-    position: 'absolute',
-    top: 3,
-    left: 3,
-    height: 53,
-    // width is now set dynamically
-    backgroundColor: '#06888C',
-    borderRadius: 16,
-    zIndex: 1,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 17,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 53,
-    zIndex: 2,
-  },
-  tabText: {
-    fontSize: 16,
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: 'Open Sans',
     fontWeight: '600',
-    fontFamily: 'Raleway',
-    color: '#7C7B7B',
+    color: '#2B2829',
+    marginBottom: 8,
   },
-  activeTabText: {
-    color: '#FFF',
-  },
-  formContainer: {
-    paddingHorizontal: 33,
-    marginBottom: 19,
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 8,
+    fontFamily: 'Open Sans',
   },
   emailInput: {
     height: 48,
@@ -319,6 +247,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 9,
     elevation: 2,
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
   },
   continueButtonText: {
     fontSize: 16,

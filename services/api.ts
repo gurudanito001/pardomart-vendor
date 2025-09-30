@@ -1,7 +1,7 @@
 import { config } from '../config/environment';
-import { STORAGE_KEYS, HTTP_STATUS, TIMEOUTS } from '../constants';
+import { HTTP_STATUS, STORAGE_KEYS, TIMEOUTS } from '../constants';
+import { ApiError, ApiMethod, ApiResponse } from '../types';
 import { getStorageItem } from '../utils/storage';
-import { ApiResponse, ApiError, ApiMethod } from '../types';
 
 export interface RequestConfig {
   method: ApiMethod;
@@ -138,18 +138,23 @@ class ApiService {
   }
 
   private async makeRequest<T>(config: RequestConfig): Promise<ApiResponse<T>> {
+    const controller = new AbortController();
+    const timeout = config.timeout || this.defaultTimeout;
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
     try {
       // Execute request interceptors
       const modifiedConfig = await this.executeRequestInterceptors(config);
 
       // Build URL with parameters
       const url = this.buildUrl(modifiedConfig.url, modifiedConfig.params);
-
+      
       // Create fetch options
       const fetchOptions: RequestInit = {
         method: modifiedConfig.method,
         headers: modifiedConfig.headers as HeadersInit,
-        signal: AbortSignal.timeout(modifiedConfig.timeout || this.defaultTimeout),
+        // Use the controller's signal which is compatible with React Native
+        signal: controller.signal,
       };
 
       // Add body for non-GET requests
@@ -167,6 +172,9 @@ class ApiService {
 
       // Make the request
       const response = await fetch(url, fetchOptions);
+      
+      // If the request completes, clear the timeout
+      clearTimeout(timeoutId);
 
       // Parse response
       let responseData;
@@ -212,6 +220,9 @@ class ApiService {
       return await this.executeResponseInterceptors(successResponse);
 
     } catch (error: any) {
+      // Ensure the timeout is cleared on any error
+      clearTimeout(timeoutId);
+
       // Handle network errors, timeouts, etc.
       if (error.name === 'AbortError') {
         throw {

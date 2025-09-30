@@ -1,36 +1,85 @@
 import { OTPInput } from '@/components/ui/OTPInput';
+import { useAuth } from '@/context/AppProvider';
 import { AntDesign } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
+  ActivityIndicator,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 export default function VerifyScreen() {
-  const [otp, setOtp] = useState(['', '', '', '', '']);
+  const { verifyOTP, resendOTP, state } = useAuth();
+  const { identifier, fromScreen } = useLocalSearchParams<{ identifier: string; fromScreen?: string }>();
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   // Key to force re-mount of OTPInput on resend for a better UX
   const [otpKey, setOtpKey] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  const handleVerify = () => {
-    // You can add your verification logic here
-    // const code = otp.join('');
-    // console.log('Verifying OTP:', code);
-    router.push('/auth/verified');
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleVerify = async () => {
+    const code = otp.join('');
+    if (code.length !== 6) {
+      toast.error('Please enter the complete 6-digit code.');
+      return;
+    }
+    if (!identifier) {
+      toast.error('Verification identifier is missing. Please go back and try again.');
+      return;
+    }
+
+    try {
+      // Construct the payload to match the API expectation
+      await verifyOTP({
+        mobileNumber: identifier,
+        verificationCode: code,
+        role: 'vendor',
+      });
+      toast.success('Verification successful!');
+
+      // Navigate to the next step based on the flow
+      if (fromScreen === 'register') {
+        router.push('/auth/take-photo');
+      } else {
+        // For sign-in, the root layout will handle the redirect
+        // to the main app stack automatically.
+      }
+    } catch (err: any) {
+      const errorMessage = err?.error?.message || 'Invalid or expired OTP.';
+      toast.error(errorMessage);
+    }
   };
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleResend = () => {
-    // Reset OTP inputs and force re-mount of OTPInput to focus the first field
-    setOtp(['', '', '', '', '']);
-    setOtpKey((prevKey) => prevKey + 1);
+  const handleResend = async () => {
+    if (resendCooldown > 0 || !identifier) return;
+
+    try {
+      await resendOTP({ identifier, role: 'vendor' });
+      toast.success('A new verification code has been sent.');
+      setResendCooldown(60); // Start 60-second cooldown
+      setOtp(['', '', '', '', '', '']);
+      setOtpKey((prevKey) => prevKey + 1);
+    } catch (err: any) {
+      const errorMessage = err?.error?.message || 'Failed to resend code.';
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -44,7 +93,7 @@ export default function VerifyScreen() {
             <AntDesign name="left" size={18} color="#100A37" />
           </View>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Back</Text>
+        <Text style={styles.headerTitle}>OTP Verification</Text>
       </View>
 
       {/* Content */}
@@ -53,29 +102,40 @@ export default function VerifyScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>OTP Verification</Text>
           <Text style={styles.description}>
-            Enter the verification code we just sent to your email address
+            Enter the 6-digit verification code we just sent to your phone number{' '}
+            <Text style={styles.identifierText}>{identifier}</Text>
           </Text>
         </View>
 
         {/* OTP Input */}
         <OTPInput
           key={otpKey}
-          length={5}
+          length={6}
           value={otp}
           onChange={setOtp}
           style={styles.otpContainer}
         />
         {/* Verify Button */}
-        <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
-          <Text style={styles.verifyButtonText}>Verify</Text>
+        <TouchableOpacity
+          style={[styles.verifyButton, state.isLoading && styles.disabledButton]}
+          onPress={handleVerify}
+          disabled={state.isLoading}
+        >
+          {state.isLoading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.verifyButtonText}>Verify</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Resend Section */}
       <View style={styles.resendSection}>
         <Text style={styles.resendText}>Didn&apos;t receive a code? </Text>
-        <TouchableOpacity onPress={handleResend}>
-          <Text style={styles.resendLink}>Resend</Text>
+        <TouchableOpacity onPress={handleResend} disabled={resendCooldown > 0}>
+          <Text style={[styles.resendLink, resendCooldown > 0 && styles.disabledLink]}>
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -140,12 +200,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     lineHeight: 20,
   },
+  identifierText: {
+    fontWeight: 'bold',
+    color: '#000',
+  },
   otpContainer: {
     width: '100%',
-    justifyContent: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    justifyContent: 'space-between',
     marginBottom: 25,
   },
   verifyButton: {
@@ -160,6 +223,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 9,
     elevation: 2,
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
   },
   verifyButtonText: {
     fontSize: 16,
@@ -188,5 +254,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#06888C',
     letterSpacing: 0.7,
+  },
+  disabledLink: {
+    color: '#A9A9A9',
   },
 });

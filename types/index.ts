@@ -1,14 +1,15 @@
+import { AuthRegisterPostRequestRoleEnum } from "@/api";
+
 // User and Authentication Types
 export interface User {
   id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
+  name: string;
+  email?: string;
+  mobileNumber?: string;
   avatar?: string;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  role: 'vendor' | 'admin';
+  isEmailVerified?: boolean;
+  isMobileVerified?: boolean;
+  role: AuthRegisterPostRequestRoleEnum;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,6 +19,8 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isReady: boolean; // True when initial auth check is complete
+  isRegistered: boolean; // True if the user has ever logged in
   error: string | null;
 }
 
@@ -28,19 +31,27 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber?: string;
-  password: string;
-  confirmPassword: string;
-  agreeToTerms: boolean;
+  name: string; // From form
+  role: AuthRegisterPostRequestRoleEnum;
+  email?: string; // From form, one of email/mobile is required
+  mobileNumber?: string; // From form, one of email/mobile is required
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
+  refreshToken?: string;
 }
 
 export interface OTPVerificationRequest {
-  email: string;
-  otp: string;
-  type: 'email_verification' | 'password_reset' | 'login';
+  mobileNumber: string;
+  verificationCode: string;
+  role: 'vendor'  | 'shopper';
+}
+
+export interface ResendOTPRequest {
+  identifier: string; // email or phone number
+  role: AuthRegisterPostRequestRoleEnum;
 }
 
 export interface RefreshTokenRequest {
@@ -75,6 +86,34 @@ export interface VendorProfile {
   joinedAt: string;
   verificationStatus: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
+}
+
+export interface VendorStats {
+  totalOrders: number;
+  totalRevenue: number;
+  averageRating: number;
+  totalReviews: number;
+  completionRate: number;
+  responseTime: number; // in minutes
+}
+
+export interface VendorAnalytics {
+  dailyStats: {
+    date: string;
+    orders: number;
+    revenue: number;
+  }[];
+  topProducts: {
+    id: string;
+    name: string;
+    sales: number;
+    revenue: number;
+  }[];
+  customerMetrics: {
+    newCustomers: number;
+    returningCustomers: number;
+    totalCustomers: number;
+  };
 }
 
 export interface Address {
@@ -119,6 +158,116 @@ export interface VendorDocument {
   uploadedAt: string;
   verificationStatus: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
+}
+
+export interface BusinessHour {
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  isOpen: boolean;
+  openTime: string; // "09:00"
+  closeTime: string; // "17:00"
+  breaks?: {
+    startTime: string;
+    endTime: string;
+  }[];
+}
+
+export interface VendorReview {
+  id: string;
+  customerId: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  orderId: string;
+  createdAt: string;
+}
+
+export interface VendorSettings {
+  notifications: {
+    orders: boolean;
+    payments: boolean;
+    reviews: boolean;
+    promotions: boolean;
+  };
+  privacy: {
+    showPhoneToCustomers: boolean;
+    showEmailToCustomers: boolean;
+  };
+  preferences: {
+    currency: string;
+    timezone: string;
+    language: string;
+  };
+}
+
+export interface VendorVerificationStatus {
+  isVerified: boolean;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  requiredDocuments: string[];
+  submittedDocuments: string[];
+  pendingDocuments: string[];
+  rejectedDocuments: {
+    type: string;
+    reason: string;
+  }[];
+}
+
+export interface BankAccount {
+  id: string;
+  accountNumber: string; // masked
+  bankName: string;
+  accountType: string;
+  isDefault: boolean;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+export interface NewBankAccountRequest {
+  accountNumber: string;
+  routingNumber: string;
+  bankName: string;
+  accountHolderName: string;
+  accountType: 'checking' | 'savings';
+}
+
+export interface Payout {
+  id: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  bankAccountId: string;
+  initiatedAt: string;
+  completedAt?: string;
+  failureReason?: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupportTicketMessage {
+  id: string;
+  message: string;
+  isFromVendor: boolean;
+  createdAt: string;
+}
+
+export interface SupportTicketDetails extends SupportTicket {
+  messages: SupportTicketMessage[];
+}
+
+export interface NewSupportTicketRequest {
+  subject: string;
+  message: string;
+  category: string;
+}
+
+export interface NewSupportTicketResponse {
+  ticketId: string;
+  message: string;
 }
 
 export interface VendorState {
@@ -270,6 +419,10 @@ export interface ThemeColors {
   warning: string;
   success: string;
   info: string;
+}
+
+export interface VendorNotification extends NotificationData {
+  // any vendor-specific notification fields
 }
 
 export interface ResponsiveValue<T> {

@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  View,
-  TextInput,
   StyleSheet,
+  TextInput,
+  View,
   ViewStyle,
 } from 'react-native';
 
@@ -67,7 +67,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({
           ]}
         >
           <TextInput
-            ref={(ref) => (inputRefs.current[index] = ref)}
+            ref={(ref) => { inputRefs.current[index] = ref; }}
             style={styles.input}
             value={value[index] || ''}
             onChangeText={(text) => handleChange(text, index)}
@@ -89,12 +89,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
+    gap: 10,
   },
   
   inputContainer: {
-    width: 49,
-    height: 49,
+    width: 45,
+    height: 45,
     borderRadius: 6.5,
     borderWidth: 1.6,
     justifyContent: 'center',

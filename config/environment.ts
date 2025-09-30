@@ -18,7 +18,7 @@ interface FeatureFlags {
 
 // Development environment
 const development: Environment = {
-  API_BASE_URL: 'http://localhost:3000/api',
+  API_BASE_URL: process.env.API_BASE_URL || 'https://pardomart-node-api-vaje.onrender.com/api/v1',
   API_TIMEOUT: 10000,
   ENABLE_LOGGING: true,
   // Add your development keys here
@@ -29,7 +29,7 @@ const development: Environment = {
 
 // Staging environment
 const staging: Environment = {
-  API_BASE_URL: 'https://staging-api.pardomart.com/api',
+  API_BASE_URL: process.env.API_BASE_URL || 'https://pardomart-node-api-vaje.onrender.com/api/v1',
   API_TIMEOUT: 15000,
   ENABLE_LOGGING: true,
   SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -40,7 +40,7 @@ const staging: Environment = {
 
 // Production environment
 const production: Environment = {
-  API_BASE_URL: 'https://api.pardomart.com/api',
+  API_BASE_URL:  process.env.API_BASE_URL || 'https://pardomart-node-api-vaje.onrender.com/api/v1',
   API_TIMEOUT: 20000,
   ENABLE_LOGGING: false,
   SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,

@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React from "react";
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Circle, ClipPath, Defs, G, Mask, Path, Rect, Svg } from "react-native-svg";
 import DashboardCard from "../../../components/ui/DashboardCard";
 

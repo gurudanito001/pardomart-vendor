@@ -1,209 +1,66 @@
-import { apiService } from './api';
+import {
+  AuthRegisterPostRequest,
+  AuthRegisterPostRequestRoleEnum,
+} from '../api/models';
 import { API_ENDPOINTS } from '../constants';
 import {
-  User,
-  LoginRequest,
-  RegisterRequest,
+  LoginResponse,
   OTPVerificationRequest,
-  RefreshTokenRequest,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  ApiResponse,
+  ResendOTPRequest,
+  User,
 } from '../types';
+import { apiService } from './api';
 
-interface AuthResponse {
-  user: User;
-  token: string;
-  refreshToken?: string;
-}
+export const authService = {
+  /**
+   * Initiates the login process by sending an OTP.
+   */
+  initiateLogin: (data: { mobileNumber: string; role: AuthRegisterPostRequestRoleEnum }) => {
+    return apiService.post(API_ENDPOINTS.AUTH.INITIATE_LOGIN, data);
+  },
 
-interface OTPResponse {
-  message: string;
-  expiresAt: string;
-}
+  /**
+   * Verifies the OTP and logs the user in.
+   */
+  verifyOTP: (data: OTPVerificationRequest) => {
+    // The response from the API service will be wrapped in a standard format.
+    // The context will handle unpacking `response.data`.
+    return apiService.post<LoginResponse>(API_ENDPOINTS.AUTH.VERIFY_LOGIN, data);
+  },
 
-class AuthService {
-  async login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials, {
-      requiresAuth: false,
-    });
-  }
+  /**
+   * Registers a new user and triggers OTP sending.
+   */
+  register: (data: AuthRegisterPostRequest) => {
+    return apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.REGISTER, data);
+  },
 
-  async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, data, {
-      requiresAuth: false,
-    });
-  }
+  /**
+   * A placeholder for a standard login method if you have one.
+   */
+  login: (credentials: any) => {
+    // Replace with your actual login API call if it exists
+    return apiService.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
+  },
 
-  async verifyOTP(data: OTPVerificationRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, data, {
-      requiresAuth: false,
-    });
-  }
+  /**
+   * A placeholder for resending OTP.
+   */
+  resendOTP: (data: ResendOTPRequest) => {
+    return apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.RESEND_OTP, data);
+  },
 
-  async resendOTP(email: string): Promise<ApiResponse<OTPResponse>> {
-    return apiService.post<OTPResponse>(
-      API_ENDPOINTS.AUTH.RESEND_OTP,
-      { email },
-      { requiresAuth: false }
-    );
-  }
+  /**
+   * A placeholder for logging out.
+   */
+  logout: () => {
+    return apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
+  },
 
-  async refreshToken(refreshToken: string): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(
-      API_ENDPOINTS.AUTH.REFRESH_TOKEN,
-      { refreshToken },
-      { requiresAuth: false }
-    );
-  }
-
-  async forgotPassword(data: ForgotPasswordRequest): Promise<ApiResponse<OTPResponse>> {
-    return apiService.post<OTPResponse>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, data, {
-      requiresAuth: false,
-    });
-  }
-
-  async resetPassword(data: ResetPasswordRequest): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.RESET_PASSWORD, data, {
-      requiresAuth: false,
-    });
-  }
-
-  async getCurrentUser(): Promise<ApiResponse<User>> {
+  /**
+   * Gets the current user's profile to validate the token.
+   */
+  getCurrentUser: () => {
     return apiService.get<User>(API_ENDPOINTS.AUTH.CURRENT_USER);
-  }
-
-  async logout(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT);
-  }
-
-  // Social login methods (to be implemented based on your social auth setup)
-  async loginWithGoogle(idToken: string): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(
-      `${API_ENDPOINTS.AUTH.LOGIN}/google`,
-      { idToken },
-      { requiresAuth: false }
-    );
-  }
-
-  async loginWithFacebook(accessToken: string): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(
-      `${API_ENDPOINTS.AUTH.LOGIN}/facebook`,
-      { accessToken },
-      { requiresAuth: false }
-    );
-  }
-
-  async loginWithApple(identityToken: string, authorizationCode?: string): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(
-      `${API_ENDPOINTS.AUTH.LOGIN}/apple`,
-      { identityToken, authorizationCode },
-      { requiresAuth: false }
-    );
-  }
-
-  // Biometric authentication helpers
-  async enableBiometricAuth(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/biometric/enable');
-  }
-
-  async disableBiometricAuth(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/biometric/disable');
-  }
-
-  async loginWithBiometric(biometricData: string): Promise<ApiResponse<AuthResponse>> {
-    return apiService.post<AuthResponse>(
-      '/auth/biometric/login',
-      { biometricData },
-      { requiresAuth: false }
-    );
-  }
-
-  // Account management
-  async changePassword(currentPassword: string, newPassword: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/change-password', {
-      currentPassword,
-      newPassword,
-    });
-  }
-
-  async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return apiService.patch<User>('/auth/profile', data);
-  }
-
-  async deleteAccount(password: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.delete<{ message: string }>('/auth/account', {
-      data: { password },
-    });
-  }
-
-  // Email and phone verification
-  async verifyEmail(token: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/verify-email', { token });
-  }
-
-  async resendEmailVerification(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/resend-email-verification');
-  }
-
-  async verifyPhone(phoneNumber: string, otp: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/verify-phone', {
-      phoneNumber,
-      otp,
-    });
-  }
-
-  async resendPhoneVerification(phoneNumber: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post<{ message: string }>('/auth/resend-phone-verification', {
-      phoneNumber,
-    });
-  }
-
-  // Session management
-  async getSessions(): Promise<ApiResponse<Array<{
-    id: string;
-    deviceInfo: string;
-    ipAddress: string;
-    lastActive: string;
-    isCurrent: boolean;
-  }>>> {
-    return apiService.get('/auth/sessions');
-  }
-
-  async revokeSession(sessionId: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.delete(`/auth/sessions/${sessionId}`);
-  }
-
-  async revokeAllSessions(): Promise<ApiResponse<{ message: string }>> {
-    return apiService.delete('/auth/sessions/all');
-  }
-
-  // Two-factor authentication
-  async enableTwoFactor(): Promise<ApiResponse<{
-    qrCode: string;
-    secret: string;
-    backupCodes: string[];
-  }>> {
-    return apiService.post('/auth/2fa/enable');
-  }
-
-  async confirmTwoFactor(code: string): Promise<ApiResponse<{
-    backupCodes: string[];
-  }>> {
-    return apiService.post('/auth/2fa/confirm', { code });
-  }
-
-  async disableTwoFactor(code: string): Promise<ApiResponse<{ message: string }>> {
-    return apiService.post('/auth/2fa/disable', { code });
-  }
-
-  async generateBackupCodes(): Promise<ApiResponse<{ backupCodes: string[] }>> {
-    return apiService.post('/auth/2fa/backup-codes');
-  }
-}
-
-// Create and export singleton instance
-export const authService = new AuthService();
-
-// Export the class for testing
-export { AuthService };
+  },
+};

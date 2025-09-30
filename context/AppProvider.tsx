@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { AuthProvider } from './AuthContext';
-import { VendorProvider } from './VendorContext';
+import { AuthProvider, useAuth as useAuthFromContext } from './AuthContext';
+import { VendorProvider, useVendor as useVendorFromContext } from './VendorContext';
 
 interface AppProviderProps {
   children: ReactNode;
@@ -17,8 +17,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 };
 
 // Re-export hooks for convenience
-export { useAuth } from './AuthContext';
-export { useVendor } from './VendorContext';
+export const useAuth = useAuthFromContext;
+export const useVendor = useVendorFromContext;
 
 // Re-export types
 export type { AuthState, VendorState } from '../types';

@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import React for the hook
+import React from 'react';
+
 /**
  * Set an item in AsyncStorage
  * @param key Storage key
@@ -61,7 +64,7 @@ export const clearStorage = async (): Promise<void> => {
  */
 export const getAllKeys = async (): Promise<string[]> => {
   try {
-    return await AsyncStorage.getAllKeys();
+    return Array.from(await AsyncStorage.getAllKeys());
   } catch (error) {
     console.error('Error getting all keys:', error);
     return [];
@@ -75,7 +78,7 @@ export const getAllKeys = async (): Promise<string[]> => {
  */
 export const getMultipleItems = async (keys: string[]): Promise<[string, string | null][]> => {
   try {
-    return await AsyncStorage.multiGet(keys);
+    return Array.from(await AsyncStorage.multiGet(keys));
   } catch (error) {
     console.error('Error getting multiple items:', error);
     return [];
@@ -235,6 +238,3 @@ export const useAsyncStorage = <T>(key: string, defaultValue: T) => {
     removeValue,
   };
 };
-
-// Import React for the hook
-import React from 'react';

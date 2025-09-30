@@ -11,8 +11,9 @@ export const API_ENDPOINTS = {
   // Auth endpoints
   AUTH: {
     LOGIN: '/auth/login',
+    INITIATE_LOGIN: '/auth/initiate-login',
     REGISTER: '/auth/register',
-    VERIFY_OTP: '/auth/verify-otp',
+    VERIFY_LOGIN: '/auth/verify-login',
     RESEND_OTP: '/auth/resend-otp',
     REFRESH_TOKEN: '/auth/refresh',
     LOGOUT: '/auth/logout',
@@ -41,6 +42,7 @@ export const API_ENDPOINTS = {
 // Storage Keys
 export const STORAGE_KEYS = {
   AUTH_TOKEN: '@pardomart_vendor:auth_token',
+  IS_REGISTERED: '@pardomart_vendor:is_registered',
   REFRESH_TOKEN: '@pardomart_vendor:refresh_token',
   USER_DATA: '@pardomart_vendor:user_data',
   VENDOR_PROFILE: '@pardomart_vendor:vendor_profile',

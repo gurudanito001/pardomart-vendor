@@ -1,49 +1,73 @@
-import TabSelector from '@/components/ui/TabSelector';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import PhoneInputWithCountry from '@/components/PhoneInputWithCountry';
+import { useAuth } from '@/context/AppProvider';
+import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import {
-    useSharedValue
-} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 export default function RegisterScreen() {
-  const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
+  const { register, state } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-
-  // Animation values
-  const tabIndicatorPosition = useSharedValue(0);
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleCreateAccount = () => {
-    router.push('/auth/verify');
+  const handleCreateAccount = async () => {
+    if (!name.trim()) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    if (!email.trim()) {
+      toast.error('Please enter your email address.');
+      return;
+    }
+    if (!phone.trim()) {
+      toast.error('Please enter your phone number.');
+      return;
+    }
+    if (!agreedToTerms) {
+      toast.error('You must agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
+
+    const registrationData = {
+      name,
+      role: 'vendor' as const,
+      email: email,
+      mobileNumber: phone,
+    };
+
+    try {
+      console.log('Registering with data:', registrationData);
+      await register(registrationData);
+      toast.success('Registration successful! Please verify your account.');
+      router.push({
+        pathname: '/auth/verify',
+        params: { identifier: phone, fromScreen: 'register' },
+      });
+    } catch (err: any) {
+      const errorMessage = err?.error?.message || 'An unexpected error occurred during registration.';
+      toast.error(errorMessage);
+    }
   };
 
   const handleSignIn = () => {
     router.push('/auth/sign-in');
-  };
-
-  const handlePhoneInput = (text: string) => {
-    // Only allow numbers and some formatting characters
-    const cleanedText = text.replace(/[^0-9+\-\s()]/g, '');
-    setPhone(cleanedText);
   };
 
   return (
@@ -61,64 +85,45 @@ export default function RegisterScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Tab Selector */}
-        <TabSelector 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          tabIndicatorPosition={tabIndicatorPosition}
-        />
-
         {/* Form Fields */}
         <View style={styles.formContainer}>
           {/* Name Input */}
           <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Business Name</Text>
             <TextInput
               style={styles.textInput}
               placeholder="Name"
               placeholderTextColor="rgba(111, 115, 128, 0.27)"
               value={name}
+              editable={!state.isLoading}
               onChangeText={setName}
               autoCapitalize="words"
             />
           </View>
 
-          {/* Dynamic Email/Phone Input */}
+          {/* Email Input */}
           <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Email Address</Text>
             <TextInput
               style={styles.textInput}
-              placeholder={activeTab === 'email' ? 'Email' : 'Phone'}
+              placeholder="e.g. yourname@example.com"
               placeholderTextColor="rgba(111, 115, 128, 0.27)"
-              value={activeTab === 'email' ? email : phone}
-              onChangeText={activeTab === 'email' ? setEmail : handlePhoneInput}
-              keyboardType={activeTab === 'email' ? 'email-address' : 'phone-pad'}
+              value={email}
+              editable={!state.isLoading}
+              onChangeText={setEmail}
+              keyboardType="email-address"
               autoCapitalize="none"
-              textContentType={activeTab === 'email' ? 'emailAddress' : 'telephoneNumber'}
             />
           </View>
-
-          {/* Password Input */}
+          {/* Phone Input */}
           <View style={styles.inputContainer}>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Password"
-                placeholderTextColor="rgba(111, 115, 128, 0.27)"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={styles.passwordToggle}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons
-                  name={showPassword ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color="#6F7380"
-                />
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.inputLabel}>Phone Number</Text>
+            <PhoneInputWithCountry
+              value={phone}
+              onChangeText={setPhone}
+              editable={!state.isLoading}
+              placeholder="e.g. +234 801 234 5678"
+            />
           </View>
 
           {/* Terms Agreement */}
@@ -141,8 +146,14 @@ export default function RegisterScreen() {
 
         {/* Create Account Button */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.createButton} onPress={handleCreateAccount}>
-            <Text style={styles.createButtonText}>Create account</Text>
+          <TouchableOpacity
+            style={[styles.createButton, state.isLoading && styles.disabledButton]}
+            onPress={handleCreateAccount}
+            disabled={state.isLoading}>
+            {state.isLoading
+              ? <ActivityIndicator color="#FFF" />
+              : <Text style={styles.createButtonText}>Create account</Text>
+            }
           </TouchableOpacity>
 
           {/* Sign In Link */}
@@ -198,11 +209,19 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingHorizontal: 33,
+    paddingVertical: 24,
     gap: 16,
     marginBottom: 16,
   },
   inputContainer: {
     marginBottom: 0,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: 'Open Sans',
+    fontWeight: '600',
+    color: '#2B2829',
+    marginBottom: 8,
   },
   textInput: {
     height: 48,
@@ -293,6 +312,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 9,
     elevation: 2,
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
   },
   createButtonText: {
     fontSize: 16,
