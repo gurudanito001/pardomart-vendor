@@ -6,38 +6,7 @@ export const APP_CONFIG = {
   FORCE_UPDATE_VERSION: '1.0.0',
 } as const;
 
-// API Endpoints
-export const API_ENDPOINTS = {
-  // Auth endpoints
-  AUTH: {
-    LOGIN: '/auth/login',
-    INITIATE_LOGIN: '/auth/initiate-login',
-    REGISTER: '/auth/register',
-    VERIFY_LOGIN: '/auth/verify-login',
-    RESEND_OTP: '/auth/resend-otp',
-    REFRESH_TOKEN: '/auth/refresh',
-    LOGOUT: '/auth/logout',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    RESET_PASSWORD: '/auth/reset-password',
-    CURRENT_USER: '/auth/me',
-  },
-  
-  // Vendor endpoints
-  VENDOR: {
-    PROFILE: '/auth/profile',
-    UPDATE_PROFILE: '/auth/profile',
-    UPLOAD_DOCUMENT: '/auth/documents',
-    GO_ONLINE: '/auth/status/online',
-    GO_OFFLINE: '/auth/status/offline',
-    UPLOAD_SELFIE: '/auth/selfie',
-  },
-  
-  // File upload
-  UPLOAD: {
-    IMAGE: '/upload/image',
-    DOCUMENT: '/upload/document',
-  },
-} as const;
+// Legacy API endpoint constants removed in favor of generated OpenAPI client
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -108,10 +77,20 @@ export const ERROR_MESSAGES = {
   PHONE_INVALID: 'Please enter a valid phone number.',
   NAME_REQUIRED: 'Name is required.',
   NAME_INVALID: 'Name should only contain letters and spaces.',
-  
-  // File upload
+  OTP_REQUIRED: 'OTP is required.',
+
+  // Generic templates
+  REQUIRED_FIELD: '{field} is required.',
+  PASSWORD_CONFIRM_REQUIRED: 'Password confirmation is required.',
+  PASSWORDS_MISMATCH: 'Passwords do not match.',
   FILE_TOO_LARGE: 'File size should not exceed 5MB.',
+  FILE_TOO_LARGE_WITH_SIZE: 'File size should not exceed {size}MB.',
   INVALID_FILE_TYPE: 'Invalid file type. Please select a valid file.',
+  URL_INVALID: 'Please enter a valid URL.',
+  DATE_INVALID: 'Please enter a valid date.',
+  DATE_TOO_EARLY: 'Date must be after {date}.',
+  DATE_TOO_LATE: 'Date must be before {date}.',
+  NUMBER_INVALID: '{field} must be a valid number.',
   UPLOAD_FAILED: 'File upload failed. Please try again.',
 } as const;
 

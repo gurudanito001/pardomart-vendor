@@ -73,6 +73,7 @@ docs/GeneralSearchStoreProductsStoreIdGet200ResponseOneOfInner.md
 docs/HealthApi.md
 docs/HealthGet200Response.md
 docs/InitiateLogin.md
+docs/MediaApi.md
 docs/Message.md
 docs/MessageWithRelations.md
 docs/MessagingApi.md
@@ -178,6 +179,7 @@ endpoints/fee-api.ts
 endpoints/general-api.ts
 endpoints/general-search-api.ts
 endpoints/health-api.ts
+endpoints/media-api.ts
 endpoints/messaging-api.ts
 endpoints/notification-api.ts
 endpoints/order-api.ts

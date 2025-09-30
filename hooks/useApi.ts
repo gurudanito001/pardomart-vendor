@@ -1,5 +1,17 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { UseApiOptions, UseApiReturn } from '../types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+export interface UseApiOptions {
+  immediate?: boolean;
+  onSuccess?: (data: any) => void;
+  onError?: (error: any) => void;
+}
+
+export interface UseApiReturn<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  execute: (...args: any[]) => Promise<T>;
+  reset: () => void;
+}
 
 /**
  * Custom hook for managing API calls with loading, error, and data states
@@ -69,7 +81,7 @@ export function useApi<T, Args extends any[] = any[]>(
   // Execute immediately if requested
   useEffect(() => {
     if (immediate) {
-      execute();
+      (execute as unknown as () => Promise<any>)();
     }
   }, [immediate, execute]);
 
@@ -125,8 +137,20 @@ export function usePaginatedApi<T>(
 
       const response = await apiFunction(page, pagination.limit);
       
-      setItems(prev => append ? [...prev, ...response.data.items] : response.data.items);
-      setPagination(response.data.pagination);
+      // Ensure items is always an array
+      const serverItems = response?.data?.items ?? [];
+      setItems(prev => append ? [...prev, ...serverItems] : serverItems);
+
+      // Ensure pagination is always an object with defaults to avoid introducing undefined
+      const serverPagination = response?.data?.pagination ?? {} as any;
+      setPagination(prev => ({
+        page: serverPagination.page ?? prev.page,
+        limit: serverPagination.limit ?? prev.limit,
+        total: serverPagination.total ?? prev.total,
+        totalPages: serverPagination.totalPages ?? prev.totalPages,
+        hasNext: serverPagination.hasNext ?? prev.hasNext,
+        hasPrev: serverPagination.hasPrev ?? prev.hasPrev,
+      }));
     } catch (err: any) {
       const errorMessage = err.error?.message || err.message || 'An error occurred';
       setError(errorMessage);
@@ -134,7 +158,7 @@ export function usePaginatedApi<T>(
       setLoading(false);
       setRefreshing(false);
     }
-  }, [apiFunction, pagination.limit]);
+  }, [apiFunction, pagination?.limit]);
 
   const loadMore = useCallback(() => {
     if (!loading && pagination.hasNext) {
@@ -202,23 +226,24 @@ export function useMultipleApi<T extends Record<string, any>>(
     // Clear previous errors
     setErrors(prev => ({
       ...prev,
-      ...callsToExecute.reduce((acc, name) => ({ ...acc, [name]: null }), {}),
+      ...callsToExecute.reduce((acc, name) => ({ ...acc, [name]: undefined }), {} as any),
     }));
 
-    const promises = callsToExecute.map(async (name) => {
+    type ResultItem = { name: keyof T; data?: T[keyof T]; error?: string };
+    const promises: Promise<ResultItem>[] = callsToExecute.map(async (name) => {
       try {
         const response = await apiCalls[name]();
-        return { name, data: response.data, error: null };
+        return { name, data: response.data } as ResultItem;
       } catch (err: any) {
         const errorMessage = err.error?.message || err.message || 'An error occurred';
-        return { name, data: null, error: errorMessage };
+        return { name, error: errorMessage } as ResultItem;
       }
     });
 
     const results = await Promise.allSettled(promises);
     
     const newData: Partial<T> = {};
-    const newErrors: { [K in keyof T]?: string } = {};
+    const newErrors: Partial<Record<keyof T, string | undefined>> = {};
     const newLoading: { [K in keyof T]?: boolean } = {};
 
     results.forEach((result, index) => {
@@ -226,10 +251,10 @@ export function useMultipleApi<T extends Record<string, any>>(
       newLoading[callName] = false;
       
       if (result.status === 'fulfilled') {
-        const { data, error } = result.value;
-        if (error) {
+        const { data, error } = result.value as ResultItem;
+        if (error !== undefined) {
           newErrors[callName] = error;
-        } else {
+        } else if (data !== undefined) {
           newData[callName] = data;
         }
       } else {

@@ -6,6 +6,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |------------- | ------------- | -------------|
 |[**devicesFcmTokenDelete**](#devicesfcmtokendelete) | **DELETE** /devices/{fcmToken} | Unregister a device for push notifications|
 |[**devicesPost**](#devicespost) | **POST** /devices | Register a device for push notifications|
+|[**productUserUserIdGet**](#productuseruseridget) | **GET** /product/user/{userId} | Get all products from all vendors belonging to a user|
 |[**usersGet**](#usersget) | **GET** /users | Get a paginated list of users|
 |[**usersIdDelete**](#usersiddelete) | **DELETE** /users/{id} | Delete a user|
 |[**usersIdGet**](#usersidget) | **GET** /users/{id} | Get a user by their ID|
@@ -110,6 +111,57 @@ const { status, data } = await apiInstance.devicesPost(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** | Device registered successfully. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productUserUserIdGet**
+> Array<VendorProduct> productUserUserIdGet()
+
+Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+
+### Example
+
+```typescript
+import {
+    UserApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new UserApi(configuration);
+
+let userId: string; //The ID of the user whose vendor products are to be fetched. (default to undefined)
+
+const { status, data } = await apiInstance.productUserUserIdGet(
+    userId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **userId** | [**string**] | The ID of the user whose vendor products are to be fetched. | defaults to undefined|
+
+
+### Return type
+
+**Array<VendorProduct>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of vendor products. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

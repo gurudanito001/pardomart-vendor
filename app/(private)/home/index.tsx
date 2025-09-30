@@ -299,7 +299,7 @@ export default function HomeScreen() {
         <View style={styles.dashboardGrid}>
           <View style={styles.gridRow}>
             <DashboardCard
-              title="My Store"
+              title="My Stores"
               subtitle="Checkout your store informations now"
               iconComponent={<StoreIcon />}
               onPress={() => handleCardPress("store")}

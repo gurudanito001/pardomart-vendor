@@ -1,14 +1,8 @@
 import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 import { AuthRegisterPostRequest } from '../api';
+import { authApi } from '../api/client';
+import type { User } from '../api/models';
 import { STORAGE_KEYS } from '../constants';
-import { authService } from '../services/auth';
-import {
-  AuthState,
-  OTPVerificationRequest,
-  RegisterRequest,
-  ResendOTPRequest,
-  User,
-} from '../types';
 import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
 
 // Auth Actions
@@ -22,6 +16,17 @@ type AuthAction =
   | { type: 'SET_AUTHENTICATED'; payload: { user: User; token: string } }
   | { type: 'SET_REGISTERED'; payload: boolean }
   | { type: 'CLEAR_ERROR' };
+
+// Local auth state type (replaces previous types)
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  isReady: boolean;
+  isRegistered: boolean;
+  error: string | null;
+}
 
 // Initial state
 const initialState: AuthState = {
@@ -118,9 +123,9 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 interface AuthContextType {
   state: AuthState;
   initiateLogin: (mobileNumber: string, role: AuthRegisterPostRequest['role']) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
-  verifyOTP: (data: OTPVerificationRequest) => Promise<void>; // This is verify-login
-  resendOTP: (data: ResendOTPRequest) => Promise<void>;
+  register: (data: AuthRegisterPostRequest) => Promise<void>;
+  verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => Promise<void>;
+  resendOTP: (data: { identifier: string; role: AuthRegisterPostRequest['role'] }) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   initializeAuth: () => Promise<void>;
@@ -145,9 +150,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  const migrateLegacyStorageKeys = async () => {
+    // Migrate any old, non-namespaced keys if they exist
+    const legacyToken = await getStorageItem<string>('auth_token');
+    const legacyUser = await getStorageItem<User>('user_data');
+    const legacyIsRegistered = await getStorageItem<boolean>('is_registered');
+
+    const writes: Promise<any>[] = [];
+
+    if (legacyToken) {
+      writes.push(setStorageItem(STORAGE_KEYS.AUTH_TOKEN, legacyToken));
+      writes.push(removeStorageItem('auth_token'));
+    }
+    if (legacyUser) {
+      writes.push(setStorageItem(STORAGE_KEYS.USER_DATA, legacyUser));
+      writes.push(removeStorageItem('user_data'));
+    }
+    if (typeof legacyIsRegistered !== 'undefined' && legacyIsRegistered !== null) {
+      writes.push(setStorageItem(STORAGE_KEYS.IS_REGISTERED, legacyIsRegistered));
+      writes.push(removeStorageItem('is_registered'));
+    }
+
+    if (writes.length) {
+      await Promise.all(writes);
+    }
+  };
+
   const initializeAuth = async () => {
     try {
       dispatch({ type: 'AUTH_START' });
+      await migrateLegacyStorageKeys();
       
       const [token, user, isRegistered] = await Promise.all([
         getStorageItem<string>(STORAGE_KEYS.AUTH_TOKEN),
@@ -192,6 +224,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       removeStorageItem(STORAGE_KEYS.AUTH_TOKEN),
       removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN),
       removeStorageItem(STORAGE_KEYS.USER_DATA),
+      // Also remove any legacy keys to avoid duplication
+      removeStorageItem('auth_token'),
+      removeStorageItem('user_data'),
+      removeStorageItem('is_registered'),
     ]);
   };
 
@@ -207,7 +243,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initiateLogin = async (mobileNumber: string, role: AuthRegisterPostRequest['role']) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      await authService.initiateLogin({ mobileNumber, role });
+      await authApi().authInitiateLoginPost({ mobileNumber, role } as any);
       // This action completes, but doesn't log the user in. Just finish loading.
       dispatch({ type: 'AUTH_FINISH' });
     } catch (error: any) {
@@ -216,10 +252,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: RegisterRequest) => {
+  const register = async (data: AuthRegisterPostRequest) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      await authService.register(data as AuthRegisterPostRequest);
+      await authApi().authRegisterPost(data as AuthRegisterPostRequest);
       // Registration is successful, but the user is not logged in yet. Finish loading.
       dispatch({ type: 'AUTH_FINISH' });
     } catch (error: any) {
@@ -228,18 +264,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const verifyOTP = async (data: OTPVerificationRequest) => {
+  const verifyOTP = async (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authService.verifyOTP(data);
-      
-      await saveAuthData(response.data.user, response.data.token, response.data.refreshToken);
-      
+      const response: any = await authApi().authVerifyLoginPost(data as any);
+      const payload = response?.data?.data || response?.data || {};
+
+      await saveAuthData(payload.user, payload.token, payload.refreshToken);
+
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: {
-          user: response.data.user,
-          token: response.data.token,
+          user: payload.user,
+          token: payload.token,
         },
       });
     } catch (error: any) {
@@ -248,11 +285,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const resendOTP = async (data: ResendOTPRequest) => {
+  const resendOTP = async (data: { identifier: string; role: AuthRegisterPostRequest['role'] }) => {
     try {
       // This action doesn't need a loading spinner in the context,
       // as it's usually a small action on the verify screen.
-      await authService.resendOTP(data);
+      await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role } as any);
     } catch (error: any) {
       throw error;
     }
@@ -273,7 +310,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
   const logout = async () => {
     try {
-      await authService.logout();
+      // If there is a logout endpoint in the OpenAPI, call it here instead
     } catch (error) {
       // Continue with logout even if API call fails
       console.warn('Logout API call failed:', error);

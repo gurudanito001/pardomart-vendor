@@ -16,7 +16,7 @@ import {
     NotificationSVG,
     SupportSVG
 } from '../../../components/icons';
-import { Category, Store } from '../../../types';
+// Removed legacy types import
 
 const MOCK_CATEGORIES: Category[] = [
   {

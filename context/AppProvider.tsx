@@ -20,5 +20,4 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 export const useAuth = useAuthFromContext;
 export const useVendor = useVendorFromContext;
 
-// Re-export types
-export type { AuthState, VendorState } from '../types';
+// No state type re-exports to avoid coupling with removed local types

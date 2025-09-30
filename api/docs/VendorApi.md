@@ -361,6 +361,7 @@ const apiInstance = new VendorApi(configuration);
 let name: string; //Filter vendors by name (case-insensitive search). (optional) (default to undefined)
 let latitude: number; //User\'s current latitude to sort vendors by distance. (optional) (default to undefined)
 let longitude: number; //User\'s current longitude to sort vendors by distance. (optional) (default to undefined)
+let userId: string; //Filter vendors by the user who owns them. (optional) (default to undefined)
 let page: number; //Page number for pagination. (optional) (default to 1)
 let size: number; //Number of items per page. (optional) (default to 20)
 
@@ -368,6 +369,7 @@ const { status, data } = await apiInstance.vendorsGet(
     name,
     latitude,
     longitude,
+    userId,
     page,
     size
 );
@@ -380,6 +382,7 @@ const { status, data } = await apiInstance.vendorsGet(
 | **name** | [**string**] | Filter vendors by name (case-insensitive search). | (optional) defaults to undefined|
 | **latitude** | [**number**] | User\&#39;s current latitude to sort vendors by distance. | (optional) defaults to undefined|
 | **longitude** | [**number**] | User\&#39;s current longitude to sort vendors by distance. | (optional) defaults to undefined|
+| **userId** | [**string**] | Filter vendors by the user who owns them. | (optional) defaults to undefined|
 | **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
 | **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
 

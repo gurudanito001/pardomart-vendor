@@ -1,17 +1,17 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-import { Customer } from '../../../types';
+// Removed legacy types import
 
 const MOCK_CUSTOMERS: Customer[] = [
   {

@@ -16,9 +16,11 @@ import {
   NotificationSVG,
   SupportSVG
 } from '../../../components/icons';
-import { Store } from '../../../types';
+// Removed legacy types import
 
-const MOCK_STORES: Store[] = [
+type StoreItem = { id: string; name: string; address: string; logo: string };
+
+const MOCK_STORES: StoreItem[] = [
   {
     id: '1',
     name: 'Jewel Osco',
@@ -62,7 +64,7 @@ export default function MyStoresScreen() {
     router.push(`/(private)/store/select-category?storeId=${storeId}`);
   };
 
-  const StoreCard = ({ store }: { store: Store }) => (
+  const StoreCard = ({ store }: { store: StoreItem }) => (
     <TouchableOpacity 
       style={styles.storeCard} 
       onPress={() => handleStoreSelect(store.id)}

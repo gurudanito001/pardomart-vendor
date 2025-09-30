@@ -1,32 +1,72 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
+import { vendorApi } from '../../../api/client';
 import EmptyStore from '../../../components/EmptyStore';
+import { useAuth } from '../../../context/AppProvider';
+import { usePaginatedApi } from '../../../hooks/useApi';
 
 export default function StoreScreen() {
   const { empty } = useLocalSearchParams();
-  const [hasStores, setHasStores] = useState(true); // For now, defaulting to true, can be connected to real data later
-  const [showEmptyState, setShowEmptyState] = useState(false);
+  const { state: authState } = useAuth();
+
+  const userId = authState.user?.id;
+
+  const {
+    items: vendors,
+    pagination,
+    loading,
+    refreshing,
+    error,
+    loadMore,
+    refresh,
+  } = usePaginatedApi<any>(
+    async (page: number, limit: number) => {
+      if (!userId) {
+        return {
+          data: {
+            items: [],
+            pagination: {
+              page: 1,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false,
+            },
+          },
+        };
+      }
+      const api = vendorApi();
+      const res = await api.vendorsGet(undefined, undefined, undefined, userId, page, limit);
+      return { data: res.data } as any;
+    },
+    20,
+  );
 
   useEffect(() => {
-    // If empty parameter is passed, show empty state
     if (empty === 'true') {
-      setShowEmptyState(true);
-    } else {
-      // Check if user actually has stores (this would be from real data/API)
-      setShowEmptyState(!hasStores);
+      // Force empty state via route param for testing
+      // No-op: rendering will naturally be empty if vendors length is 0
     }
-  }, [empty, hasStores]);
+  }, [empty]);
+
+  // Refetch when userId becomes available
+  useEffect(() => {
+    if (authState.isReady && userId) {
+      refresh();
+    }
+  }, [authState.isReady, userId, refresh]);
 
   const handleGoBack = () => {
     router.back();
@@ -40,8 +80,8 @@ export default function StoreScreen() {
     console.log('Open support');
   };
 
-  const handleStorePress = (storeName: string) => {
-    console.log(`Open store: ${storeName}`);
+  const handleStorePress = (vendorId: string) => {
+    router.push('/(private)/store/edit-store' as any);
   };
 
   const handleAddNewStore = () => {
@@ -90,8 +130,12 @@ export default function StoreScreen() {
     </TouchableOpacity>
   );
 
-  // If showing empty state, render EmptyStore component
-  if (showEmptyState) {
+  const safeVendors = vendors ?? [];
+  const totalStores = (pagination?.total ?? 0) || safeVendors.length || 0;
+  const isEmpty = !loading && totalStores === 0;
+
+  // Empty state
+  if (empty === 'true' || isEmpty) {
     return (
       <EmptyStore
         onGoBack={handleGoBack}
@@ -138,60 +182,32 @@ export default function StoreScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Stores Count */}
-          <Text style={styles.storesCount}>You have 4 stores added</Text>
+          <Text style={styles.storesCount}>You have {totalStores} {totalStores === 1 ? 'store' : 'stores'} added</Text>
 
-          {/* Store Cards Grid */}
+          {/* Store Cards Grid (dynamic) */}
           <View style={styles.storeGrid}>
-            {/* First Row */}
-            <View style={styles.storeRow}>
-              <StoreCard
-                storeName="Jewel Osco"
-                address="wallgreaan lane 1234 Wesbromich, New York, 06675"
-                onPress={() => handleStorePress('Jewel Osco 1')}
-              />
-              <StoreCard
-                storeName="Jewel Osco"
-                address="lane 1234 Wesbromich, Southside"
-                onPress={() => handleStorePress('Jewel Osco 2')}
-              />
-            </View>
-
-            {/* Second Row */}
-            <View style={styles.storeRow}>
-              <StoreCard
-                storeName="Jewel Osco"
-                address="Wesbromich, New York, 06675 454miles"
-                onPress={() => handleStorePress('Jewel Osco 3')}
-              />
-              <StoreCard
-                storeName="Jewel Osco"
-                address="southsid3e wlassgreenn newyork 6654"
-                onPress={() => handleStorePress('Jewel Osco 4')}
-              />
-            </View>
-
-            {/* Third Row */}
-            <View style={styles.storeRow}>
-              <TouchableOpacity style={styles.unpublishedStoreCard} onPress={handleViewUnpublishedStore}>
-                <View style={styles.storeCardContent}>
-                  <View style={styles.logoContainer}>
-                    <Image
-                      source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120' }}
-                      style={styles.storeLogo}
-                      resizeMode="contain"
+            {/* Render vendors in rows of 2 to preserve layout */}
+            {safeVendors.reduce((rows: any[], vendor: any, index: number) => {
+              if (index % 2 === 0) rows.push([vendor]);
+              else rows[rows.length - 1].push(vendor);
+              return rows;
+            }, []).map((row: any[], rowIndex: number) => (
+              <View key={`row-${rowIndex}`} style={styles.storeRow}>
+                {row.map((v: any, colIndex: number) => {
+                  const name = v.businessName || v.name || 'Unnamed Store';
+                  const address = v.address?.street || v.address || '';
+                  return (
+                    <StoreCard
+                      key={v.id || `${rowIndex}-${colIndex}`}
+                      storeName={name}
+                      address={address}
+                      onPress={() => handleStorePress(v.id)}
                     />
-                  </View>
-                  <View style={styles.storeInfo}>
-                    <Text style={styles.storeName}>Jewel Osco</Text>
-                    <Text style={styles.storeAddress}>Unpublished Store - View Products</Text>
-                    <View style={styles.unpublishedBadge}>
-                      <Text style={styles.unpublishedText}>UNPUBLISHED</Text>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-              <View style={{ flex: 1 }} />
-            </View>
+                  );
+                })}
+                {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
+              </View>
+            ))}
 
             {/* Add Store Card */}
             <View style={styles.addStoreRow}>

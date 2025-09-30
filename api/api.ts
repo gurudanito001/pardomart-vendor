@@ -26,6 +26,7 @@ export * from './endpoints/fee-api';
 export * from './endpoints/general-api';
 export * from './endpoints/general-search-api';
 export * from './endpoints/health-api';
+export * from './endpoints/media-api';
 export * from './endpoints/messaging-api';
 export * from './endpoints/notification-api';
 export * from './endpoints/order-api';

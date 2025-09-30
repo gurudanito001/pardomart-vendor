@@ -1,23 +1,23 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ArrowBackButtonSVG,
-  ArrowBackSVG,
-  NotificationSVG,
-  OrderSVG,
-  SupportSVG
+    ArrowBackButtonSVG,
+    ArrowBackSVG,
+    NotificationSVG,
+    OrderSVG,
+    SupportSVG
 } from '../../../components/icons';
-import { Customer, Transaction } from '../../../types';
+// Removed legacy types import
 
 const MOCK_TRANSACTIONS: Transaction[] = [
   { id: '1', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },

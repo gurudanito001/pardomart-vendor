@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**productIdPatch**](#productidpatch) | **PATCH** /product/{id} | Update a base product|
 |[**productPost**](#productpost) | **POST** /product | Create a base product|
 |[**productTagsIdsGet**](#producttagsidsget) | **GET** /product/tags/ids | Get base products by tag IDs|
+|[**productUserUserIdGet**](#productuseruseridget) | **GET** /product/user/{userId} | Get all products from all vendors belonging to a user|
 |[**productVendorBarcodeGet**](#productvendorbarcodeget) | **GET** /product/vendor/barcode | Get a vendor-specific product by barcode|
 |[**productVendorBarcodePost**](#productvendorbarcodepost) | **POST** /product/vendor/barcode | Create a vendor product via barcode scan|
 |[**productVendorCategoryGet**](#productvendorcategoryget) | **GET** /product/vendor/category | Get vendor products by category|
@@ -322,6 +323,57 @@ No authorization required
 |-------------|-------------|------------------|
 |**200** | A list of products matching the tag IDs. |  -  |
 |**400** | tagIds query parameter is required. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productUserUserIdGet**
+> Array<VendorProduct> productUserUserIdGet()
+
+Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let userId: string; //The ID of the user whose vendor products are to be fetched. (default to undefined)
+
+const { status, data } = await apiInstance.productUserUserIdGet(
+    userId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **userId** | [**string**] | The ID of the user whose vendor products are to be fetched. | defaults to undefined|
+
+
+### Return type
+
+**Array<VendorProduct>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of vendor products. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

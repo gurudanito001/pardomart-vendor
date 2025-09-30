@@ -34,6 +34,8 @@ import type { UpdateUserPayload } from '../models';
 // @ts-ignore
 import type { User } from '../models';
 // @ts-ignore
+import type { VendorProduct } from '../models';
+// @ts-ignore
 import type { Verification } from '../models';
 /**
  * UserApi - axios parameter creator
@@ -112,6 +114,44 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(devicesPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+         * @summary Get all products from all vendors belonging to a user
+         * @param {string} userId The ID of the user whose vendor products are to be fetched.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productUserUserIdGet: async (userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('productUserUserIdGet', 'userId', userId)
+            const localVarPath = `/product/user/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -372,6 +412,19 @@ export const UserApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+         * @summary Get all products from all vendors belonging to a user
+         * @param {string} userId The ID of the user whose vendor products are to be fetched.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productUserUserIdGet(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VendorProduct>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productUserUserIdGet(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserApi.productUserUserIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Get a paginated list of users
          * @param {boolean} [mobileVerified] Filter by mobile verification status.
@@ -471,6 +524,16 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.devicesPost(devicesPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+         * @summary Get all products from all vendors belonging to a user
+         * @param {string} userId The ID of the user whose vendor products are to be fetched.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productUserUserIdGet(userId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorProduct>> {
+            return localVarFp.productUserUserIdGet(userId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get a paginated list of users
          * @param {boolean} [mobileVerified] Filter by mobile verification status.
@@ -552,6 +615,17 @@ export class UserApi extends BaseAPI {
      */
     public devicesPost(devicesPostRequest: DevicesPostRequest, options?: RawAxiosRequestConfig) {
         return UserApiFp(this.configuration).devicesPost(devicesPostRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all vendor-specific products from all stores owned by a particular user. This can be used by an admin or the user themselves.
+     * @summary Get all products from all vendors belonging to a user
+     * @param {string} userId The ID of the user whose vendor products are to be fetched.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productUserUserIdGet(userId: string, options?: RawAxiosRequestConfig) {
+        return UserApiFp(this.configuration).productUserUserIdGet(userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -1,5 +1,13 @@
-import { VALIDATION_RULES, ERROR_MESSAGES } from '../constants';
-import { ValidationRule } from '../types';
+import { ERROR_MESSAGES, VALIDATION_RULES } from '../constants';
+
+export interface ValidationRule<T = any> {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  custom?: (value: T) => string | null;
+  message?: string;
+}
 
 /**
  * Validate email format
@@ -84,17 +92,17 @@ export const validateName = (name: string): string | null => {
  */
 export const validateOTP = (otp: string): string | null => {
   if (!otp) {
-    return 'OTP is required';
+    return ERROR_MESSAGES.OTP_REQUIRED;
   }
-  
+
   if (otp.length !== VALIDATION_RULES.OTP.LENGTH) {
-    return `OTP must be ${VALIDATION_RULES.OTP.LENGTH} digits`;
+    return ERROR_MESSAGES.OTP_INVALID;
   }
-  
+
   if (!VALIDATION_RULES.OTP.PATTERN.test(otp)) {
-    return 'OTP should only contain numbers';
+    return ERROR_MESSAGES.OTP_INVALID;
   }
-  
+
   return null;
 };
 
@@ -103,13 +111,13 @@ export const validateOTP = (otp: string): string | null => {
  */
 export const validatePasswordConfirmation = (password: string, confirmPassword: string): string | null => {
   if (!confirmPassword) {
-    return 'Password confirmation is required';
+    return ERROR_MESSAGES.PASSWORD_CONFIRM_REQUIRED;
   }
-  
+
   if (password !== confirmPassword) {
-    return 'Passwords do not match';
+    return ERROR_MESSAGES.PASSWORDS_MISMATCH;
   }
-  
+
   return null;
 };
 
@@ -118,7 +126,7 @@ export const validatePasswordConfirmation = (password: string, confirmPassword: 
  */
 export const validateRequired = (value: any, fieldName: string = 'Field'): string | null => {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
-    return `${fieldName} is required`;
+    return ERROR_MESSAGES.REQUIRED_FIELD.replace('{field}', fieldName);
   }
   return null;
 };
@@ -159,7 +167,7 @@ export const validatePattern = (value: string, pattern: RegExp, message: string)
 export const validateFileSize = (file: File, maxSizeInBytes: number): string | null => {
   if (file.size > maxSizeInBytes) {
     const maxSizeInMB = Math.round(maxSizeInBytes / (1024 * 1024));
-    return `File size should not exceed ${maxSizeInMB}MB`;
+    return ERROR_MESSAGES.FILE_TOO_LARGE_WITH_SIZE.replace('{size}', String(maxSizeInMB));
   }
   return null;
 };
@@ -169,7 +177,7 @@ export const validateFileSize = (file: File, maxSizeInBytes: number): string | n
  */
 export const validateFileType = (file: File, allowedTypes: string[]): string | null => {
   if (!allowedTypes.includes(file.type)) {
-    return `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`;
+    return `${ERROR_MESSAGES.INVALID_FILE_TYPE} Allowed types: ${allowedTypes.join(', ')}`;
   }
   return null;
 };
@@ -179,12 +187,12 @@ export const validateFileType = (file: File, allowedTypes: string[]): string | n
  */
 export const validateURL = (url: string): string | null => {
   if (!url) return null; // Optional field
-  
+
   try {
     new URL(url);
     return null;
   } catch {
-    return 'Please enter a valid URL';
+    return ERROR_MESSAGES.URL_INVALID;
   }
 };
 
@@ -197,15 +205,15 @@ export const validateDate = (dateString: string, minDate?: Date, maxDate?: Date)
   const date = new Date(dateString);
   
   if (isNaN(date.getTime())) {
-    return 'Please enter a valid date';
+    return ERROR_MESSAGES.DATE_INVALID;
   }
-  
+
   if (minDate && date < minDate) {
-    return `Date must be after ${minDate.toLocaleDateString()}`;
+    return ERROR_MESSAGES.DATE_TOO_EARLY.replace('{date}', minDate.toLocaleDateString());
   }
-  
+
   if (maxDate && date > maxDate) {
-    return `Date must be before ${maxDate.toLocaleDateString()}`;
+    return ERROR_MESSAGES.DATE_TOO_LATE.replace('{date}', maxDate.toLocaleDateString());
   }
   
   return null;
@@ -216,17 +224,17 @@ export const validateDate = (dateString: string, minDate?: Date, maxDate?: Date)
  */
 export const validateNumberRange = (value: number, min?: number, max?: number, fieldName: string = 'Value'): string | null => {
   if (isNaN(value)) {
-    return `${fieldName} must be a valid number`;
+    return ERROR_MESSAGES.NUMBER_INVALID.replace('{field}', fieldName);
   }
-  
+
   if (min !== undefined && value < min) {
     return `${fieldName} must be at least ${min}`;
   }
-  
+
   if (max !== undefined && value > max) {
     return `${fieldName} must not exceed ${max}`;
   }
-  
+
   return null;
 };
 
@@ -237,7 +245,7 @@ export const validateField = <T>(value: T, rules: ValidationRule<T>[]): string |
   for (const rule of rules) {
     // Required validation
     if (rule.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
-      return rule.message || 'This field is required';
+      return rule.message || ERROR_MESSAGES.REQUIRED_FIELD.replace('{field}', 'This field');
     }
     
     // Skip other validations if value is empty and not required
@@ -349,8 +357,8 @@ export const commonValidationRules = {
     { custom: validateName, message: ERROR_MESSAGES.NAME_INVALID },
   ],
   otp: [
-    { required: true, message: 'OTP is required' },
-    { custom: validateOTP, message: 'Invalid OTP format' },
+    { required: true, message: ERROR_MESSAGES.OTP_REQUIRED },
+    { custom: validateOTP, message: ERROR_MESSAGES.OTP_INVALID },
   ],
 } as const;
 

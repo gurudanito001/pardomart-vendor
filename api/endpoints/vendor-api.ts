@@ -306,12 +306,13 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {string} [name] Filter vendors by name (case-insensitive search).
          * @param {number} [latitude] User\&#39;s current latitude to sort vendors by distance.
          * @param {number} [longitude] User\&#39;s current longitude to sort vendors by distance.
+         * @param {string} [userId] Filter vendors by the user who owns them.
          * @param {number} [page] Page number for pagination.
          * @param {number} [size] Number of items per page.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        vendorsGet: async (name?: string, latitude?: number, longitude?: number, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        vendorsGet: async (name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/vendors`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -334,6 +335,10 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
 
             if (longitude !== undefined) {
                 localVarQueryParameter['longitude'] = longitude;
+            }
+
+            if (userId !== undefined) {
+                localVarQueryParameter['userId'] = userId;
             }
 
             if (page !== undefined) {
@@ -653,13 +658,14 @@ export const VendorApiFp = function(configuration?: Configuration) {
          * @param {string} [name] Filter vendors by name (case-insensitive search).
          * @param {number} [latitude] User\&#39;s current latitude to sort vendors by distance.
          * @param {number} [longitude] User\&#39;s current longitude to sort vendors by distance.
+         * @param {string} [userId] Filter vendors by the user who owns them.
          * @param {number} [page] Page number for pagination.
          * @param {number} [size] Number of items per page.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async vendorsGet(name?: string, latitude?: number, longitude?: number, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedVendors>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsGet(name, latitude, longitude, page, size, options);
+        async vendorsGet(name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedVendors>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsGet(name, latitude, longitude, userId, page, size, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -811,13 +817,14 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
          * @param {string} [name] Filter vendors by name (case-insensitive search).
          * @param {number} [latitude] User\&#39;s current latitude to sort vendors by distance.
          * @param {number} [longitude] User\&#39;s current longitude to sort vendors by distance.
+         * @param {string} [userId] Filter vendors by the user who owns them.
          * @param {number} [page] Page number for pagination.
          * @param {number} [size] Number of items per page.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        vendorsGet(name?: string, latitude?: number, longitude?: number, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedVendors> {
-            return localVarFp.vendorsGet(name, latitude, longitude, page, size, options).then((request) => request(axios, basePath));
+        vendorsGet(name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedVendors> {
+            return localVarFp.vendorsGet(name, latitude, longitude, userId, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves a list of all vendors associated with the currently authenticated user.
@@ -955,13 +962,14 @@ export class VendorApi extends BaseAPI {
      * @param {string} [name] Filter vendors by name (case-insensitive search).
      * @param {number} [latitude] User\&#39;s current latitude to sort vendors by distance.
      * @param {number} [longitude] User\&#39;s current longitude to sort vendors by distance.
+     * @param {string} [userId] Filter vendors by the user who owns them.
      * @param {number} [page] Page number for pagination.
      * @param {number} [size] Number of items per page.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsGet(name?: string, latitude?: number, longitude?: number, page?: number, size?: number, options?: RawAxiosRequestConfig) {
-        return VendorApiFp(this.configuration).vendorsGet(name, latitude, longitude, page, size, options).then((request) => request(this.axios, this.basePath));
+    public vendorsGet(name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).vendorsGet(name, latitude, longitude, userId, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -1,6 +1,24 @@
-import { useState, useCallback, useMemo } from 'react';
-import { FormState, FormField, FormValidation, ValidationRule } from '../types';
-import { validateField, hasFormErrors } from '../utils/validation';
+import { useCallback, useMemo, useState } from 'react';
+import type { ValidationRule } from '../utils/validation';
+import { hasFormErrors, validateField } from '../utils/validation';
+
+interface FormField<T = string> {
+  value: T;
+  error: string | null;
+  touched: boolean;
+}
+
+interface FormState<T extends Record<string, any>> {
+  fields: {
+    [K in keyof T]: FormField<T[K]>;
+  };
+  isValid: boolean;
+  isSubmitting: boolean;
+}
+
+export type FormValidation<T extends Record<string, any>> = {
+  [K in keyof T]?: ValidationRule<T[K]>[];
+};
 
 interface UseFormOptions<T extends Record<string, any>> {
   initialValues: T;

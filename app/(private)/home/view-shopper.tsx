@@ -1,24 +1,24 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import {
-  ArrowBackSVG,
-  ChatFilledSVG,
-  LocationSVG,
-  NotificationSVG,
-  PhoneOutlineSVG,
-  SupportSVG
+    ArrowBackSVG,
+    ChatFilledSVG,
+    LocationSVG,
+    NotificationSVG,
+    PhoneOutlineSVG,
+    SupportSVG
 } from '../../../components/icons';
-import { Shopper } from '../../../types';
+// Removed legacy types import
 
 export default function ViewShopperScreen() {
   const params = useLocalSearchParams();
