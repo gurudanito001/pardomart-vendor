@@ -1,7 +1,7 @@
 import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 export default function TabLayout() {
   return (
@@ -10,8 +10,8 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFF',
-          paddingTop: 0,
+          backgroundColor: '#fff',
+          paddingTop: 10,
           paddingBottom: 20,
           paddingHorizontal: 17,
           height: 85,
@@ -142,26 +142,17 @@ export default function TabLayout() {
           },
         }}
       />
+
       <Tabs.Screen
         name="store"
         options={{
-          title: 'Store',
+          title: 'Stores',
           tabBarIcon: ({ color, size }) => (
             <View style={{ width: 24, height: 24 }}>
-              <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-                <Path 
-                  d="M12.7002 13C15.4616 13 17.7002 10.7614 17.7002 8C17.7002 5.23858 15.4616 3 12.7002 3C9.93877 3 7.7002 5.23858 7.7002 8C7.7002 10.7614 9.93877 13 12.7002 13Z" 
-                  stroke={color} 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-                <Path 
-                  d="M20.7002 21C20.7002 18.8783 19.8573 16.8434 18.357 15.3431C16.8568 13.8429 14.8219 13 12.7002 13C10.5785 13 8.54363 13.8429 7.04334 15.3431C5.54305 16.8434 4.7002 18.8783 4.7002 21" 
-                  stroke={color} 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
+              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M5.0002 4H19.0002C19.2835 4 19.5212 4.096 19.7132 4.288C19.9052 4.48 20.0009 4.71733 20.0002 5C19.9995 5.28267 19.9035 5.52033 19.7122 5.713C19.5209 5.90567 19.2835 6.00133 19.0002 6H5.0002C4.71686 6 4.47953 5.904 4.2882 5.712C4.09686 5.52 4.00086 5.28267 4.0002 5C3.99953 4.71733 4.09553 4.48 4.2882 4.288C4.48086 4.096 4.7182 4 5.0002 4ZM5.0002 20C4.71686 20 4.47953 19.904 4.2882 19.712C4.09686 19.52 4.00086 19.2827 4.0002 19V14H3.8252C3.50853 14 3.2502 13.879 3.0502 13.637C2.8502 13.395 2.78353 13.116 2.8502 12.8L3.8502 7.8C3.9002 7.56667 4.01686 7.375 4.2002 7.225C4.38353 7.075 4.59186 7 4.8252 7H19.1752C19.4085 7 19.6169 7.075 19.8002 7.225C19.9835 7.375 20.1002 7.56667 20.1502 7.8L21.1502 12.8C21.2169 13.1167 21.1502 13.3957 20.9502 13.637C20.7502 13.8783 20.4919 13.9993 20.1752 14H20.0002V19C20.0002 19.2833 19.9042 19.521 19.7122 19.713C19.5202 19.905 19.2829 20.0007 19.0002 20C18.7175 19.9993 18.4802 19.9033 18.2882 19.712C18.0962 19.5207 18.0002 19.2833 18.0002 19V14H14.0002V19C14.0002 19.2833 13.9042 19.521 13.7122 19.713C13.5202 19.905 13.2829 20.0007 13.0002 20H5.0002ZM6.0002 18H12.0002V14H6.0002V18Z"
+                  fill={color}
                 />
               </Svg>
             </View>
@@ -174,6 +165,34 @@ export default function TabLayout() {
           },
         }}
       />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <View style={{ width: 24, height: 24 }}>
+              <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
+                <Circle cx="12.5" cy="8" r="5" stroke={color} strokeWidth="2" />
+                <Path
+                  d="M20.5 21C20.5 18.8783 19.6571 16.8434 18.1569 15.3431C16.6566 13.8429 14.6217 13 12.5 13C10.3783 13 8.34344 13.8429 6.84315 15.3431C5.34286 16.8434 4.5 18.8783 4.5 21"
+                  stroke={color}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </View>
+          ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.replace('/(private)/profile');
+          },
+        }}
+      />
+
+      <Tabs.Screen name="shared" options={{ href: null }} />
     </Tabs>
   );
 }

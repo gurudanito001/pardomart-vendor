@@ -123,6 +123,9 @@ interface AuthContextType {
   resendOTP: (data: ResendOTPRequest) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
+  initializeAuth: () => Promise<void>;
+  markAsRegistered: () => Promise<void>;
+  clearAuthState: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -175,6 +178,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // No token found, user is not authenticated.
         // isLoading will be set to false in the failure case.
         dispatch({ type: 'AUTH_FAILURE', payload: '' }); // payload is empty as it's not an error to show.
+        if (isRegistered) {
+          dispatch({ type: 'SET_REGISTERED', payload: true });
+        }
       }
     } catch (error) {
       dispatch({ type: 'AUTH_FAILURE', payload: 'Failed to initialize auth' }); // This also sets isReady to true
@@ -252,6 +258,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const markAsRegistered = async () => {
+    try {
+      await setStorageItem(STORAGE_KEYS.IS_REGISTERED, true);
+      dispatch({ type: 'SET_REGISTERED', payload: true });
+    } catch (error) {
+      console.error('Failed to mark as registered:', error);
+    }
+  };
+
+  const clearAuthState = async () => {
+    await clearAuthStorage();
+    dispatch({ type: 'LOGOUT' });
+  };
   const logout = async () => {
     try {
       await authService.logout();
@@ -276,11 +295,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     state,
     initiateLogin,
+    initializeAuth,
     register,
     verifyOTP,
     resendOTP,
     logout,
     updateUser,
+    markAsRegistered,
+    clearAuthState,
     clearError,
   };
 
