@@ -13,6 +13,7 @@ import {
 import { Path, Svg } from 'react-native-svg';
 import { vendorApi } from '../../../api/client';
 import EmptyStore from '../../../components/EmptyStore';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { useAuth } from '../../../context/AppProvider';
 import { usePaginatedApi } from '../../../hooks/useApi';
 
@@ -22,15 +23,7 @@ export default function StoreScreen() {
 
   const userId = authState.user?.id;
 
-  const {
-    items: vendors,
-    pagination,
-    loading,
-    refreshing,
-    error,
-    loadMore,
-    refresh,
-  } = usePaginatedApi<any>(
+  const fetchVendors = React.useCallback(
     async (page: number, limit: number) => {
       if (!userId) {
         return {
@@ -49,10 +42,37 @@ export default function StoreScreen() {
       }
       const api = vendorApi();
       const res = await api.vendorsGet(undefined, undefined, undefined, userId, page, limit);
-      return { data: res.data } as any;
+      const payload = res?.data ?? {} as any;
+      const currentPage = payload.page ?? page ?? 1;
+      const pageSize = payload.pageSize ?? limit ?? 0;
+      const totalCount = payload.totalCount ?? 0;
+      const totalPages = payload.totalPages ?? (pageSize > 0 ? Math.ceil(totalCount / pageSize) : 0);
+      return {
+        data: {
+          items: payload.data ?? [],
+          pagination: {
+            page: currentPage,
+            limit: pageSize,
+            total: totalCount,
+            totalPages,
+            hasNext: currentPage < totalPages,
+            hasPrev: currentPage > 1,
+          },
+        },
+      } as any;
     },
-    20,
+    [userId]
   );
+
+  const {
+    items: vendors,
+    pagination,
+    loading,
+    refreshing,
+    error,
+    loadMore,
+    refresh,
+  } = usePaginatedApi<any>(fetchVendors, 20);
 
   useEffect(() => {
     if (empty === 'true') {
@@ -132,7 +152,17 @@ export default function StoreScreen() {
 
   const safeVendors = vendors ?? [];
   const totalStores = (pagination?.total ?? 0) || safeVendors.length || 0;
-  const isEmpty = !loading && totalStores === 0;
+  const isEmpty = !loading && !refreshing && totalStores === 0;
+
+  // Show loading indicator while initial fetch is in progress
+  if (loading || refreshing) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
+        <LoadingSpinner overlay message="Loading stores..." />
+      </SafeAreaView>
+    );
+  }
 
   // Empty state
   if (empty === 'true' || isEmpty) {
@@ -149,7 +179,7 @@ export default function StoreScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>

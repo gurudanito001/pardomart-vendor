@@ -8,9 +8,16 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Image,
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import { Input } from '../../../components/ui/Input';
+import { useImagePicker } from '../../../hooks/useImagePicker';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
+import { config } from '../../../config/environment';
+import { getStorageItem } from '../../../utils/storage';
+import { STORAGE_KEYS } from '../../../constants';
+import { vendorApi } from '../../../api/client';
 
 export default function AddStoreScreen() {
   const [storeName, setStoreName] = useState('');
@@ -18,6 +25,15 @@ export default function AddStoreScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [showDeliveryDropdown, setShowDeliveryDropdown] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const {
+    selectedImage,
+    isLoading: imageLoading,
+    error: imageError,
+    pickFromGallery,
+    clearImage,
+  } = useImagePicker({ base64: false });
 
   const handleGoBack = () => {
     router.back();
@@ -31,16 +47,91 @@ export default function AddStoreScreen() {
     console.log('Open support');
   };
 
-  const handleAddStore = () => {
-    console.log('Add store with data:', {
-      storeName,
-      storeAddress,
-      phoneNumber,
-      deliveryMethod,
-    });
-    // Here you would typically validate and submit the form
-    // Navigate to populated store view after successful submission
-    router.push('/(private)/store' as any);
+  const uploadImageForVendor = async (vendorId: string) => {
+    if (!selectedImage) return;
+
+    const token = await getStorageItem<string>(STORAGE_KEYS.AUTH_TOKEN);
+    try {
+      const form = new FormData();
+
+      // Support both web data (data URI) and native file uri
+      if (selectedImage.uri && selectedImage.uri.startsWith('data:')) {
+        // Web base64/data URL, convert to blob
+        const res = await fetch(selectedImage.uri);
+        const blob = await res.blob();
+        form.append('file', blob as any, selectedImage.fileName || 'image.jpg');
+      } else {
+        // React Native file object
+        const uri = selectedImage.uri;
+        const name = selectedImage.fileName || `photo_${Date.now()}.jpg`;
+        const type = selectedImage.fileSize ? 'image/jpeg' : 'image/jpeg';
+        // @ts-ignore - React Native FormData file
+        form.append('file', { uri, name, type } as any);
+      }
+
+      form.append('referenceId', vendorId);
+      form.append('referenceType', 'Vendor');
+
+      const uploadUrl = `${config.API_BASE_URL}/media/upload`;
+      const res = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: token ? `Bearer ${token}` : '',
+          Accept: 'application/json',
+        },
+        body: form as any,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Upload failed');
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('Image upload failed', err);
+      throw err;
+    }
+  };
+
+  const handleAddStore = async () => {
+    if (!storeName.trim()) {
+      return alert('Store name is required');
+    }
+
+    setSubmitting(true);
+
+    try {
+      const payload: any = {
+        name: storeName.trim(),
+        address: storeAddress || undefined,
+        email: undefined,
+        tagline: undefined,
+        details: undefined,
+        image: undefined,
+        longitude: undefined,
+        latitude: undefined,
+        meta: undefined,
+      };
+
+      // Create vendor
+      const api = vendorApi();
+      const response: any = await api.vendorsPost(payload as any);
+      const vendor = response?.data as any;
+
+      // Upload image and attach to vendor if present
+      if (selectedImage && vendor?.id) {
+        await uploadImageForVendor(vendor.id);
+      }
+
+      // Navigate back to stores list
+      router.push('/(private)/store' as any);
+    } catch (err: any) {
+      console.warn('Failed to create vendor', err);
+      alert(err?.message || 'Failed to create store');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const deliveryOptions = [
@@ -106,6 +197,27 @@ export default function AddStoreScreen() {
 
           {/* Form Fields */}
           <View style={styles.formContainer}>
+            {/* Image upload */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Store Image</Text>
+              <View style={styles.imageWrapper}>
+                <TouchableOpacity style={styles.imagePicker} onPress={pickFromGallery} activeOpacity={0.8}>
+                  {selectedImage ? (
+                    <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
+                  ) : (
+                    <Text style={styles.imagePlaceholderText}>Upload image</Text>
+                  )}
+
+                  {selectedImage ? (
+                    <TouchableOpacity style={styles.clearOverlay} onPress={clearImage}>
+                      <Text style={styles.clearOverlayText}>Clear</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </TouchableOpacity>
+              </View>
+              {imageError ? <Text style={styles.errorText}>{imageError}</Text> : null}
+            </View>
+
             {/* Store Name */}
             <View style={styles.fieldContainer}>
               <Input
@@ -159,7 +271,7 @@ export default function AddStoreScreen() {
                 </Text>
                 <DropdownArrow />
               </TouchableOpacity>
-              
+
               {showDeliveryDropdown && (
                 <View style={styles.dropdownOptions}>
                   {deliveryOptions.map((option, index) => (
@@ -179,10 +291,13 @@ export default function AddStoreScreen() {
             </View>
           </View>
 
+
           {/* Add Store Button */}
-          <TouchableOpacity style={styles.addStoreButton} onPress={handleAddStore}>
+          <TouchableOpacity style={styles.addStoreButton} onPress={handleAddStore} disabled={submitting}>
             <Text style={styles.addStoreButtonText}>Add Store</Text>
           </TouchableOpacity>
+
+          {(submitting || imageLoading) && <LoadingSpinner overlay message={submitting ? 'Saving store...' : 'Processing image...'} />}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -342,5 +457,51 @@ const styles = StyleSheet.create({
     color: '#FFF',
     textAlign: 'center',
     lineHeight: 25,
+  },
+  imageWrapper: {
+    marginBottom: 12,
+  },
+  imagePicker: {
+    width: '100%',
+    height: 185,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  imagePlaceholderText: {
+    fontSize: 14,
+    color: '#7C8BA0',
+  },
+  clearOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 136, 140, 0.15)',
+  },
+  clearOverlayText: {
+    color: '#06888C',
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    fontSize: 12,
+  },
+  errorText: {
+    color: '#FF4D4F',
+    marginTop: 8,
+    fontSize: 12,
   },
 });
