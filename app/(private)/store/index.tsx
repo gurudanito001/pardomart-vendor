@@ -1,3 +1,4 @@
+import { vendorApi } from '@/api/client';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
 import {
@@ -8,12 +9,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
-import { vendorApi } from '../../../api/client';
 import EmptyStore from '../../../components/EmptyStore';
-import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { useAuth } from '../../../context/AppProvider';
 import { usePaginatedApi } from '../../../hooks/useApi';
 
@@ -23,7 +22,15 @@ export default function StoreScreen() {
 
   const userId = authState.user?.id;
 
-  const fetchVendors = React.useCallback(
+  const {
+    items: vendors,
+    pagination,
+    loading,
+    refreshing,
+    error,
+    loadMore,
+    refresh,
+  } = usePaginatedApi<any>(
     async (page: number, limit: number) => {
       if (!userId) {
         return {
@@ -42,34 +49,10 @@ export default function StoreScreen() {
       }
       const api = vendorApi();
       const res = await api.vendorsGet(undefined, undefined, undefined, userId, page, limit);
-      const payload = res?.data ?? {} as any;
-      const currentPage = payload.page ?? page ?? 1;
-      const pageSize = payload.pageSize ?? limit ?? 0;
-      const totalCount = payload.totalCount ?? 0;
-      const totalPages = payload.totalPages ?? (pageSize > 0 ? Math.ceil(totalCount / pageSize) : 0);
-      return {
-        data: {
-          items: payload.data ?? [],
-          pagination: {
-            ...pagination,
-            page: pagination.page ?? page,
-            limit: pagination.limit ?? limit,
-          },
-        },
-      } as any;
+      return { data: res.data } as any;
     },
-    [userId]
+    20,
   );
-
-  const {
-    items: vendors,
-    pagination,
-    loading,
-    refreshing,
-    error,
-    loadMore,
-    refresh,
-  } = usePaginatedApi<any>(fetchVendors, 20);
 
   useEffect(() => {
     if (empty === 'true') {
@@ -97,8 +80,11 @@ export default function StoreScreen() {
     console.log('Open support');
   };
 
-  const handleStorePress = (vendorId: string) => {
-    router.push('/(private)/store/edit-store' as any);
+  const handleStorePress = (vendor: any) => {
+    const id = vendor?.id ?? '';
+    const img = vendor?.image ?? '';
+    const query = `/(private)/home/setting-up-store?storeId=${encodeURIComponent(String(id))}${img ? `&imageUrl=${encodeURIComponent(String(img))}` : ''}`;
+    router.push(query as any);
   };
 
   const handleAddNewStore = () => {
@@ -149,17 +135,7 @@ export default function StoreScreen() {
 
   const safeVendors = vendors ?? [];
   const totalStores = (pagination?.total ?? 0) || safeVendors.length || 0;
-  const isEmpty = !loading && !refreshing && totalStores === 0;
-
-  // Show loading indicator while initial fetch is in progress
-  if (loading || refreshing) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-        <LoadingSpinner overlay message="Loading stores..." />
-      </SafeAreaView>
-    );
-  }
+  const isEmpty = !loading && totalStores === 0;
 
   // Empty state
   if (empty === 'true' || isEmpty) {

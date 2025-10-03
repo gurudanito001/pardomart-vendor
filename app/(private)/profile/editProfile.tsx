@@ -1,5 +1,6 @@
 import { useAuth } from '@/context/AppProvider';
-import { vendorService } from '@/services/vendor';
+//import { vendorService } from '@/services/vendor';
+import { useVendor } from '@/context/VendorContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -71,6 +72,8 @@ const EditProfile = () => {
     fullName?: string;
   }>({});
 
+  const { state: vendorState, updateProfile } = useVendor();
+
   // Initialize form with current user data
   useEffect(() => {
     if (state.user) {
@@ -104,7 +107,7 @@ const EditProfile = () => {
     setIsUpdating(true);
     try {
       // Assuming the vendor profile update can include the user's name
-      const response = await vendorService.updateProfile({ businessName: fullName.trim() });
+      const response = await updateProfile({ name: fullName.trim() });
 
       // Update the user in the global AuthContext state
       updateUser({
