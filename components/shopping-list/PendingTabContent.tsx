@@ -1,12 +1,13 @@
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { borderRadius, colors, shadows, spacing, typography } from '../../styles/theme';
 
 interface ShoppingListItem {
@@ -113,12 +114,12 @@ export default function PendingTabContent() {
           <View style={styles.tipCard}>
             <View style={styles.tipContent}>
               <View style={styles.tipIconContainer}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path 
+                <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <Path 
                     d="M7 20H11C11 21.1 10.1 22 9 22C7.9 22 7 21.1 7 20ZM5 19H13V17H5V19ZM16.5 9.5C16.5 13.32 13.84 15.36 12.73 16H5.27C4.16 15.36 1.5 13.32 1.5 9.5C1.5 5.36 4.86 2 9 2C13.14 2 16.5 5.36 16.5 9.5ZM14.5 9.5C14.5 6.47 12.03 4 9 4C5.97 4 3.5 6.47 3.5 9.5C3.5 11.97 4.99 13.39 5.85 14H12.15C13.01 13.39 14.5 11.97 14.5 9.5ZM21.37 7.37L20 8L21.37 8.63L22 10L22.63 8.63L24 8L22.63 7.37L22 6L21.37 7.37ZM19 6L19.94 3.94L22 3L19.94 2.06L19 0L18.06 2.06L16 3L18.06 3.94L19 6Z" 
                     fill="#FFAC06"
                   />
-                </svg>
+                </Svg>
               </View>
               <Text style={styles.tipText}>
                 These are items substitutions that are awaiting confirmation from customers
@@ -213,14 +214,14 @@ const SubstitutionCard = ({ item }: SubstitutionCardProps) => {
         </View>
         {isEdit && (
           <View style={styles.editButton}>
-            <svg width="9" height="8" viewBox="0 0 11 9" fill="none">
-              <path 
+            <Svg width="9" height="8" viewBox="0 0 11 9" fill="none">
+              <Path 
                 d="M6.82353 1.57427L8.41177 3.05835M5.76471 8.5H10M1.52941 6.52122L1 8.5L3.11765 8.0053L9.25141 2.27377C9.44991 2.08823 9.56142 1.83662 9.56142 1.57427C9.56142 1.31192 9.44991 1.06031 9.25141 0.874768L9.16035 0.78968C8.96179 0.604198 8.69253 0.5 8.41177 0.5C8.131 0.5 7.86174 0.604198 7.66318 0.78968L1.52941 6.52122Z" 
                 stroke="white" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
               />
-            </svg>
+            </Svg>
             <Text style={styles.editButtonText}>Edit</Text>
           </View>
         )}
@@ -230,12 +231,12 @@ const SubstitutionCard = ({ item }: SubstitutionCardProps) => {
         <>
           {/* Arrow */}
           <View style={styles.arrowContainer}>
-            <svg width="322" height="8" viewBox="0 0 323 8" fill="none">
-              <path 
+            <Svg width="322" height="8" viewBox="0 0 323 8" fill="none">
+              <Path 
                 d="M322.354 4.35355C322.549 4.15829 322.549 3.84171 322.354 3.64645L319.172 0.464466C318.976 0.269204 318.66 0.269204 318.464 0.464466C318.269 0.659728 318.269 0.976311 318.464 1.17157L321.293 4L318.464 6.82843C318.269 7.02369 318.269 7.34027 318.464 7.53553C318.66 7.7308 318.976 7.7308 319.172 7.53553L322.354 4.35355ZM0 4V4.5H322V4V3.5H0V4Z" 
                 fill="#BBBBBB"
               />
-            </svg>
+            </Svg>
           </View>
 
           {/* Status and Action Row */}

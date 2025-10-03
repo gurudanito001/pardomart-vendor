@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { borderRadius, colors, shadows, spacing, typography } from '../../styles/theme';
 
 interface ShoppingListItem {
@@ -84,19 +85,19 @@ export default function RemainingTabContent({ onResumeClick }: RemainingTabConte
           {/* Items Left Card */}
           <View style={styles.itemsLeftCard}>
             <View style={styles.itemsLeftContent}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path 
+              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <Path 
                   d="M17 4H7C5.89543 4 5 4.89543 5 6V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V6C19 4.89543 18.1046 4 17 4Z" 
                   stroke="black" 
                   strokeWidth="2"
                 />
-                <path 
+                <Path 
                   d="M9 9H15M9 13H15M9 17H13" 
                   stroke="black" 
                   strokeWidth="2" 
                   strokeLinecap="round"
                 />
-              </svg>
+              </Svg>
               <Text style={styles.itemsLeftText}>{getItemsLeft()} Items left</Text>
             </View>
           </View>
@@ -105,12 +106,12 @@ export default function RemainingTabContent({ onResumeClick }: RemainingTabConte
           <View style={styles.tipCard}>
             <View style={styles.tipContent}>
               <View style={styles.tipIconContainer}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path 
+                <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <Path 
                     d="M7 20H11C11 21.1 10.1 22 9 22C7.9 22 7 21.1 7 20ZM5 19H13V17H5V19ZM16.5 9.5C16.5 13.32 13.84 15.36 12.73 16H5.27C4.16 15.36 1.5 13.32 1.5 9.5C1.5 5.36 4.86 2 9 2C13.14 2 16.5 5.36 16.5 9.5ZM14.5 9.5C14.5 6.47 12.03 4 9 4C5.97 4 3.5 6.47 3.5 9.5C3.5 11.97 4.99 13.39 5.85 14H12.15C13.01 13.39 14.5 11.97 14.5 9.5ZM21.37 7.37L20 8L21.37 8.63L22 10L22.63 8.63L24 8L22.63 7.37L22 6L21.37 7.37ZM19 6L19.94 3.94L22 3L19.94 2.06L19 0L18.06 2.06L16 3L18.06 3.94L19 6Z" 
                     fill="#FFAC06"
                   />
-                </svg>
+                </Svg>
               </View>
               <Text style={styles.tipText}>
                 Shopping for perishable items last reduces cancellations due to food safety standards

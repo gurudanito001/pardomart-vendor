@@ -1,13 +1,14 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { borderRadius, colors, shadows, spacing, typography } from '../../styles/theme';
 
 interface ShoppingListItem {
@@ -117,15 +118,15 @@ export default function CompletedTabContent({ onProceedToReview }: CompletedTabC
       {/* Proceed to Review Button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.proceedButton} onPress={handleProceedToReview}>
-          <svg width="24" height="24" viewBox="0 0 24 25" fill="none">
-            <path 
+          <Svg width="24" height="24" viewBox="0 0 24 25" fill="none">
+            <Path 
               d="M16 11.5V7.5C16 6.43913 15.5786 5.42172 14.8284 4.67157C14.0783 3.92143 13.0609 3.5 12 3.5C10.9391 3.5 9.92172 3.92143 9.17157 4.67157C8.42143 5.42172 8 6.43913 8 7.5V11.5M5 9.5H19L20 21.5H4L5 9.5Z" 
               stroke="white" 
               strokeWidth="2" 
               strokeLinecap="round" 
               strokeLinejoin="round"
             />
-          </svg>
+          </Svg>
           <Text style={styles.proceedButtonText}>Proceed to Review</Text>
         </TouchableOpacity>
       </View>
@@ -179,12 +180,12 @@ const CompletedItemCard = ({ item }: CompletedItemCardProps) => {
         <>
           {/* Arrow */}
           <View style={styles.arrowContainer}>
-            <svg width="322" height="8" viewBox="0 0 323 8" fill="none">
-              <path 
+            <Svg width="322" height="8" viewBox="0 0 323 8" fill="none">
+              <Path 
                 d="M322.354 4.35355C322.549 4.15829 322.549 3.84171 322.354 3.64645L319.172 0.464466C318.976 0.269204 318.66 0.269204 318.464 0.464466C318.269 0.659728 318.269 0.976311 318.464 1.17157L321.293 4L318.464 6.82843C318.269 7.02369 318.269 7.34027 318.464 7.53553C318.66 7.7308 318.976 7.7308 319.172 7.53553L322.354 4.35355ZM0 4V4.5H322V4V3.5H0V4Z" 
                 fill="#BBBBBB"
               />
-            </svg>
+            </Svg>
           </View>
 
           {/* Replacement Text */}
