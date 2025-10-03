@@ -1,6 +1,6 @@
-import { vendorApi } from '@/api/client';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Image,
   SafeAreaView,
@@ -9,28 +9,22 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
+import { vendorApi } from '../../../api/client';
 import EmptyStore from '../../../components/EmptyStore';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { useAuth } from '../../../context/AppProvider';
 import { usePaginatedApi } from '../../../hooks/useApi';
 
 export default function StoreScreen() {
-  const { empty } = useLocalSearchParams();
+  const { empty, refresh: refreshParam } = useLocalSearchParams();
   const { state: authState } = useAuth();
 
   const userId = authState.user?.id;
 
-  const {
-    items: vendors,
-    pagination,
-    loading,
-    refreshing,
-    error,
-    loadMore,
-    refresh,
-  } = usePaginatedApi<any>(
+  const fetchVendors = React.useCallback(
     async (page: number, limit: number) => {
       if (!userId) {
         return {
@@ -49,10 +43,35 @@ export default function StoreScreen() {
       }
       const api = vendorApi();
       const res = await api.vendorsGet(undefined, undefined, undefined, userId, page, limit);
-      return { data: res.data } as any;
+      const payload = res?.data ?? {} as any;
+      const currentPage = payload.page ?? page ?? 1;
+      const pageSize = payload.pageSize ?? limit ?? 0;
+      const totalCount = payload.totalCount ?? 0;
+      const totalPages = payload.totalPages ?? (pageSize > 0 ? Math.ceil(totalCount / pageSize) : 0);
+      return {
+        data: {
+          items: payload.data ?? [],
+          pagination: {
+            page: currentPage,
+            limit: pageSize,
+            total: totalCount,
+            totalPages,
+            hasNext: currentPage < totalPages,
+            hasPrev: currentPage > 1,
+          },
+        },
+      } as any;
     },
-    20,
+    [userId]
   );
+
+  const {
+    items: vendors,
+    pagination,
+    loading,
+    refreshing,
+    refresh,
+  } = usePaginatedApi<any>(fetchVendors, 20, false);
 
   useEffect(() => {
     if (empty === 'true') {
@@ -61,12 +80,21 @@ export default function StoreScreen() {
     }
   }, [empty]);
 
-  // Refetch when userId becomes available
+  // Fetch data when auth is ready and userId is available
   useEffect(() => {
     if (authState.isReady && userId) {
       refresh();
     }
   }, [authState.isReady, userId, refresh]);
+
+  // Refresh when screen gains focus (returning from edit screen)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (refreshParam === 'true') {
+        refresh();
+      }
+    }, [refresh, refreshParam])
+  );
 
   const handleGoBack = () => {
     router.back();
@@ -91,27 +119,32 @@ export default function StoreScreen() {
     router.push('/(private)/store/add-store' as any);
   };
 
-  const handleViewUnpublishedStore = () => {
-    router.push('/(private)/store/unpublished-store' as any);
-  };
 
-  const StoreCard = ({ 
-    storeName, 
-    address, 
-    onPress 
+  const StoreCard = ({
+    storeName,
+    address,
+    imageUrl,
+    onPress
   }: {
     storeName: string;
     address: string;
+    imageUrl?: string | null;
     onPress: () => void;
   }) => (
     <TouchableOpacity style={styles.storeCard} onPress={onPress}>
       <View style={styles.storeCardContent}>
         <View style={styles.logoContainer}>
-          <Image 
-            source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120' }}
-            style={styles.storeLogo}
-            resizeMode="contain"
-          />
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.storeLogo}
+              resizeMode="cover"
+            />
+          ) : (
+            <Svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <Path d="M3 7h18l-1.5 9.5A3 3 0 0 1 16.53 19H7.47A3 3 0 0 1 4.5 16.5L3 7Zm3-4h12v2H6V3Z" fill="#06888C"/>
+            </Svg>
+          )}
         </View>
         <View style={styles.storeInfo}>
           <Text style={styles.storeName}>{storeName}</Text>
@@ -121,24 +154,13 @@ export default function StoreScreen() {
     </TouchableOpacity>
   );
 
-  const AddStoreCard = ({ onPress }: { onPress: () => void }) => (
-    <TouchableOpacity style={styles.addStoreCard} onPress={onPress}>
-      <View style={styles.addStoreContent}>
-        {/* Plus Icon */}
-        <Svg width="48" height="48" viewBox="0 0 49 48" fill="none">
-          <Path d="M38.5 25.996H26.5V37.996H22.5V25.996H10.5V21.996H22.5V9.99597H26.5V21.996H38.5V25.996Z" fill="black"/>
-        </Svg>
-        <Text style={styles.addStoreText}>Add new store</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   const safeVendors = vendors ?? [];
   const totalStores = (pagination?.total ?? 0) || safeVendors.length || 0;
-  const isEmpty = !loading && totalStores === 0;
+  const isEmpty = !loading && !refreshing && totalStores === 0;
+  const isInitialLoading = refreshing && safeVendors.length === 0;
 
-  // Empty state
-  if (empty === 'true' || isEmpty) {
+  // Empty state - only show when not loading and truly empty
+  if (empty === 'true' || (isEmpty && !isInitialLoading)) {
     return (
       <EmptyStore
         onGoBack={handleGoBack}
@@ -185,43 +207,54 @@ export default function StoreScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Stores Count */}
-          <Text style={styles.storesCount}>You have {totalStores} {totalStores === 1 ? 'store' : 'stores'} added</Text>
+          {/* Stores count - hide while initial loading to show only spinner */}
+          {!isInitialLoading && (
+            <Text style={styles.storesCount}>
+              {`You have ${totalStores} ${totalStores === 1 ? 'store' : 'stores'} added`}
+            </Text>
+          )}
 
-          {/* Store Cards Grid (dynamic) */}
-          <View style={styles.storeGrid}>
-            {/* Render vendors in rows of 2 to preserve layout */}
-            {safeVendors.reduce((rows: any[], vendor: any, index: number) => {
-              if (index % 2 === 0) rows.push([vendor]);
-              else rows[rows.length - 1].push(vendor);
-              return rows;
-            }, []).map((row: any[], rowIndex: number) => (
-              <View key={`row-${rowIndex}`} style={styles.storeRow}>
-                {row.map((v: any, colIndex: number) => {
-                  const name = v.businessName || v.name || 'Unnamed Store';
-                  const address = v.address?.street || v.address || '';
-                  return (
-                    <StoreCard
-                      key={v.id || `${rowIndex}-${colIndex}`}
-                      storeName={name}
-                      address={address}
-                      onPress={() => handleStorePress(v.id)}
-                    />
-                  );
-                })}
-                {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
-              </View>
-            ))}
-
-            {/* Add Store Card */}
-            <View style={styles.addStoreRow}>
-              <AddStoreCard onPress={handleAddNewStore} />
+          {/* Loading state for content */}
+          {isInitialLoading ? (
+            <View style={styles.loadingContainer}>
+              <LoadingSpinner message="Fetching your stores..." />
             </View>
-          </View>
+          ) : (
+            <>
+              {/* Store Cards Grid (dynamic) */}
+              <View style={styles.storeGrid}>
+                {/* Render vendors in rows of 2 to preserve layout */}
+                {safeVendors.reduce((rows: any[], vendor: any, index: number) => {
+                  if (index % 2 === 0) rows.push([vendor]);
+                  else rows[rows.length - 1].push(vendor);
+                  return rows;
+                }, []).map((row: any[], rowIndex: number) => (
+                  <View key={`row-${rowIndex}`} style={styles.storeRow}>
+                    {row.map((v: any, colIndex: number) => {
+                      const name = v.businessName || v.name || 'Unnamed Store';
+                      const address = v.address?.street || v.address || '';
+                      const imageUrl = v.image || null;
+                      return (
+                        <StoreCard
+                          key={v.id || `${rowIndex}-${colIndex}`}
+                          storeName={name}
+                          address={address}
+                          imageUrl={imageUrl}
+                          onPress={() => handleStorePress(v)}
+                        />
+                      );
+                    })}
+                    {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
+                  </View>
+                ))}
+              </View>
 
-          {/* Add New Store Button */}
-          <TouchableOpacity style={styles.addStoreButton} onPress={handleAddNewStore}>
-            <Text style={styles.addStoreButtonText}>Add a new Store</Text>
-          </TouchableOpacity>
+              {/* Add New Store Button */}
+              <TouchableOpacity style={styles.addStoreButton} onPress={handleAddNewStore}>
+                <Text style={styles.addStoreButtonText}>Add a new Store</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -328,10 +361,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEBF0',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   storeLogo: {
     width: 60,
     height: 60,
+    borderRadius: 8,
   },
   storeInfo: {
     alignItems: 'center',
@@ -438,5 +473,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    minHeight: 200,
   },
 });

@@ -1,17 +1,21 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import { useDocumentPicker } from '../../../hooks/useImagePicker';
+import { toast } from '../../../utils/toast';
+import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
+
+import { mediaApi } from '../../../api/client';
 
 interface UploadedFile {
   id: string;
@@ -22,9 +26,13 @@ interface UploadedFile {
 }
 
 export default function UploadDocumentsScreen() {
+  const params = useLocalSearchParams();
+  const storeId = params.storeId as string | undefined;
+
   const [storeCertificates, setStoreCertificates] = useState<UploadedFile[]>([]);
   const [idCard, setIdCard] = useState<UploadedFile | null>(null);
-  
+  const [uploading, setUploading] = useState(false);
+
   const storeCertificatePicker = useDocumentPicker({
     showAlert: true,
     alertTitle: 'Upload Store Certificate',
@@ -66,14 +74,66 @@ export default function UploadDocumentsScreen() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Submit documents:', {
-      storeCertificates: storeCertificates,
-      idCard: idCardPicker.selectedImage,
-    });
-    // Here you would typically upload the documents to your server
-    // Navigate to verification screen
-    router.push('/(private)/store/document-verification' as any);
+  const handleSubmit = async () => {
+    if (!storeId) {
+      toast.error('Missing store id. Please go back and try again.');
+      return;
+    }
+
+    setUploading(true);
+    let toastId: any;
+    toastId = toast.loading('Uploading documents...', { header: 'Uploading', cancelLabel: 'Dismiss' });
+
+    try {
+      const api = mediaApi();
+
+      // Helper: convert uri to File (works on web and for data URLs)
+      const uriToFileOrFormObject = async (uri: string, filename: string) => {
+        // If running on web, produce a File. Otherwise return an object compatible with RN FormData append
+        if (typeof File !== 'undefined') {
+          const res = await fetch(uri);
+          const blob = await res.blob();
+          return new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+        }
+        // Native-friendly object
+        return {
+          uri,
+          name: filename,
+          type: 'application/octet-stream',
+        } as any;
+      };
+
+      // Upload certificates
+      for (const cert of storeCertificates) {
+        try {
+          const payload = await uriToFileOrFormObject(cert.uri, cert.name || `certificate_${Date.now()}.jpg`);
+          await api.mediaUploadPost(payload as any, storeId, 'Vendor');
+        } catch (err) {
+          console.warn('Failed to upload certificate', cert.name, err);
+          toast.error(`Failed to upload ${cert.name}`);
+        }
+      }
+
+      // Upload id card
+      if (idCard) {
+        try {
+          const payload = await uriToFileOrFormObject(idCard.uri, idCard.name || `id_${Date.now()}.jpg`);
+          await api.mediaUploadPost(payload as any, storeId, 'Vendor');
+        } catch (err) {
+          console.warn('Failed to upload id card', err);
+          toast.error('Failed to upload ID card');
+        }
+      }
+
+      toast.success('Documents uploaded successfully', { id: toastId, duration: 2500 });
+      // After successful uploads navigate to document verification page (passes storeId)
+      router.push(`/(private)/store/document-verification?storeId=${storeId}` as any);
+    } catch (err) {
+      console.error('Document upload failed', err);
+      toast.error('Failed to upload documents. Please try again.', { id: toastId });
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Create uploaded file objects from picker results
@@ -90,7 +150,7 @@ export default function UploadDocumentsScreen() {
       setStoreCertificates(prev => [...prev, newCertificate]);
       storeCertificatePicker.clearImage();
     }
-  }, [storeCertificatePicker.selectedImage]);
+  }, [storeCertificatePicker.selectedImage, storeCertificatePicker]);
 
   React.useEffect(() => {
     if (idCardPicker.selectedImage && !idCard) {
@@ -261,10 +321,17 @@ export default function UploadDocumentsScreen() {
             )}
           </View>
 
-          {/* Submit Button */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Submit</Text>
+          {/* Skip Button */}
+          <TouchableOpacity style={styles.skipButton} onPress={() => router.push('/(private)/store' as any)}>
+            <Text style={styles.skipButtonText}>Skip for now</Text>
           </TouchableOpacity>
+
+          {/* Submit Button */}
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={uploading}>
+            <Text style={styles.submitButtonText}>{uploading ? 'Uploading...' : 'Submit'}</Text>
+          </TouchableOpacity>
+
+          {uploading && <LoadingSpinner overlay message="Uploading documents..." />}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -453,6 +520,23 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     marginTop: 8,
   },
+  skipButton: {
+    height: 44,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+    color: '#06888C',
+    textAlign: 'center',
+  },
   submitButton: {
     height: 55,
     paddingVertical: 14,
@@ -469,7 +553,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 9,
     elevation: 3,
-    marginTop: 68,
+    marginTop: 16,
   },
   submitButtonText: {
     fontSize: 20,

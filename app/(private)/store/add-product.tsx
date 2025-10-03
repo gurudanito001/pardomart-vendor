@@ -1,5 +1,6 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+
 import {
   SafeAreaView,
   ScrollView,
@@ -11,15 +12,24 @@ import {
   View
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { productApi } from '../../../api/client';
+import type { CreateVendorProductWithBarcodePayload } from '../../../api/models';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { toast } from '../../../utils/toast';
 
 export default function AddProductScreen() {
+  const params = useLocalSearchParams<{ storeId?: string; categoryId?: string }>();
+  const storeId = useMemo(() => (params.storeId ? String(params.storeId) : ''), [params.storeId]);
+  const categoryId = useMemo(() => (params.categoryId ? String(params.categoryId) : ''), [params.categoryId]);
+
   const [productName, setProductName] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('');
+  const [barcode, setBarcode] = useState('');
   const [price, setPrice] = useState('');
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedDiscount, setSelectedDiscount] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const colors = [
     '#ECE7C9',
@@ -55,10 +65,49 @@ export default function AddProductScreen() {
     router.back();
   };
 
-  const handlePublishProduct = () => {
-    console.log('Publishing product...');
-    // Implement product publishing logic
-    router.back();
+  const handlePublishProduct = async () => {
+    try {
+      if (!storeId) {
+        toast.error('Missing store. Please go back and select a store.');
+        return;
+      }
+      if (!categoryId) {
+        toast.error('Missing category. Please select a category.');
+        return;
+      }
+      const priceNum = parseFloat(price);
+      if (!productName || !barcode || isNaN(priceNum) || priceNum <= 0) {
+        toast.error('Please provide product name, barcode and a valid price.');
+        return;
+      }
+
+      setSubmitting(true);
+      const payload: CreateVendorProductWithBarcodePayload = {
+        vendorId: storeId,
+        barcode,
+        price: priceNum,
+        name: productName,
+        description: description || undefined,
+        categoryIds: [categoryId],
+        discountedPrice: selectedDiscount ? Number(selectedDiscount) : undefined,
+        images: [],
+        isAvailable: true,
+        attributes: unit ? { unit } : undefined,
+        sku: undefined,
+        stock: undefined,
+        tagIds: undefined,
+      };
+
+      const api = productApi();
+      await api.productVendorBarcodePost(payload);
+      toast.success('Product created');
+      router.push(`/(private)/store/unpublished-store?storeId=${encodeURIComponent(storeId)}` as any);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Failed to create product';
+      toast.error(String(msg));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -127,13 +176,27 @@ export default function AddProductScreen() {
 
         {/* Form Fields */}
         <View style={styles.formSection}>
+          {/* Barcode */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.fieldLabel}>Barcode</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter barcode"
+                placeholderTextColor="#7C8BA0"
+                value={barcode}
+                onChangeText={setBarcode}
+              />
+            </View>
+          </View>
+
           {/* Product Name */}
           <View style={styles.fieldContainer}>
             <Text style={styles.fieldLabel}>Product Name</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter store's name"
+                placeholder="Enter product name"
                 placeholderTextColor="#7C8BA0"
                 value={productName}
                 onChangeText={setProductName}
@@ -223,8 +286,8 @@ export default function AddProductScreen() {
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.publishButton} onPress={handlePublishProduct}>
-            <Text style={styles.publishText}>Publish product</Text>
+          <TouchableOpacity style={[styles.publishButton, submitting && { opacity: 0.7 }]} disabled={submitting} onPress={handlePublishProduct}>
+            <Text style={styles.publishText}>{submitting ? 'Publishing...' : 'Publish product'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

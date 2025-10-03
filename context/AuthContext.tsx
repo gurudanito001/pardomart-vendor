@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
-import { AuthRegisterPostRequest, User } from '../api';
 import { authApi } from '../api/client';
+import type { User } from '../api/models';
 import { STORAGE_KEYS } from '../constants';
 import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
 
@@ -121,10 +121,10 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 // Context interface
 interface AuthContextType {
   state: AuthState;
-  initiateLogin: (mobileNumber: string, role: 'vendor' | 'shopper') => Promise<any>;
-  register: (data: any) => Promise<any>;
+  initiateLogin: (mobileNumber: string, role: 'vendor' | 'shopper') => Promise<void>;
+  register: (data: any) => Promise<void>;
   verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => Promise<any>;
-  resendOTP: (data: { identifier: string; role: 'vendor' | 'shopper' }) => Promise<any>;
+  resendOTP: (data: { identifier: string; role: 'vendor' | 'shopper' }) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   initializeAuth: () => Promise<void>;
@@ -239,26 +239,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     ]);
   };
 
-  const initiateLogin = async (mobileNumber: string, role: AuthRegisterPostRequest['role']) => {
+  const initiateLogin = async (mobileNumber: string, role: 'vendor' | 'shopper') => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authApi().authInitiateLoginPost({ mobileNumber, role });
+      await authApi().authInitiateLoginPost({ mobileNumber, role });
       // This action completes, but doesn't log the user in. Just finish loading.
       dispatch({ type: 'AUTH_FINISH' });
-      return response.data;
     } catch (error: any) {
       dispatch({ type: 'AUTH_FAILURE', payload: error?.error?.message || 'Failed to send OTP.' });
       throw error;
     }
   };
 
-  const register = async (data: AuthRegisterPostRequest) => {
+  const register = async (data: any) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authApi().authRegisterPost(data);
+      await authApi().authRegisterPost(data);
       // Registration is successful, but the user is not logged in yet. Finish loading.
       dispatch({ type: 'AUTH_FINISH' });
-      return response.data;
     } catch (error: any) {
       dispatch({ type: 'AUTH_FAILURE', payload: error?.error?.message || 'Registration failed.' });
       throw error;
@@ -269,9 +267,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await authApi().authVerifyLoginPost(data);
-      const payload = response.data;
+      // If your API client does not return the payload directly, adjust as needed:
+      // For example, if response is { data: { user, token, refreshToken } }
+      // Otherwise, if it returns the payload directly, use response as payload.
+      const payload = (response as any)?.data ?? response;
 
-      await saveAuthData(payload?.user, payload.token, payload.refreshToken);
+      await saveAuthData(payload.user, payload.token, payload.refreshToken);
 
       dispatch({
         type: 'AUTH_SUCCESS',
@@ -280,18 +281,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           token: payload.token,
         },
       });
+      return payload;
     } catch (error: any) {
       dispatch({ type: 'AUTH_FAILURE', payload: error?.error?.message || 'Verification failed.' });
       throw error;
     }
   };
 
-  const resendOTP = async (data: { identifier: string; role: AuthRegisterPostRequest['role'] }) => {
+  const resendOTP = async (data: { identifier: string; role: 'vendor' | 'shopper' }) => {
     try {
       // This action doesn't need a loading spinner in the context,
       // as it's usually a small action on the verify screen.
-      const response = await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role });
-      return response.data;
+      await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role });
     } catch (error: any) {
       throw error;
     }

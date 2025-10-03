@@ -91,7 +91,7 @@ const vendorReducer = (state: VendorState, action: VendorAction): VendorState =>
 interface VendorContextType {
   state: VendorState;
   loadProfile: () => Promise<void>;
-  updateProfile: (data: Partial<VendorProfile>) => Promise<any>;
+  updateProfile: (data: Partial<VendorProfile>) => Promise<void>;
   uploadDocument: (file: FormData) => Promise<void>;
   goOnline: () => Promise<void>;
   goOffline: () => Promise<void>;

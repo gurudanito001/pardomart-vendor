@@ -241,7 +241,7 @@ export const validateNumberRange = (value: number, min?: number, max?: number, f
 /**
  * Generic field validator that applies multiple rules
  */
-export const validateField = <T>(value: T, rules: ValidationRule<T>[]): string | null => {
+export const validateField = <T>(value: T, rules: ReadonlyArray<ValidationRule<T>>): string | null => {
   for (const rule of rules) {
     // Required validation
     if (rule.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
@@ -288,7 +288,7 @@ export const validateField = <T>(value: T, rules: ValidationRule<T>[]): string |
  */
 export const validateForm = <T extends Record<string, any>>(
   formData: T,
-  validationRules: { [K in keyof T]?: ValidationRule<T[K]>[] }
+  validationRules: { [K in keyof T]?: ReadonlyArray<ValidationRule<T[K]>> }
 ): { [K in keyof T]?: string } => {
   const errors: { [K in keyof T]?: string } = {};
   

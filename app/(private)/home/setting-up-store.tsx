@@ -1,17 +1,19 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { ClipPath, Defs, G, Path, Rect, Svg } from 'react-native-svg';
 
 export default function SettingUpStoreScreen() {
+  const { storeId, imageUrl } = useLocalSearchParams<{ storeId?: string; imageUrl?: string }>();
   const handleBack = () => {
     router.back();
   };
@@ -21,13 +23,13 @@ export default function SettingUpStoreScreen() {
 
     switch (actionType) {
       case 'edit-profile':
-        router.push('/(private)/store/edit-store' as any);
+        router.push(`/(private)/store/edit-store?storeId=${storeId}` as any);
         break;
-      case 'add-store':
-        router.push('/(private)/store?empty=true' as any);
+      case 'view-products':
+        router.push(`/(private)/store/unpublished-store?storeId=${storeId}` as any);
         break;
       case 'upload-documents':
-        router.push('/(private)/store/upload-documents' as any);
+        router.push(`/(private)/store/upload-documents?storeId=${storeId}` as any);
         break;
       case 'settings':
         // Navigate to settings screen
@@ -118,6 +120,13 @@ export default function SettingUpStoreScreen() {
         {/* Store Profile Picture Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
+          {imageUrl ? (
+            <Image
+              source={{ uri: String(imageUrl) }}
+              style={{ width: 85, height: 85, borderRadius: 16 }}
+              resizeMode="cover"
+            />
+          ) : (
             <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
               <G clipPath="url(#clip0_776_1470)">
                 <Path 
@@ -133,7 +142,8 @@ export default function SettingUpStoreScreen() {
                 </ClipPath>
               </Defs>
             </Svg>
-          </View>
+          )}
+        </View>
           <Text style={styles.profileImageText}>Store Profile picture</Text>
         </View>
 
@@ -154,15 +164,12 @@ export default function SettingUpStoreScreen() {
           
           <ActionItem
             icon={
-              <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <Path 
-                  d="M4.58359 3.66667H17.4169C17.6767 3.66667 17.8945 3.75467 18.0705 3.93067C18.2465 4.10667 18.3342 4.32423 18.3336 4.58334C18.333 4.84245 18.245 5.06031 18.0696 5.23692C17.8942 5.41353 17.6767 5.50123 17.4169 5.50001H4.58359C4.32387 5.50001 4.10632 5.412 3.93093 5.236C3.75554 5.06 3.66754 4.84245 3.66693 4.58334C3.66632 4.32423 3.75432 4.10667 3.93093 3.93067C4.10754 3.75467 4.32509 3.66667 4.58359 3.66667ZM4.58359 18.3333C4.32387 18.3333 4.10632 18.2453 3.93093 18.0693C3.75554 17.8933 3.66754 17.6758 3.66693 17.4167V12.8333H3.50651C3.21623 12.8333 2.97943 12.7224 2.79609 12.5006C2.61276 12.2788 2.55165 12.023 2.61276 11.7333L3.52943 7.15001C3.57526 6.93612 3.6822 6.76042 3.85026 6.62292C4.01832 6.48542 4.20929 6.41667 4.42318 6.41667H17.5773C17.7912 6.41667 17.9822 6.48542 18.1503 6.62292C18.3183 6.76042 18.4253 6.93612 18.4711 7.15001L19.3878 11.7333C19.4489 12.0236 19.3878 12.2794 19.2044 12.5006C19.0211 12.7218 18.7843 12.8327 18.494 12.8333H18.3336V17.4167C18.3336 17.6764 18.2456 17.8943 18.0696 18.0703C17.8936 18.2463 17.676 18.3339 17.4169 18.3333C17.1578 18.3327 16.9403 18.2447 16.7643 18.0693C16.5883 17.8939 16.5003 17.6764 16.5003 17.4167V12.8333H12.8336V17.4167C12.8336 17.6764 12.7456 17.8943 12.5696 18.0703C12.3936 18.2463 12.176 18.3339 11.9169 18.3333H4.58359ZM5.50026 16.5H11.0003V12.8333H5.50026V16.5Z" 
-                  fill="black"
-                />
+              <Svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <Path d="M3 3H10V10H3V3ZM14 3H21V10H14V3ZM3 14H10V21H3V14ZM14 14H21V21H14V14Z" fill="black" />
               </Svg>
             }
-            title="Add Store"
-            onPress={() => handleAction('add-store')}
+            title="View Products"
+            onPress={() => handleAction('view-products')}
           />
           
           <ActionItem

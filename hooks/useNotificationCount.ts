@@ -1,16 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { NotificationApi } from '../api/endpoints/notification-api';
+import { notificationApi } from '@/api/client';
+import { useCallback, useEffect, useState } from 'react';
 
 export const useNotificationCount = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const notificationApi = useMemo(() => new NotificationApi(), []);
-
   const fetchCount = useCallback(async () => {
     try {
-      const response = await notificationApi.notificationsUnreadCountGet();
+      const response = await notificationApi().notificationsUnreadCountGet();
       setCount((response.data as any).count ?? 0);
       setError(null);
     } catch (err) {
@@ -20,7 +18,7 @@ export const useNotificationCount = () => {
     } finally {
       setLoading(false);
     }
-  }, [notificationApi]);
+  }, []);
 
   useEffect(() => {
     fetchCount();

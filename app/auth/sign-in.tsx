@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
+import { toast } from '../../utils/toast';
 
 export default function SignInScreen() {
   const { state, initiateLogin } = useAuth();

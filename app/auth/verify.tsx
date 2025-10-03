@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner-native';
+import { toast } from '../../utils/toast';
 
 export default function VerifyScreen() {
   const { verifyOTP, resendOTP, state } = useAuth();

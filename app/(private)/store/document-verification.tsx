@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -10,8 +10,12 @@ import {
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 
+
+
 export default function DocumentVerificationScreen() {
   const [isVerifying, setIsVerifying] = useState(true);
+  const params = useLocalSearchParams();
+  const storeId = params.storeId as string | undefined;
 
   const handleGoBack = () => {
     router.back();
@@ -25,17 +29,15 @@ export default function DocumentVerificationScreen() {
     console.log('Open support');
   };
 
-  // Simulate verification process
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setIsVerifying(false);
-  //     // Navigate to dashboard after verification completes
-  //     // For now, just go back or navigate to home
-  //     router.replace('/');
-  //   }, 3000); // 3 seconds for demo
+  // Auto-redirect to store index after 30 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVerifying(false);
+      router.replace('/(private)/store');
+    }, 30000); // 30 seconds
 
-  //   return () => clearTimeout(timer);
-  // }, []);
+    return () => clearTimeout(timer);
+  }, []);
 
   const LoadingSpinner = () => (
     <View style={styles.spinnerContainer}>

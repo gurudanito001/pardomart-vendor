@@ -111,7 +111,8 @@ export function usePaginatedApi<T>(
       };
     };
   }>,
-  initialLimit: number = 20
+  initialLimit: number = 20,
+  autoFetch: boolean = true
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [pagination, setPagination] = useState({
@@ -185,10 +186,12 @@ export function usePaginatedApi<T>(
     setRefreshing(false);
   }, [initialLimit]);
 
-  // Initial load
+  // Initial load (only if autoFetch is enabled)
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (autoFetch) {
+      fetchData();
+    }
+  }, [autoFetch]);
 
   return {
     items,

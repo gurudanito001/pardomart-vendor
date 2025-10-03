@@ -1,31 +1,40 @@
+import AddressAutocompleteEnhanced from '@/components/ui/AddressAutocompleteEnhanced';
+import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    Image,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
+import { mediaApi, vendorApi } from '../../../api/client';
+import { CreateVendorPayload, UpdateVendorPayload } from '../../../api/models';
 import { Input } from '../../../components/ui/Input';
-import { useImagePicker } from '../../../hooks/useImagePicker';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
-import { config } from '../../../config/environment';
-import { getStorageItem } from '../../../utils/storage';
-import { STORAGE_KEYS } from '../../../constants';
-import { vendorApi } from '../../../api/client';
+
+import { GooglePlacesSuggestion, getPlaceDetailsGoogle, isGoogleMapsConfigured } from '../../../utils/googleMapsLocation';
+import { toast } from '../../../utils/toast';
+import { commonValidationRules, validateField, validateMinLength, businessValidationRules } from '../../../utils/validation';
+
+import { useImagePicker } from '../../../hooks/useImagePicker';
 
 export default function AddStoreScreen() {
   const [storeName, setStoreName] = useState('');
   const [storeAddress, setStoreAddress] = useState('');
+  const [selectedAddress, setSelectedAddress] = useState<{ latitude: number; longitude: number; placeId?: string | null; formattedAddress?: string | null } | null>(null);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [description, setDescription] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [showDeliveryDropdown, setShowDeliveryDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
   const {
     selectedImage,
@@ -47,47 +56,70 @@ export default function AddStoreScreen() {
     console.log('Open support');
   };
 
+  const handleAddressSelect = async (suggestion: GooglePlacesSuggestion) => {
+    // Only fetch place details (lat/lng and formatted address) when a suggestion is selected
+    let latitude = suggestion.latitude;
+    let longitude = suggestion.longitude;
+    let formattedAddress = suggestion.displayName || suggestion.address;
+
+    if ((latitude === 0 || longitude === 0 || latitude == null || longitude == null) && isGoogleMapsConfigured() && suggestion.placeId) {
+      try {
+        const details = await getPlaceDetailsGoogle(suggestion.placeId);
+        if (details) {
+          latitude = details.latitude;
+          longitude = details.longitude;
+          formattedAddress = details.formattedAddress || formattedAddress;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch place details for selected suggestion', err);
+      }
+    }
+
+    const selected = {
+      latitude: latitude || 0,
+      longitude: longitude || 0,
+      placeId: suggestion.placeId,
+      formattedAddress,
+    };
+
+    setSelectedAddress(selected);
+    setStoreAddress(formattedAddress);
+    if (errors.storeAddress) setErrors(prev => ({ ...prev, storeAddress: null }));
+  };
+
   const uploadImageForVendor = async (vendorId: string) => {
-    if (!selectedImage) return;
+    if (!selectedImage) return null;
 
-    const token = await getStorageItem<string>(STORAGE_KEYS.AUTH_TOKEN);
     try {
-      const form = new FormData();
+      const api = mediaApi();
+      let resp: any = null;
 
-      // Support both web data (data URI) and native file uri
-      if (selectedImage.uri && selectedImage.uri.startsWith('data:')) {
-        // Web base64/data URL, convert to blob
+      // Prepare upload payload in a web/native-safe way
+      if (typeof File !== 'undefined' && selectedImage.uri && selectedImage.uri.startsWith('data:')) {
         const res = await fetch(selectedImage.uri);
         const blob = await res.blob();
-        form.append('file', blob as any, selectedImage.fileName || 'image.jpg');
+        const fileToUpload = new File([blob], selectedImage.fileName || 'store-image.jpg', { type: blob.type || 'image/jpeg' });
+        resp = await api.mediaUploadPost(fileToUpload as any, vendorId, 'Vendor');
+      } else if (typeof File !== 'undefined' && selectedImage.uri) {
+        const res = await fetch(selectedImage.uri);
+        const blob = await res.blob();
+        const fileToUpload = new File([blob], selectedImage.fileName || `store_${Date.now()}.jpg`, { type: blob.type || 'image/jpeg' });
+        resp = await api.mediaUploadPost(fileToUpload as any, vendorId, 'Vendor');
       } else {
-        // React Native file object
-        const uri = selectedImage.uri;
-        const name = selectedImage.fileName || `photo_${Date.now()}.jpg`;
-        const type = selectedImage.fileSize ? 'image/jpeg' : 'image/jpeg';
-        // @ts-ignore - React Native FormData file
-        form.append('file', { uri, name, type } as any);
+        const fileObj: any = {
+          uri: selectedImage.uri,
+          name: selectedImage.fileName || `store_${Date.now()}.jpg`,
+          type: selectedImage.type || 'image/jpeg',
+        };
+        resp = await api.mediaUploadPost(fileObj as any, vendorId, 'Vendor');
       }
 
-      form.append('referenceId', vendorId);
-      form.append('referenceType', 'Vendor');
-
-      const uploadUrl = `${config.API_BASE_URL}/media/upload`;
-      const res = await fetch(uploadUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: token ? `Bearer ${token}` : '',
-          Accept: 'application/json',
-        },
-        body: form as any,
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Upload failed');
-      }
-
-      return true;
+      // Try to extract Cloudinary upload info handling both wrapper and direct shapes
+      const wrapper = resp?.data || resp || null;
+      const cloudData = wrapper?.data || wrapper?.data?.data || wrapper || null;
+      // Cloudinary's secure_url can be in cloudData.secure_url or wrapper.data.secure_url depending on backend shape
+      const uploadedUrl = cloudData?.secure_url || cloudData?.url || wrapper?.secure_url || wrapper?.url || null;
+      return uploadedUrl;
     } catch (err) {
       console.warn('Image upload failed', err);
       throw err;
@@ -95,40 +127,90 @@ export default function AddStoreScreen() {
   };
 
   const handleAddStore = async () => {
-    if (!storeName.trim()) {
-      return alert('Store name is required');
+    // Validation using validation util
+    const newErrors: { [key: string]: string | null } = {};
+    newErrors.storeName = validateField(storeName, commonValidationRules.name);
+
+    if (isGoogleMapsConfigured()) {
+      newErrors.storeAddress = (!selectedAddress || !selectedAddress.formattedAddress)
+        ? 'Address is required.'
+        : (!selectedAddress.latitude || !selectedAddress.longitude)
+          ? 'Please select a valid address from suggestions.'
+          : null;
+    } else {
+      newErrors.storeAddress = validateField(storeAddress, businessValidationRules.address);
     }
 
-    setSubmitting(true);
+    newErrors.email = validateField(email, commonValidationRules.email);
+    newErrors.phoneNumber = validateField(phoneNumber, commonValidationRules.phone);
+    newErrors.deliveryMethod = validateField(deliveryMethod, [{ required: true, message: 'Delivery method is required.' }]);
+    newErrors.description = description ? validateMinLength(description, 10, 'Description') : null;
 
+    const hasErrors = Object.values(newErrors).some(v => v && v.length > 0);
+    if (hasErrors) {
+      setErrors(newErrors);
+      toast.error('Please fix form errors');
+      return;
+    }
+
+    setErrors({});
+    setSubmitting(true);
+    let toastId: any;
     try {
-      const payload: any = {
+      toastId = toast.loading('Please wait while we set up your store', { header: 'Creating Store' });
+
+      const payload: CreateVendorPayload = {
         name: storeName.trim(),
-        address: storeAddress || undefined,
-        email: undefined,
-        tagline: undefined,
-        details: undefined,
-        image: undefined,
-        longitude: undefined,
-        latitude: undefined,
-        meta: undefined,
+        address: (selectedAddress?.formattedAddress || storeAddress).trim() || null,
+        email: email.trim() || null,
+        tagline: null,
+        details: description.trim() || null,
+        image: null,
+        longitude: selectedAddress?.longitude || null,
+        latitude: selectedAddress?.latitude || null,
+        meta: (phoneNumber.trim() || deliveryMethod || selectedAddress) ? {
+          ...(phoneNumber.trim() && { phoneNumber: phoneNumber.trim() }),
+          ...(deliveryMethod && { deliveryMethod }),
+          ...(selectedAddress && { placeId: selectedAddress.placeId, formattedAddress: selectedAddress.formattedAddress }),
+        } : null,
       };
 
       // Create vendor
       const api = vendorApi();
-      const response: any = await api.vendorsPost(payload as any);
-      const vendor = response?.data as any;
+      const response = await api.vendorsPost(payload);
+      const vendor = response?.data;
 
-      // Upload image and attach to vendor if present
-      if (selectedImage && vendor?.id) {
-        await uploadImageForVendor(vendor.id);
+      if (!vendor?.id) {
+        throw new Error('Failed to create store - no vendor ID returned');
       }
 
-      // Navigate back to stores list
-      router.push('/(private)/store' as any);
+      // Upload image and attach to vendor if present
+      if (selectedImage) {
+        try {
+          const uploadedUrl = await uploadImageForVendor(vendor.id);
+          if (uploadedUrl) {
+            try {
+              const updatePayload: UpdateVendorPayload = { image: uploadedUrl };
+              await api.vendorsIdPatch(updatePayload, vendor.id);
+              // Update local object so subsequent logic sees the image immediately
+              try { if (vendor) { (vendor as any).image = uploadedUrl; } } catch { /* ignore */ }
+            } catch (patchErr) {
+              console.warn('Failed to attach uploaded image to vendor record', patchErr);
+            }
+          }
+        } catch (imageError) {
+          console.warn('Image upload failed, but store was created:', imageError);
+          toast.warning('Image upload failed', { header: 'Partial Success', description: 'Store created, but image upload failed' });
+        }
+      }
+
+      toast.success('Store created successfully', { id: toastId, header: 'Store Created', description: 'Redirecting to document upload…', duration: 2500 });
+      // Navigate to upload documents page with vendor id
+      router.push(`/(private)/store/upload-documents?storeId=${vendor.id}` as any);
     } catch (err: any) {
-      console.warn('Failed to create vendor', err);
-      alert(err?.message || 'Failed to create store');
+      console.error('Failed to create vendor:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to create store';
+      toast.error(errorMessage, { id: toastId, header: 'Failed to Create Store' });
     } finally {
       setSubmitting(false);
     }
@@ -139,12 +221,6 @@ export default function AddStoreScreen() {
     'Delivery',
     'Both Pickup & Delivery',
   ];
-
-  const LocationIcon = () => (
-    <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <Path d="M11.3451 0.00354333L11.4077 0L11.4844 0.00472435L11.5376 0.0141732L11.6102 0.0348425L11.6734 0.0620079L11.7325 0.0956692L11.7856 0.135236L11.8341 0.179527L11.8648 0.21437L11.9132 0.282874L11.9439 0.339567C11.9715 0.398622 11.9892 0.460827 11.997 0.526181L12 0.588779C12 0.633268 11.9953 0.676575 11.9858 0.718701L11.9652 0.791338L8.10768 11.4667C8.03455 11.6259 7.91728 11.7608 7.76979 11.8553C7.62229 11.9498 7.45077 12.0001 7.27559 12C7.11785 12.0003 6.9627 11.9599 6.82518 11.8826C6.68767 11.8053 6.57247 11.6938 6.49075 11.5589L6.45236 11.4839L4.47283 7.52598L0.533858 5.55591C0.388111 5.48925 0.262419 5.38549 0.169354 5.25501C0.0762889 5.12454 0.0191125 4.97191 0.00354333 4.8124L0 4.72441C0 4.3937 0.177756 4.09134 0.496654 3.91535L0.579331 3.87402L11.2193 0.0318897L11.2819 0.0141732L11.3451 0.00354333Z" fill="#BBBBBB"/>
-    </Svg>
-  );
 
   const DropdownArrow = () => (
     <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -201,18 +277,44 @@ export default function AddStoreScreen() {
             <View style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>Store Image</Text>
               <View style={styles.imageWrapper}>
-                <TouchableOpacity style={styles.imagePicker} onPress={pickFromGallery} activeOpacity={0.8}>
-                  {selectedImage ? (
-                    <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
+                <TouchableOpacity 
+                  style={[
+                    styles.imagePicker, 
+                    selectedImage && styles.imagePickerWithImage,
+                    imageLoading && styles.imagePickerLoading
+                  ]}
+                  onPress={pickFromGallery}
+                  activeOpacity={0.8}
+                  disabled={imageLoading}
+                >
+                  {imageLoading ? (
+                    <View style={styles.imageLoadingContainer}>
+                      <LoadingSpinner size="small" />
+                      <Text style={styles.imageLoadingText}>Processing image...</Text>
+                    </View>
+                  ) : selectedImage ? (
+                    <>
+                      <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
+                      <View style={styles.imageOverlay}>
+                        <TouchableOpacity style={styles.changeImageButton} onPress={pickFromGallery}>
+                          <MaterialIcons name="swap-horiz" size={18} color="#FFF" />
+                          <Text style={styles.changeImageText}>Change</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.removeImageButton} onPress={clearImage}>
+                          <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <Path d="M12 4L4 12M4 4L12 12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                          </Svg>
+                          <Text style={styles.removeImageText}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
                   ) : (
-                    <Text style={styles.imagePlaceholderText}>Upload image</Text>
+                    <View style={styles.imagePlaceholder}>
+                      <MaterialIcons name="photo-camera" size={48} color="#06888C" />
+                      <Text style={styles.imagePlaceholderText}>Upload store image</Text>
+                      <Text style={styles.imagePlaceholderSubText}>Tap to select from gallery</Text>
+                    </View>
                   )}
-
-                  {selectedImage ? (
-                    <TouchableOpacity style={styles.clearOverlay} onPress={clearImage}>
-                      <Text style={styles.clearOverlayText}>Clear</Text>
-                    </TouchableOpacity>
-                  ) : null}
                 </TouchableOpacity>
               </View>
               {imageError ? <Text style={styles.errorText}>{imageError}</Text> : null}
@@ -224,25 +326,37 @@ export default function AddStoreScreen() {
                 label="Store Name"
                 placeholder="Enter store's name"
                 value={storeName}
-                onChangeText={setStoreName}
+                onChangeText={(v) => { setStoreName(v); if (errors.storeName) setErrors(prev => ({ ...prev, storeName: null })); }}
                 variant="default"
                 size="large"
                 containerStyle={styles.inputContainer}
+                error={errors.storeName}
               />
             </View>
 
             {/* Store Address */}
-            <View style={styles.fieldContainer}>
-              <Input
-                label="Store Address"
-                placeholder="Enter Address"
+            <View style={[styles.fieldContainer, { zIndex: 1 }]}>
+              <Text style={styles.fieldLabel}>Store Address</Text>
+
+              <AddressAutocompleteEnhanced
+                onAddressSelect={handleAddressSelect}
+                onCreateAddress={async () => Promise.resolve()}
+                placeholder="Enter store address"
+                autoFocus={false}
                 value={storeAddress}
-                onChangeText={setStoreAddress}
-                leftIcon={<LocationIcon />}
-                variant="default"
-                size="large"
-                containerStyle={styles.inputContainer}
+                onValueChange={(v) => { setStoreAddress(v); if (errors.storeAddress) setErrors(prev => ({ ...prev, storeAddress: null })); }}
+                requireConfirmation
               />
+              {selectedAddress ? (
+                <View style={styles.coordinatesInfo}>
+                  <Text style={styles.coordinatesText}>
+                    {selectedAddress.formattedAddress}
+                    {selectedAddress ? `\n(${selectedAddress.latitude.toFixed(5)}, ${selectedAddress.longitude.toFixed(5)})` : ''}
+                  </Text>
+                </View>
+              ) : null}
+
+              {errors.storeAddress ? <Text style={{ color: '#FF4444', marginTop: 6 }}>{errors.storeAddress}</Text> : null}
             </View>
 
             {/* Store Phone Number */}
@@ -251,11 +365,45 @@ export default function AddStoreScreen() {
                 label="Store Phone number"
                 placeholder="+1 223 335 6333"
                 value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                onChangeText={(v) => { setPhoneNumber(v); if (errors.phoneNumber) setErrors(prev => ({ ...prev, phoneNumber: null })); }}
                 keyboardType="phone-pad"
                 variant="default"
                 size="large"
                 containerStyle={styles.inputContainer}
+                error={errors.phoneNumber}
+              />
+            </View>
+
+            {/* Store Email */}
+            <View style={styles.fieldContainer}>
+              <Input
+                label="Store Email"
+                placeholder="store@business.com"
+                value={email}
+                onChangeText={(v) => { setEmail(v); if (errors.email) setErrors(prev => ({ ...prev, email: null })); }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                variant="default"
+                size="large"
+                containerStyle={styles.inputContainer}
+                error={errors.email}
+              />
+            </View>
+
+            {/* Store Description */}
+            <View style={styles.fieldContainer}>
+              <Input
+                label="Store Description"
+                placeholder="Briefly describe the store"
+                value={description}
+                onChangeText={(v) => { setDescription(v); if (errors.description) setErrors(prev => ({ ...prev, description: null })); }}
+                multiline
+                numberOfLines={4}
+                variant="default"
+                size="large"
+                containerStyle={styles.inputContainer}
+                inputStyle={{ textAlignVertical: 'top' }}
+                error={errors.description}
               />
             </View>
 
@@ -280,6 +428,7 @@ export default function AddStoreScreen() {
                       style={styles.dropdownOption}
                       onPress={() => {
                         setDeliveryMethod(option);
+                        if (errors.deliveryMethod) setErrors(prev => ({ ...prev, deliveryMethod: null }));
                         setShowDeliveryDropdown(false);
                       }}
                     >
@@ -288,18 +437,34 @@ export default function AddStoreScreen() {
                   ))}
                 </View>
               )}
+              {errors.deliveryMethod ? <Text style={{ color: '#FF4444', marginTop: 6 }}>{errors.deliveryMethod}</Text> : null}
             </View>
           </View>
 
 
           {/* Add Store Button */}
-          <TouchableOpacity style={styles.addStoreButton} onPress={handleAddStore} disabled={submitting}>
-            <Text style={styles.addStoreButtonText}>Add Store</Text>
+          <TouchableOpacity 
+            style={[
+              styles.addStoreButton, 
+              (submitting || imageLoading) && styles.addStoreButtonDisabled
+            ]} 
+            onPress={handleAddStore} 
+            disabled={submitting || imageLoading}
+          >
+            {submitting ? (
+              <View style={styles.buttonLoadingContainer}>
+                <LoadingSpinner size="small" color="#FFF" />
+                <Text style={styles.addStoreButtonText}>Creating Store...</Text>
+              </View>
+            ) : (
+              <Text style={styles.addStoreButtonText}>Add Store</Text>
+            )}
           </TouchableOpacity>
 
           {(submitting || imageLoading) && <LoadingSpinner overlay message={submitting ? 'Saving store...' : 'Processing image...'} />}
         </View>
       </ScrollView>
+
     </SafeAreaView>
   );
 }
@@ -380,12 +545,20 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 0,
+    width: '100%',
   },
   fieldLabel: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Raleway',
+    fontWeight: '600',
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333333',
+  },
+  fieldSubLabel: {
+    fontSize: 12,
+    fontWeight: '400',
     fontFamily: 'Open Sans',
-    color: '#000',
+    color: '#6F7380',
     marginBottom: 9,
   },
   dropdownContainer: {
@@ -458,50 +631,124 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 25,
   },
+  addStoreButtonDisabled: {
+    backgroundColor: '#B4BED4',
+    opacity: 0.7,
+  },
+  buttonLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   imageWrapper: {
     marginBottom: 12,
   },
   imagePicker: {
     width: '100%',
-    height: 185,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#B4BED4',
-    backgroundColor: '#F8F8F8',
+    height: 200,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    backgroundColor: '#F9FAFB',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
     position: 'relative',
+  },
+  imagePickerWithImage: {
+    borderStyle: 'solid',
+    borderColor: '#06888C',
+    backgroundColor: '#FFF',
+  },
+  imagePickerLoading: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#D1D5DB',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  imagePlaceholderText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+    color: '#06888C',
+  },
+  imagePlaceholderSubText: {
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: 'Open Sans',
+    color: '#7C8BA0',
+  },
+  imageLoadingContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  imageLoadingText: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: 'Open Sans',
+    color: '#7C8BA0',
   },
   previewImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  imagePlaceholderText: {
-    fontSize: 14,
-    color: '#7C8BA0',
-  },
-  clearOverlay: {
+  imageOverlay: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(6, 136, 140, 0.15)',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 12,
   },
-  clearOverlayText: {
-    color: '#06888C',
-    fontWeight: '700',
-    fontFamily: 'Raleway',
+  changeImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  changeImageText: {
+    color: '#FFF',
     fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+  },
+  removeImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  removeImageText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
   },
   errorText: {
     color: '#FF4D4F',
     marginTop: 8,
     fontSize: 12,
+  },
+  coordinatesInfo: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#E6F7FF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#91D5FF',
+  },
+  coordinatesText: {
+    fontSize: 11,
+    color: '#0050B3',
+    fontFamily: 'Open Sans',
+    fontWeight: '500',
   },
 });

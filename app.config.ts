@@ -1,4 +1,4 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -18,6 +18,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: 'com.pardomart.vendor',
     buildNumber: '1',
+    config: {
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyBPU99vzK1tFFshnYqzDb_dLz8kSfDUsAU',
+    },
   },
   android: {
     adaptiveIcon: {
@@ -30,7 +33,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'CAMERA',
       'READ_EXTERNAL_STORAGE',
       'WRITE_EXTERNAL_STORAGE',
+      'ACCESS_FINE_LOCATION',
+      'ACCESS_COARSE_LOCATION',
     ],
+    config: {
+      googleMaps: {
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyBPU99vzK1tFFshnYqzDb_dLz8kSfDUsAU',
+      },
+    },
   },
   web: {
     bundler: 'metro',
@@ -44,6 +54,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         photosPermission: 'The app accesses your photos to let you select profile pictures and upload documents.',
         cameraPermission: 'The app accesses your camera to let you take profile pictures and upload documents.',
+      },
+    ],
+    [
+      'expo-location',
+      {
+        locationAlwaysAndWhenInUsePermission: 'Allow $(PRODUCT_NAME) to use your location to provide better address suggestions.',
       },
     ],
   ],

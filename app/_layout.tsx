@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppProvider, useAuth } from '@/context/AppProvider';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -9,7 +10,7 @@ import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Toaster as Sonner } from 'sonner-native';
+import { Toaster as Sonner } from '@/sonner';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -83,8 +84,8 @@ export default function AppLayout() {
                 value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
               >
                 <StatusBar style="auto" />
-                <Sonner position="bottom-center" theme={colorScheme === 'dark' ? 'dark' : 'light'} />
                 <RootLayout />
+                <Sonner position="bottom-center" theme={colorScheme === 'dark' ? 'dark' : 'light'} />
               </ThemeProvider>
             </AppProvider>
           </QueryClientProvider>

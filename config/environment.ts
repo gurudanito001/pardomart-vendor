@@ -4,6 +4,7 @@ interface Environment {
   ENABLE_LOGGING: boolean;
   SENTRY_DSN?: string;
   GOOGLE_CLIENT_ID?: string;
+  GOOGLE_MAPS_API_KEY?: string;
   FACEBOOK_APP_ID?: string;
   APPLE_CLIENT_ID?: string;
 }
@@ -19,10 +20,11 @@ interface FeatureFlags {
 // Development environment
 const development: Environment = {
   API_BASE_URL: process.env.API_BASE_URL || 'https://pardomart-node-api-vaje.onrender.com/api/v1',
-  API_TIMEOUT: 50000,
+  API_TIMEOUT: 30000,
   ENABLE_LOGGING: true,
   // Add your development keys here
   GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
   FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
   APPLE_CLIENT_ID: process.env.EXPO_PUBLIC_APPLE_CLIENT_ID,
 };
@@ -34,6 +36,7 @@ const staging: Environment = {
   ENABLE_LOGGING: true,
   SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
   GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
   FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
   APPLE_CLIENT_ID: process.env.EXPO_PUBLIC_APPLE_CLIENT_ID,
 };
@@ -45,6 +48,7 @@ const production: Environment = {
   ENABLE_LOGGING: false,
   SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
   GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
   FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
   APPLE_CLIENT_ID: process.env.EXPO_PUBLIC_APPLE_CLIENT_ID,
 };
