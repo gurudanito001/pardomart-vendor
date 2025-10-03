@@ -1,7 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
-import { AuthRegisterPostRequest } from '../api';
+import { AuthRegisterPostRequest, User } from '../api';
 import { authApi } from '../api/client';
-import type { User } from '../api/models';
 import { STORAGE_KEYS } from '../constants';
 import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
 
@@ -122,10 +121,10 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 // Context interface
 interface AuthContextType {
   state: AuthState;
-  initiateLogin: (mobileNumber: string, role: AuthRegisterPostRequest['role']) => Promise<void>;
-  register: (data: AuthRegisterPostRequest) => Promise<void>;
-  verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => Promise<void>;
-  resendOTP: (data: { identifier: string; role: AuthRegisterPostRequest['role'] }) => Promise<void>;
+  initiateLogin: (mobileNumber: string, role: 'vendor' | 'shopper') => Promise<any>;
+  register: (data: any) => Promise<any>;
+  verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => Promise<any>;
+  resendOTP: (data: { identifier: string; role: 'vendor' | 'shopper' }) => Promise<any>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   initializeAuth: () => Promise<void>;
@@ -243,9 +242,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initiateLogin = async (mobileNumber: string, role: AuthRegisterPostRequest['role']) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      await authApi().authInitiateLoginPost({ mobileNumber, role } as any);
+      const response = await authApi().authInitiateLoginPost({ mobileNumber, role });
       // This action completes, but doesn't log the user in. Just finish loading.
       dispatch({ type: 'AUTH_FINISH' });
+      return response.data;
     } catch (error: any) {
       dispatch({ type: 'AUTH_FAILURE', payload: error?.error?.message || 'Failed to send OTP.' });
       throw error;
@@ -255,9 +255,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (data: AuthRegisterPostRequest) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      await authApi().authRegisterPost(data as AuthRegisterPostRequest);
+      const response = await authApi().authRegisterPost(data);
       // Registration is successful, but the user is not logged in yet. Finish loading.
       dispatch({ type: 'AUTH_FINISH' });
+      return response.data;
     } catch (error: any) {
       dispatch({ type: 'AUTH_FAILURE', payload: error?.error?.message || 'Registration failed.' });
       throw error;
@@ -267,10 +268,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const verifyOTP = async (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response: any = await authApi().authVerifyLoginPost(data as any);
-      const payload = response?.data?.data || response?.data || {};
+      const response = await authApi().authVerifyLoginPost(data);
+      const payload = response.data;
 
-      await saveAuthData(payload.user, payload.token, payload.refreshToken);
+      await saveAuthData(payload?.user, payload.token, payload.refreshToken);
 
       dispatch({
         type: 'AUTH_SUCCESS',
@@ -289,7 +290,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // This action doesn't need a loading spinner in the context,
       // as it's usually a small action on the verify screen.
-      await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role } as any);
+      const response = await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role });
+      return response.data;
     } catch (error: any) {
       throw error;
     }

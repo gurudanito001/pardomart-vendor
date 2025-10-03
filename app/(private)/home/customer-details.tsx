@@ -1,31 +1,31 @@
+import { Payment, User } from '@/api';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-    ArrowBackButtonSVG,
-    ArrowBackSVG,
-    NotificationSVG,
-    OrderSVG,
-    SupportSVG
+  ArrowBackButtonSVG,
+  ArrowBackSVG,
+  NotificationSVG,
+  OrderSVG,
+  SupportSVG
 } from '../../../components/icons';
-// Removed legacy types import
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: '1', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '2', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '3', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '4', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '5', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '6', orderId: 'Order 556445', date: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+const MOCK_TRANSACTIONS: Payment[] = [
+  { id: '1', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+  { id: '2', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+  { id: '3', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+  { id: '4', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+  { id: '5', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
+  { id: '6', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
 ];
 
 export default function CustomerDetailsScreen() {
@@ -33,15 +33,11 @@ export default function CustomerDetailsScreen() {
   const customerId = params.customerId as string;
 
   // Mock customer data - in a real app, you'd fetch this based on customerId
-  const customer: Customer = {
+  const customer: User = {
     id: customerId || '1',
     name: 'Jonathan Smith',
     email: 'Joanthansmith@gmail.com',
-    phone: '+1 334 654 7788',
-    address: 'Westside 12th asery. New California, 90123',
-    orderCount: 120,
-    totalAmount: 2300.44,
-    avatar: 'https://api.builder.io/api/v1/image/assets/TEMP/1c02f988f6152857cceceaad4514db57c0b09aa3?width=120',
+    mobileNumber: '+1 334 654 7788',
   };
 
   const handleGoBack = () => {
@@ -60,7 +56,7 @@ export default function CustomerDetailsScreen() {
     console.log('View all transactions');
   };
 
-  const TransactionItem = ({ transaction }: { transaction: Transaction }) => (
+  const TransactionItem = ({ transaction }: { transaction: Payment }) => (
     <View style={styles.transactionItem}>
       <View style={styles.transactionContent}>
         <View style={styles.orderIconContainer}>
@@ -69,9 +65,7 @@ export default function CustomerDetailsScreen() {
         <View style={styles.transactionDetails}>
           <View style={styles.transactionInfo}>
             <Text style={styles.orderId}>{transaction.orderId}</Text>
-            <Text style={styles.transactionDate}>{transaction.date}</Text>
           </View>
-          <Text style={styles.transactionAmount}>+${transaction.amount.toFixed(2)}</Text>
         </View>
       </View>
     </View>
@@ -106,11 +100,10 @@ export default function CustomerDetailsScreen() {
           <Text style={styles.sectionTitle}>Customer Information</Text>
           
           <View style={styles.customerInfoContainer}>
-            <Image source={{ uri: customer.avatar }} style={styles.customerAvatar} />
+            <Image source={require('../../../assets/images/user profile.png')} style={styles.customerAvatar} />
             <View style={styles.customerDetails}>
               <View style={styles.customerNameRow}>
                 <Text style={styles.customerName}>{customer.name}</Text>
-                <Text style={styles.orderCount}>{customer.orderCount} Orders</Text>
               </View>
               <Text style={styles.customerEmail}>{customer.email}</Text>
             </View>
@@ -129,22 +122,21 @@ export default function CustomerDetailsScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Phone Number</Text>
             <View style={styles.fieldInput}>
-              <Text style={styles.fieldValue}>{customer.phone}</Text>
+              <Text style={styles.fieldValue}>{customer.mobileNumber}</Text>
             </View>
           </View>
 
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Address</Text>
             <View style={styles.fieldInput}>
-              <Text style={styles.fieldValue}>{customer.address}</Text>
             </View>
           </View>
         </View>
 
-        {/* Transaction History Section */}
+        {/* Payment History Section */}
         <View style={styles.transactionSection}>
           <View style={styles.transactionHeader}>
-            <Text style={styles.sectionTitle}>Transaction history</Text>
+            <Text style={styles.sectionTitle}>Payment history</Text>
             <TouchableOpacity onPress={handleViewAllTransactions}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
@@ -368,7 +360,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     paddingVertical: 14,
-    paddingHorizontal: 120,
+    marginHorizontal: 20,
     borderRadius: 16,
     backgroundColor: '#06888C',
     marginBottom: 40,

@@ -13,14 +13,14 @@
  */
 
 
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import type { AxiosInstance, AxiosPromise, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
+import type { Configuration } from '../configuration';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import { DUMMY_BASE_URL, assertParamExists, createRequestFunction, serializeDataIfNeeded, setBearerAuthToObject, setSearchParams, toPathString } from '../common';
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import { BASE_PATH, BaseAPI, RequiredError, operationServerMap, type RequestArgs } from '../base';
 // @ts-ignore
 import type { CreateVendorPayload } from '../models';
 // @ts-ignore
@@ -892,7 +892,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderOrderIdAcceptPatch(orderId: string, options?: RawAxiosRequestConfig) {
+    public orderOrderIdAcceptPatch(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Order> {
         return VendorApiFp(this.configuration).orderOrderIdAcceptPatch(orderId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -904,7 +904,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderOrderIdDeclinePatch(orderId: string, declineOrderPayload?: DeclineOrderPayload, options?: RawAxiosRequestConfig) {
+    public orderOrderIdDeclinePatch(orderId: string, declineOrderPayload?: DeclineOrderPayload, options?: RawAxiosRequestConfig): AxiosPromise<Order> {
         return VendorApiFp(this.configuration).orderOrderIdDeclinePatch(orderId, declineOrderPayload, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -917,7 +917,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload: UpdateOrderItemShoppingStatusPayload, orderId: string, itemId: string, options?: RawAxiosRequestConfig) {
+    public orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload: UpdateOrderItemShoppingStatusPayload, orderId: string, itemId: string, options?: RawAxiosRequestConfig): AxiosPromise<OrderItemWithRelations> {
         return VendorApiFp(this.configuration).orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload, orderId, itemId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -928,7 +928,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderOrderIdStartShoppingPatch(orderId: string, options?: RawAxiosRequestConfig) {
+    public orderOrderIdStartShoppingPatch(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Order> {
         return VendorApiFp(this.configuration).orderOrderIdStartShoppingPatch(orderId, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -939,7 +939,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderVendorOrdersGet(status?: OrderStatus, options?: RawAxiosRequestConfig) {
+    public orderVendorOrdersGet(status?: OrderStatus, options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorOrder>> {
         return VendorApiFp(this.configuration).orderVendorOrdersGet(status, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -952,7 +952,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public productVendorTrendingGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+    public productVendorTrendingGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedTrendingVendorProducts> {
         return VendorApiFp(this.configuration).productVendorTrendingGet(vendorId, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -968,7 +968,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsGet(name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+    public vendorsGet(name?: string, latitude?: number, longitude?: number, userId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedVendors> {
         return VendorApiFp(this.configuration).vendorsGet(name, latitude, longitude, userId, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -978,7 +978,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig) {
+    public vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorWithRelations>> {
         return VendorApiFp(this.configuration).vendorsGetvendorsbyUserIdGet(options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -989,7 +989,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsIdDelete(id: string, options?: RawAxiosRequestConfig) {
+    public vendorsIdDelete(id: string, options?: RawAxiosRequestConfig): AxiosPromise<VendorWithRelations> {
         return VendorApiFp(this.configuration).vendorsIdDelete(id, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -1002,7 +1002,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsIdGet(id: string, latitude?: number, longitude?: number, options?: RawAxiosRequestConfig) {
+    public vendorsIdGet(id: string, latitude?: number, longitude?: number, options?: RawAxiosRequestConfig): AxiosPromise<VendorWithDetails> {
         return VendorApiFp(this.configuration).vendorsIdGet(id, latitude, longitude, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -1014,7 +1014,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsIdPatch(updateVendorPayload: UpdateVendorPayload, id: string, options?: RawAxiosRequestConfig) {
+    public vendorsIdPatch(updateVendorPayload: UpdateVendorPayload, id: string, options?: RawAxiosRequestConfig): AxiosPromise<VendorWithRelations> {
         return VendorApiFp(this.configuration).vendorsIdPatch(updateVendorPayload, id, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -1025,8 +1025,7 @@ export class VendorApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public vendorsPost(createVendorPayload: CreateVendorPayload, options?: RawAxiosRequestConfig) {
+    public vendorsPost(createVendorPayload: CreateVendorPayload, options?: RawAxiosRequestConfig): AxiosPromise<VendorWithRelations> {
         return VendorApiFp(this.configuration).vendorsPost(createVendorPayload, options).then((request) => request(this.axios, this.basePath));
     }
 }
-

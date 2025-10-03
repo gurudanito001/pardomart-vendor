@@ -1,11 +1,21 @@
-import { vendorService } from '@/services/vendor';
+import { notificationApi } from '@/api/client';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// legacy props removed
+interface Notification {
+  id: string;
+  title: string;
+  body?: string;
+  isRead: boolean;
+  meta?: {
+    orderId?: string;
+    [key: string]: any;
+  };
+  createdAt: string;
+}
 
 interface SupportItemProps {
   title: string;
@@ -22,8 +32,6 @@ interface ClosedSupportItemProps {
   endDate: string;
   onPress: () => void;
 }
-
-// Old local list UI removed in favor of NotificationCenter
 
 const SupportItem: React.FC<SupportItemProps> = ({
   title,
@@ -120,113 +128,77 @@ const ClosedSupportItem: React.FC<ClosedSupportItemProps> = ({
   </Pressable>
 );
 
-const Notifications = () => {
+const NotificationList = ({ items, onNotificationPress, onRefresh, refreshing, loadMore, loading }: { items: Notification[], onNotificationPress: (item: Notification) => void, onRefresh: () => void, refreshing: boolean, loadMore: () => void, loading: boolean }) => {
   const router = useRouter();
-  const { from } = useLocalSearchParams<{ from?: string }>();
-  const [activeTab, setActiveTab] = useState<'notifications' | 'support'>('notifications');
+  if (items.length === 0 && !loading) {
+    return (
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyTitle}>No notifications yet</Text>
+        <Text style={styles.emptySubtitle}>We’ll keep you posted when there’s activity on your account.</Text>
+        <Pressable style={styles.refreshBtn} onPress={onRefresh}><Text style={styles.refreshBtnText}>Refresh</Text></Pressable>
+      </View>
+    );
+  }
 
-  // Inline notifications center logic
-  const [items, setItems] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  return (
+    <FlatList
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      data={items}
+      keyExtractor={(i) => i.id}
+      renderItem={({ item }) => (
+        <Pressable
+          style={[
+            styles.notificationCard,
+            { backgroundColor: item.isRead ? '#F0F0F0' : '#F4E1D2' },
+          ]}
+          onPress={() => onNotificationPress(item)}
+        >
+          <View style={styles.notificationContent}>
+            <View style={styles.checkIconContainer}>
+              <Ionicons
+                name="checkmark-circle"
+                size={32}
+                color={item.isRead ? '#7C7B7B' : '#2CAF0B'}
+              />
+            </View>
+            <View style={styles.notificationText}>
+              <Text
+                style={[
+                  styles.notificationTitle,
+                  { color: item.isRead ? '#7C7B7B' : '#000' },
+                ]}
+              >
+                {item.title}
+              </Text>
+              {!!item.body && (
+                <Text
+                  style={[
+                    styles.notificationDescription,
+                    { color: item.isRead ? '#7C7B7B' : '#000' },
+                  ]}
+                >
+                  {item.body}
+                </Text>
+              )}
+            </View>
+          </View>
+          <View style={styles.chevronContainer}>
+            <Ionicons name="chevron-forward" size={12} color="#333" />
+          </View>
+        </Pressable>
+      )}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.5}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      ListFooterComponent={loading ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null}
+    />
+  );
+};
 
-  const loadPage = useCallback(async (p: number, replace = false) => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const res = await vendorService.getNotifications(p, 20);
-      const data = res?.data?.items ?? [];
-      const tp = (res as any)?.data?.totalPages ?? 1;
-      setTotalPages(tp);
-      setItems(prev => (replace ? data : [...prev, ...data]));
-    } catch {}
-    finally { setLoading(false); }
-  }, [loading]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      loadPage(1, true);
-      setPage(1);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [loadPage]);
-
-  const loadMore = React.useCallback(() => {
-    if (page < totalPages) {
-      const next = page + 1;
-      setPage(next);
-      loadPage(next);
-    }
-  }, [page, totalPages, loading, loadPage]);
-
-  const markRead = useCallback(async (id: string) => {
-    setItems(prev => prev.map(n => (n.id === id ? { ...n, isRead: true } : n)));
-    try { await vendorService.markNotificationAsRead(id); } catch {}
-  }, []);
-
-  const markAllRead = useCallback(async () => {
-    const prev = items;
-    setItems(prev.map(n => ({ ...n, isRead: true })));
-    try { await vendorService.markAllNotificationsAsRead(); } catch { setItems(prev); }
-  }, [items]);
-
-  const handleNotificationPress = (item: any) => {
-    // Mark as read if it's not already
-    if (item.id && !item.isRead) {
-      markRead(item.id);
-    }
-
-    // Navigate if there's an orderId in the metadata
-    /* if (item?.meta?.orderId) {
-      router.push({ pathname: '/orders/infoProgress', params: { orderId: item.meta.orderId } });
-    } */
-  };
-
-  useEffect(() => {
-    setUnreadCount(items.filter(item => !item.isRead).length);
-  }, [items]);
-
-
-  useEffect(() => {
-    loadPage(1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleGoBack = () => {
-    if (from && typeof from === 'string') {
-      router.replace(from as any);
-    } else {
-      router.back();
-    }
-  };
-
-  const handleNotifications = () => {
-    console.log('Notifications');
-  };
-
-  /* const handleCart = () => {
-    router.push('/home/continueShopping');
-  }; */
-
-  // handled inside NotificationCenter
-
-  const handleSupportTab = () => {
-    setActiveTab('support');
-  };
-
-  const handleSupportItemPress = (id: string) => {
-    console.log('Support item pressed:', id);
-  };
-
-  // replaced with server-driven list
-
-  // replaced with server-driven list
-
+const SupportList = () => {
+  // TODO: Replace with real data fetching
   const activeSupportItems = [
     {
       id: 'support-1',
@@ -273,188 +245,216 @@ const Notifications = () => {
     },
   ];
 
+  const handleSupportItemPress = (id: string) => {
+    console.log('Support item pressed:', id);
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top','left','right']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Pressable style={styles.backButton} onPress={handleGoBack}>
-            <Ionicons name="chevron-back" size={24} color="#100A37" />
-          </Pressable>
-          <Text style={styles.headerTitle}>Notification & Support</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Pressable style={styles.iconButton} onPress={handleNotifications}>
-            <Ionicons name="notifications-outline" size={24} color="#000" />
-            {unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-              </View>
-            )}
-          </Pressable>
-          {/* <Pressable style={styles.cartButton} onPress={handleCart}>
-            <ShoppingBasket width={20} height={20} stroke="#000" strokeWidth="0" />
-          </Pressable> */}
+    <ScrollView
+      style={styles.scrollView}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
+      {/* Active Support Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Active</Text>
+        <View style={styles.supportGroup}>
+          {activeSupportItems.map((item) => (
+            <SupportItem
+              key={item.id}
+              title={item.title}
+              agentMessage={item.agentMessage}
+              timestamp={item.timestamp}
+              actionText={item.actionText}
+              isActive={item.isActive}
+              onPress={() => handleSupportItemPress(item.id)}
+            />
+          ))}
         </View>
       </View>
 
-      {/* Tab Switcher */}
-      <View style={styles.tabContainer}>
-        <View style={styles.tabSwitcher}>
-          <Pressable
-            style={[
-              styles.tab,
-              activeTab === 'notifications' && styles.activeTab,
-            ]}
-            onPress={() => setActiveTab('notifications')}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === 'notifications' && styles.activeTabText,
-              ]}
-            >
-              Notifications
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.tab,
-              activeTab === 'support' && styles.activeTab,
-            ]}
-            onPress={handleSupportTab}
-          >
-            <View style={styles.supportTabContent}>
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'support' && styles.activeTabText,
-                ]}
-              >
-                Support
-              </Text>
-              <View style={styles.supportBadge}>
-                <Text style={styles.supportBadgeText}>1</Text>
-              </View>
-            </View>
-          </Pressable>
+      {/* Closed Support Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Closed</Text>
+        <View style={styles.supportGroup}>
+          {closedSupportItems.map((item) => (
+            <ClosedSupportItem
+              key={item.id}
+              title={item.title}
+              date={item.date}
+              endDate={item.endDate}
+              onPress={() => handleSupportItemPress(item.id)}
+            />
+          ))}
         </View>
       </View>
+    </ScrollView>
+  );
+};
+
+const Header = ({ onGoBack, unreadCount }: { onGoBack: () => void, unreadCount: number }) => (
+  <View style={styles.header}>
+    <View style={styles.headerLeft}>
+      <Pressable style={styles.backButton} onPress={onGoBack}>
+        <Ionicons name="chevron-back" size={24} color="#100A37" />
+      </Pressable>
+      <Text style={styles.headerTitle}>Notification & Support</Text>
+    </View>
+    <View style={styles.headerRight}>
+      <Pressable style={styles.iconButton} onPress={() => console.log('Notifications')}>
+        <Ionicons name="notifications-outline" size={24} color="#000" />
+        {unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+          </View>
+        )}
+      </Pressable>
+    </View>
+  </View>
+);
+
+const TabSwitcher = ({ activeTab, setActiveTab }: { activeTab: 'notifications' | 'support', setActiveTab: (tab: 'notifications' | 'support') => void }) => (
+  <View style={styles.tabContainer}>
+    <View style={styles.tabSwitcher}>
+      <Pressable
+        style={[
+          styles.tab,
+          activeTab === 'notifications' && styles.activeTab,
+        ]}
+        onPress={() => setActiveTab('notifications')}
+      >
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === 'notifications' && styles.activeTabText,
+          ]}
+        >
+          Notifications
+        </Text>
+      </Pressable>
+      <Pressable
+        style={[
+          styles.tab,
+          activeTab === 'support' && styles.activeTab,
+        ]}
+        onPress={() => setActiveTab('support')}
+      >
+        <View style={styles.supportTabContent}>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'support' && styles.activeTabText,
+            ]}
+          >
+            Support
+          </Text>
+          <View style={styles.supportBadge}>
+            <Text style={styles.supportBadgeText}>1</Text>
+          </View>
+        </View>
+      </Pressable>
+    </View>
+  </View>
+);
+
+const Notifications = () => {
+  const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const [activeTab, setActiveTab] = useState<'notifications' | 'support'>('notifications');
+
+  const [items, setItems] = useState<Notification[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const api = notificationApi();
+
+  const loadPage = useCallback(async (p: number, replace = false) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await api.notificationsGet(p, 20);
+      const data = (res.data as any)?.data ?? [];
+      const meta = (res.data as any)?.pagination;
+      setTotalPages(meta?.totalPages ?? 1);
+      setItems(prev => (replace ? data : [...prev, ...data]));
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+    }
+    finally { setLoading(false); }
+  }, [loading, api]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadPage(1, true).finally(() => setRefreshing(false));
+    setPage(1);
+  }, [loadPage]);
+
+  const loadMore = React.useCallback(() => {
+    if (page < totalPages && !loading) {
+      const next = page + 1;
+      setPage(next);
+      loadPage(next);
+    }
+  }, [page, totalPages, loading, loadPage]);
+
+  const markRead = useCallback(async (id: string) => {
+    setItems(prev => prev.map(n => (n.id === id ? { ...n, isRead: true } : n)));
+    try { await api.notificationsNotificationIdReadPatch(id); } catch (error) {
+      console.error(`Failed to mark notification ${id} as read:`, error);
+    }
+  }, [api]);
+
+  const handleNotificationPress = (item: Notification) => {
+    if (item.id && !item.isRead) {
+      markRead(item.id);
+    }
+    if (item?.meta?.orderId) {
+      router.push({ pathname: '/(private)/orders/order-details' as any, params: { orderId: item.meta.orderId } });
+    }
+  };
+
+  useEffect(() => {
+    setUnreadCount(items.filter(item => !item.isRead).length);
+  }, [items]);
+
+  useEffect(() => {
+    loadPage(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGoBack = () => {
+    if (from && typeof from === 'string' && router.canGoBack()) {
+      router.back();
+    } else if (from) {
+      router.replace(from as any);
+    } else {
+      router.replace('/(private)/home');
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top','left','right']}>
+      <Header onGoBack={handleGoBack} unreadCount={unreadCount} />
+
+      <TabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Content */}
       {activeTab === 'notifications' && (
-        <View style={{ flex: 1 }}>
-          {/* <View style={styles.notifHeaderRow}>
-            <Text style={styles.sectionTitle}>Notifications</Text>
-            <Pressable style={styles.markAllBtn} onPress={markAllRead}>
-              <Text style={styles.markAllBtnText}>Mark all read</Text>
-            </Pressable>
-          </View> */}
-
-          {items.length === 0 && !loading ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>No notifications yet</Text>
-              <Text style={styles.emptySubtitle}>We’ll keep you posted when there’s activity on your account.</Text>
-              <Pressable style={styles.refreshBtn} onPress={onRefresh}><Text style={styles.refreshBtnText}>Refresh</Text></Pressable>
-            </View>
-          ) : (
-            <FlatList
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              data={items}
-              keyExtractor={(i, idx) => i.id || String(idx)}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={[
-                    styles.notificationCard,
-                    { backgroundColor: item.isRead ? '#F0F0F0' : '#F4E1D2' },
-                  ]}
-                  onPress={() => handleNotificationPress(item)}
-                >
-                  <View style={styles.notificationContent}>
-                    <View style={styles.checkIconContainer}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={32}
-                        color={item.isRead ? '#7C7B7B' : '#2CAF0B'}
-                      />
-                    </View>
-                    <View style={styles.notificationText}>
-                      <Text
-                        style={[
-                          styles.notificationTitle,
-                          { color: item.isRead ? '#7C7B7B' : '#000' },
-                        ]}
-                      >
-                        {item.title}
-                      </Text>
-                      {!!item.body && (
-                        <Text
-                          style={[
-                            styles.notificationDescription,
-                            { color: item.isRead ? '#7C7B7B' : '#000' },
-                          ]}
-                        >
-                          {item.body}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                  <View style={styles.chevronContainer}>
-                    <Ionicons name="chevron-forward" size={12} color="#333" />
-                  </View>
-                </Pressable>
-              )}
-              onEndReached={loadMore}
-              onEndReachedThreshold={0.5}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              ListFooterComponent={loading ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null}
-            />
-          )}
-        </View>
+        <NotificationList
+          items={items}
+          onNotificationPress={handleNotificationPress}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
+          loadMore={loadMore}
+          loading={loading}
+        />
       )}
 
       {activeTab === 'support' && (
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Active Support Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Active</Text>
-            <View style={styles.supportGroup}>
-              {activeSupportItems.map((item) => (
-                <SupportItem
-                  key={item.id}
-                  title={item.title}
-                  agentMessage={item.agentMessage}
-                  timestamp={item.timestamp}
-                  actionText={item.actionText}
-                  isActive={item.isActive}
-                  onPress={() => handleSupportItemPress(item.id)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Closed Support Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Closed</Text>
-            <View style={styles.supportGroup}>
-              {closedSupportItems.map((item) => (
-                <ClosedSupportItem
-                  key={item.id}
-                  title={item.title}
-                  date={item.date}
-                  endDate={item.endDate}
-                  onPress={() => handleSupportItemPress(item.id)}
-                />
-              ))}
-            </View>
-          </View>
-        </ScrollView>
+        <SupportList />
       )}
     </SafeAreaView>
   );

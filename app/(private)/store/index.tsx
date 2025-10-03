@@ -51,12 +51,9 @@ export default function StoreScreen() {
         data: {
           items: payload.data ?? [],
           pagination: {
-            page: currentPage,
-            limit: pageSize,
-            total: totalCount,
-            totalPages,
-            hasNext: currentPage < totalPages,
-            hasPrev: currentPage > 1,
+            ...pagination,
+            page: pagination.page ?? page,
+            limit: pagination.limit ?? limit,
           },
         },
       } as any;

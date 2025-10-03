@@ -19,7 +19,7 @@ interface FeatureFlags {
 // Development environment
 const development: Environment = {
   API_BASE_URL: process.env.API_BASE_URL || 'https://pardomart-node-api-vaje.onrender.com/api/v1',
-  API_TIMEOUT: 10000,
+  API_TIMEOUT: 50000,
   ENABLE_LOGGING: true,
   // Add your development keys here
   GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,

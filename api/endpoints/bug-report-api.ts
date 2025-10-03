@@ -13,14 +13,14 @@
  */
 
 
-import type { Configuration } from '../configuration';
-import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import type { AxiosInstance, AxiosPromise, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
+import type { Configuration } from '../configuration';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
+import { DUMMY_BASE_URL, assertParamExists, createRequestFunction, serializeDataIfNeeded, setBearerAuthToObject, setSearchParams, toPathString } from '../common';
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+import { BASE_PATH, BaseAPI, RequiredError, operationServerMap, type RequestArgs } from '../base';
 // @ts-ignore
 import type { BugReportsIdStatusPatchRequest } from '../models';
 /**
@@ -205,7 +205,7 @@ export class BugReportApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public bugReportsIdStatusPatch(bugReportsIdStatusPatchRequest: BugReportsIdStatusPatchRequest, id: string, options?: RawAxiosRequestConfig) {
+    public bugReportsIdStatusPatch(bugReportsIdStatusPatchRequest: BugReportsIdStatusPatchRequest, id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
         return BugReportApiFp(this.configuration).bugReportsIdStatusPatch(bugReportsIdStatusPatchRequest, id, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -217,8 +217,7 @@ export class BugReportApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public bugReportsPost(description: string, image?: File, options?: RawAxiosRequestConfig) {
+    public bugReportsPost(description: string, image?: File, options?: RawAxiosRequestConfig): AxiosPromise<void> {
         return BugReportApiFp(this.configuration).bugReportsPost(description, image, options).then((request) => request(this.axios, this.basePath));
     }
 }
-

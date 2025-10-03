@@ -3,6 +3,7 @@ import { STORAGE_KEYS } from '../constants';
 import { getStorageItem } from '../utils/storage';
 import { Configuration } from './configuration';
 import { AuthApiFactory } from './endpoints/auth-api';
+import { NotificationApiFactory } from './endpoints/notification-api';
 import { VendorApiFactory } from './endpoints/vendor-api';
 
 // Lazily create a configuration that reads the latest token from storage
@@ -29,6 +30,11 @@ export function vendorApi() {
 export function authApi() {
   const configuration = createConfiguration();
   return AuthApiFactory(configuration);
+}
+
+export function notificationApi() {
+  const configuration = createConfiguration();
+  return NotificationApiFactory(configuration);
 }
 
 

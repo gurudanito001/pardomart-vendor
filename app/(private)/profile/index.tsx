@@ -149,7 +149,7 @@ const ProfileScreen = () => {
             </View>
             <Text style={styles.userName}>{user.name || 'No Name'}</Text>
             <Text style={styles.userEmail}>{user.email || user.mobileNumber || 'No Contact Information'}</Text>
-            {user.isMobileVerified === false && (
+            {user.mobileVerified === false && (
               <Text style={styles.verificationStatus}>Mobile number not verified</Text>
             )}
           </View>
