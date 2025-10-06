@@ -11,6 +11,8 @@ docs/ApiV1OrderOrderIdMessagesPostRequest.md
 docs/ApiV1OrderOrderIdMessagesReadPatch200Response.md
 docs/ApiV1PaymentsCreatePaymentIntentPost200Response.md
 docs/ApiV1PaymentsCreatePaymentIntentPostRequest.md
+docs/ApiV1StaffPostRequest.md
+docs/ApiV1StaffStaffIdPatchRequest.md
 docs/AuthApi.md
 docs/AuthInitiateLoginPostRequest.md
 docs/AuthRegisterPostRequest.md
@@ -48,6 +50,7 @@ docs/CreateVendorPayload.md
 docs/CreateVendorProductPayload.md
 docs/CreateVendorProductWithBarcodePayload.md
 docs/CreateWishlistItemPayload.md
+docs/CustomersApi.md
 docs/Days.md
 docs/DaysEnum.md
 docs/DeclineOrderPayload.md
@@ -111,6 +114,7 @@ docs/RespondToReplacementPayload.md
 docs/Role.md
 docs/SavedPaymentMethod.md
 docs/ShoppingMethod.md
+docs/StaffApi.md
 docs/StoreWithLimitedProducts.md
 docs/StoreWithProducts.md
 docs/StoresByProductResult.md
@@ -173,6 +177,7 @@ endpoints/bug-report-api.ts
 endpoints/cart-api.ts
 endpoints/cart-item-api.ts
 endpoints/category-api.ts
+endpoints/customers-api.ts
 endpoints/delivery-address-api.ts
 endpoints/delivery-api.ts
 endpoints/fee-api.ts
@@ -186,6 +191,7 @@ endpoints/order-api.ts
 endpoints/payment-api.ts
 endpoints/product-api.ts
 endpoints/rating-api.ts
+endpoints/staff-api.ts
 endpoints/support-api.ts
 endpoints/tag-api.ts
 endpoints/user-api.ts
@@ -200,6 +206,8 @@ models/api-v1-order-order-id-messages-post-request.ts
 models/api-v1-order-order-id-messages-read-patch200-response.ts
 models/api-v1-payments-create-payment-intent-post-request.ts
 models/api-v1-payments-create-payment-intent-post200-response.ts
+models/api-v1-staff-post-request.ts
+models/api-v1-staff-staff-id-patch-request.ts
 models/auth-initiate-login-post-request.ts
 models/auth-register-post-request.ts
 models/auth-time-zones-get200-response.ts

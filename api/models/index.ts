@@ -3,6 +3,8 @@ export * from './api-v1-order-order-id-messages-post-request';
 export * from './api-v1-order-order-id-messages-read-patch200-response';
 export * from './api-v1-payments-create-payment-intent-post200-response';
 export * from './api-v1-payments-create-payment-intent-post-request';
+export * from './api-v1-staff-post-request';
+export * from './api-v1-staff-staff-id-patch-request';
 export * from './auth-initiate-login-post-request';
 export * from './auth-register-post-request';
 export * from './auth-time-zones-get200-response';

@@ -9,6 +9,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**apiV1PaymentsMePaymentMethodsGet**](#apiv1paymentsmepaymentmethodsget) | **GET** /api/v1/payments/me/payment-methods | Get my saved payment methods|
 |[**apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete**](#apiv1paymentsmepaymentmethodspaymentmethodiddelete) | **DELETE** /api/v1/payments/me/payment-methods/{paymentMethodId} | Delete a saved payment method|
 |[**apiV1PaymentsSetupIntentPost**](#apiv1paymentssetupintentpost) | **POST** /api/v1/payments/setup-intent | Create a Setup Intent to save a new payment method|
+|[**apiV1PaymentsVendorGet**](#apiv1paymentsvendorget) | **GET** /api/v1/payments/vendor | Get payment transactions for a vendor user|
 
 # **apiV1PaymentsCreatePaymentIntentPost**
 > ApiV1PaymentsCreatePaymentIntentPost200Response apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest)
@@ -245,6 +246,58 @@ This endpoint does not have any parameters.
 |**200** | Setup Intent created successfully. |  -  |
 |**401** | Unauthorized. |  -  |
 |**404** | User not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **apiV1PaymentsVendorGet**
+> Array<Payment> apiV1PaymentsVendorGet()
+
+Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+
+### Example
+
+```typescript
+import {
+    PaymentApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PaymentApi(configuration);
+
+let vendorId: string; //Optional. The ID of a specific store (vendor) to filter payments for. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.apiV1PaymentsVendorGet(
+    vendorId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. The ID of a specific store (vendor) to filter payments for. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Payment>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of payment transactions. |  -  |
+|**403** | Forbidden. User is not a vendor. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

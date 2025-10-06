@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
 
@@ -198,7 +198,7 @@ export default function OrdersScreen() {
         </View>
 
         {/* Order Requests Banner */}
-        <View style={styles.orderBanner}>
+        {/* <View style={styles.orderBanner}>
           <View style={styles.bannerContent}>
             <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <Path d="M17 4H7C5.89543 4 5 4.89543 5 6V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V6C19 4.89543 18.1046 4 17 4Z" stroke="white" strokeWidth="2"/>
@@ -206,7 +206,7 @@ export default function OrdersScreen() {
             </Svg>
             <Text style={styles.bannerText}>You have 3 Order Requests</Text>
           </View>
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.scrollContainer}>

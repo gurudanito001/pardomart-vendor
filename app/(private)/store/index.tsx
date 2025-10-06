@@ -1,9 +1,8 @@
-import { vendorApi } from '@/api/client';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect } from 'react';
 import {
+  ActivityIndicator,
   Image,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,10 +10,11 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import EmptyStore from '../../../components/EmptyStore';
 import { useAuth } from '../../../context/AppProvider';
-import { usePaginatedApi } from '../../../hooks/useApi';
+import { useVendors } from '../../../hooks/api/useVendors';
 
 export default function StoreScreen() {
   const { empty } = useLocalSearchParams();
@@ -23,36 +23,12 @@ export default function StoreScreen() {
   const userId = authState.user?.id;
 
   const {
-    items: vendors,
+    vendors,
     pagination,
     loading,
-    refreshing,
     error,
-    loadMore,
-    refresh,
-  } = usePaginatedApi<any>(
-    async (page: number, limit: number) => {
-      if (!userId) {
-        return {
-          data: {
-            items: [],
-            pagination: {
-              page: 1,
-              limit,
-              total: 0,
-              totalPages: 0,
-              hasNext: false,
-              hasPrev: false,
-            },
-          },
-        };
-      }
-      const api = vendorApi();
-      const res = await api.vendorsGet(undefined, undefined, undefined, userId, page, limit);
-      return { data: res.data } as any;
-    },
-    20,
-  );
+    fetchVendors,
+  } = useVendors();
 
   useEffect(() => {
     if (empty === 'true') {
@@ -61,12 +37,14 @@ export default function StoreScreen() {
     }
   }, [empty]);
 
-  // Refetch when userId becomes available
-  useEffect(() => {
-    if (authState.isReady && userId) {
-      refresh();
-    }
-  }, [authState.isReady, userId, refresh]);
+  // Fetch vendors whenever the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (authState.isReady && userId) {
+        fetchVendors({ userId, page: 1, size: 20 });
+      }
+    }, [authState.isReady, userId, fetchVendors])
+  );
 
   const handleGoBack = () => {
     router.back();
@@ -80,11 +58,9 @@ export default function StoreScreen() {
     console.log('Open support');
   };
 
-  const handleStorePress = (vendor: any) => {
-    const id = vendor?.id ?? '';
-    const img = vendor?.image ?? '';
-    const query = `/(private)/home/setting-up-store?storeId=${encodeURIComponent(String(id))}${img ? `&imageUrl=${encodeURIComponent(String(img))}` : ''}`;
-    router.push(query as any);
+  const handleStorePress = (vendorId: string) => {
+    // Navigate to a screen that can use the storeId to fetch details
+    router.push(`/(private)/store/select-category?storeId=${vendorId}`);
   };
 
   const handleAddNewStore = () => {
@@ -98,17 +74,19 @@ export default function StoreScreen() {
   const StoreCard = ({ 
     storeName, 
     address, 
+    image,
     onPress 
   }: {
     storeName: string;
     address: string;
+    image: string;
     onPress: () => void;
   }) => (
     <TouchableOpacity style={styles.storeCard} onPress={onPress}>
       <View style={styles.storeCardContent}>
         <View style={styles.logoContainer}>
           <Image 
-            source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120' }}
+            source={{ uri: image }}
             style={styles.storeLogo}
             resizeMode="contain"
           />
@@ -121,21 +99,21 @@ export default function StoreScreen() {
     </TouchableOpacity>
   );
 
-  const AddStoreCard = ({ onPress }: { onPress: () => void }) => (
+  /* const AddStoreCard = ({ onPress }: { onPress: () => void }) => (
     <TouchableOpacity style={styles.addStoreCard} onPress={onPress}>
       <View style={styles.addStoreContent}>
-        {/* Plus Icon */}
         <Svg width="48" height="48" viewBox="0 0 49 48" fill="none">
           <Path d="M38.5 25.996H26.5V37.996H22.5V25.996H10.5V21.996H22.5V9.99597H26.5V21.996H38.5V25.996Z" fill="black"/>
         </Svg>
         <Text style={styles.addStoreText}>Add new store</Text>
       </View>
     </TouchableOpacity>
-  );
+  ); */
 
   const safeVendors = vendors ?? [];
-  const totalStores = (pagination?.total ?? 0) || safeVendors.length || 0;
+  const totalStores = (pagination?.totalCount ?? 0) || safeVendors.length || 0;
   const isEmpty = !loading && totalStores === 0;
+  const isInitialLoading = loading && safeVendors.length === 0;
 
   // Empty state
   if (empty === 'true' || isEmpty) {
@@ -163,7 +141,7 @@ export default function StoreScreen() {
                 <Path d="M20.1278 21.993C20.3661 22.2135 20.5 22.5125 20.5 22.8243C20.5 23.1361 20.3661 23.4352 20.1278 23.6556C19.8895 23.8761 19.5662 24 19.2292 24C18.8921 24 18.5689 23.8761 18.3306 23.6556L9.87313 15.8313C9.75486 15.7223 9.66102 15.5927 9.59699 15.4501C9.53296 15.3074 9.5 15.1545 9.5 15C9.5 14.8455 9.53296 14.6926 9.59699 14.5499C9.66102 14.4073 9.75486 14.2777 9.87313 14.1687L18.3306 6.34435C18.5689 6.12387 18.8921 6 19.2292 6C19.5662 6 19.8895 6.12387 20.1278 6.34435C20.3661 6.56483 20.5 6.86387 20.5 7.17568C20.5 7.48749 20.3661 7.78653 20.1278 8.00702L12.57 14.999L20.1278 21.993Z" fill="white"/>
               </Svg>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>My Store</Text>
+            <Text style={styles.headerTitle}>My Stores</Text>
           </View>
           <View style={styles.rightSection}>
             <TouchableOpacity style={styles.iconButton} onPress={handleNotifications}>
@@ -189,33 +167,28 @@ export default function StoreScreen() {
 
           {/* Store Cards Grid (dynamic) */}
           <View style={styles.storeGrid}>
-            {/* Render vendors in rows of 2 to preserve layout */}
-            {safeVendors.reduce((rows: any[], vendor: any, index: number) => {
-              if (index % 2 === 0) rows.push([vendor]);
-              else rows[rows.length - 1].push(vendor);
-              return rows;
-            }, []).map((row: any[], rowIndex: number) => (
-              <View key={`row-${rowIndex}`} style={styles.storeRow}>
-                {row.map((v: any, colIndex: number) => {
-                  const name = v.businessName || v.name || 'Unnamed Store';
-                  const address = v.address?.street || v.address || '';
-                  return (
-                    <StoreCard
-                      key={v.id || `${rowIndex}-${colIndex}`}
-                      storeName={name}
-                      address={address}
-                      onPress={() => handleStorePress(v.id)}
-                    />
-                  );
-                })}
-                {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
-              </View>
-            ))}
-
-            {/* Add Store Card */}
-            <View style={styles.addStoreRow}>
-              <AddStoreCard onPress={handleAddNewStore} />
-            </View>
+            {isInitialLoading ? (
+              <ActivityIndicator size="large" color="#06888C" style={{ marginTop: 40 }} />
+            ) : (
+              Array.from({ length: Math.ceil(safeVendors.length / 2) }).map((_, rowIndex) => (
+                <View key={rowIndex} style={styles.storeRow}>
+                  {safeVendors.slice(rowIndex * 2, rowIndex * 2 + 2).map((vendor) => {
+                    const name = vendor.name || 'Unnamed Store';
+                    const address = vendor.address || '';
+                    const image = vendor.image || 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120';
+                    return (
+                      <StoreCard
+                        key={vendor.id}
+                        storeName={name}
+                        address={address}
+                        image={image}
+                        onPress={() => handleStorePress(vendor.id!)}
+                      />
+                    );
+                  })}
+                </View>
+              ))
+            )}
           </View>
 
           {/* Add New Store Button */}
@@ -288,19 +261,19 @@ const styles = StyleSheet.create({
     marginBottom: 29,
   },
   storeGrid: {
-    gap: 24,
+    gap: 20,
     marginBottom: 29,
   },
   storeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 21,
+    gap: 16,
   },
   addStoreRow: {
     flexDirection: 'row',
   },
   storeCard: {
-    flex: 1,
+    width: '48%',
     padding: 25,
     borderRadius: 16,
     borderWidth: 1,
@@ -401,7 +374,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   addStoreButtonText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',

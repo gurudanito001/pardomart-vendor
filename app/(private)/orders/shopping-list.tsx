@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import CompletedTabContent from '../../../components/shopping-list/CompletedTabContent';
 import PendingTabContent from '../../../components/shopping-list/PendingTabContent';

@@ -1,8 +1,13 @@
-import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
-import { AuthRegisterPostRequest, User } from '../api';
-import { authApi } from '../api/client';
+import React, { createContext, ReactNode, useContext, useEffect, useMemo, useReducer } from 'react';
+import { apiConfig } from '../api/config';
+import { AuthApi } from '../api/endpoints/auth-api';
+import {
+  AuthRegisterPostRequest,
+  User
+} from '../api/models';
 import { STORAGE_KEYS } from '../constants';
 import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
+
 
 // Auth Actions
 type AuthAction =
@@ -143,6 +148,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const authApi = useMemo(() => new AuthApi(apiConfig), []);
 
   // Initialize auth state from storage
   useEffect(() => {
@@ -242,7 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initiateLogin = async (mobileNumber: string, role: AuthRegisterPostRequest['role']) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authApi().authInitiateLoginPost({ mobileNumber, role });
+      const response = await authApi.authInitiateLoginPost({ mobileNumber, role });
       // This action completes, but doesn't log the user in. Just finish loading.
       dispatch({ type: 'AUTH_FINISH' });
       return response.data;
@@ -255,7 +261,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (data: AuthRegisterPostRequest) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authApi().authRegisterPost(data);
+      const response = await authApi.authRegisterPost(data);
       // Registration is successful, but the user is not logged in yet. Finish loading.
       dispatch({ type: 'AUTH_FINISH' });
       return response.data;
@@ -268,10 +274,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const verifyOTP = async (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => {
     try {
       dispatch({ type: 'AUTH_START' });
-      const response = await authApi().authVerifyLoginPost(data);
+      const response = await authApi.authVerifyLoginPost(data);
       const payload = response.data;
 
-      await saveAuthData(payload?.user, payload.token, payload.refreshToken);
+      await saveAuthData(payload?.user, payload.token);
 
       dispatch({
         type: 'AUTH_SUCCESS',
@@ -290,7 +296,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // This action doesn't need a loading spinner in the context,
       // as it's usually a small action on the verify screen.
-      const response = await authApi().authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role });
+      const response = await authApi.authInitiateLoginPost({ mobileNumber: data.identifier, role: data.role });
       return response.data;
     } catch (error: any) {
       throw error;
@@ -350,6 +356,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 // Hook to use auth context
 export const useAuth = (): AuthContextType => {
+
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');

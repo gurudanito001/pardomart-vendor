@@ -214,6 +214,45 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiV1PaymentsVendorGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/payments/vendor`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -285,6 +324,19 @@ export const PaymentApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsSetupIntentPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Payment>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsVendorGet(vendorId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsVendorGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -340,6 +392,16 @@ export const PaymentApiFactory = function (configuration?: Configuration, basePa
          */
         apiV1PaymentsSetupIntentPost(options?: RawAxiosRequestConfig): AxiosPromise<ApiV1PaymentsCreatePaymentIntentPost200Response> {
             return localVarFp.apiV1PaymentsSetupIntentPost(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<Payment>> {
+            return localVarFp.apiV1PaymentsVendorGet(vendorId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -398,6 +460,17 @@ export class PaymentApi extends BaseAPI {
      */
     public apiV1PaymentsSetupIntentPost(options?: RawAxiosRequestConfig) {
         return PaymentApiFp(this.configuration).apiV1PaymentsSetupIntentPost(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+     * @summary Get payment transactions for a vendor user
+     * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return PaymentApiFp(this.configuration).apiV1PaymentsVendorGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

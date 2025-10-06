@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import {
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Rect, Svg } from 'react-native-svg';
 import { ArrowBackButtonSVG, NotificationSVG, PhoneOutlineSVG, SupportSVG } from '../../../components/icons';
 

@@ -1,4 +1,4 @@
-import { notificationApi } from '@/api/client';
+import { notificationApi } from '@/api/config';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';

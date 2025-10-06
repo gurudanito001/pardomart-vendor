@@ -22,7 +22,7 @@ import { DUMMY_BASE_URL, assertParamExists, createRequestFunction, serializeData
 // @ts-ignore
 import { BASE_PATH, BaseAPI, RequiredError, operationServerMap, type RequestArgs } from '../base';
 // @ts-ignore
-import type { AuthInitiateLoginPostRequest } from '../models';
+import type { AuthInitiateLoginPostRequest, User } from '../models';
 // @ts-ignore
 import type { AuthRegisterPostRequest } from '../models';
 // @ts-ignore
@@ -182,7 +182,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<{token: string, user: User}>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authVerifyLoginPost(authVerifyLoginPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authVerifyLoginPost']?.[localVarOperationServerIndex]?.url;
@@ -224,7 +224,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+        authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<{token: string, user: User}> {
             return localVarFp.authVerifyLoginPost(authVerifyLoginPostRequest, options).then((request) => request(axios, basePath));
         },
     };
@@ -241,7 +241,7 @@ export class AuthApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+    public authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authInitiateLoginPost(authInitiateLoginPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -252,7 +252,7 @@ export class AuthApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authRegisterPost(authRegisterPostRequest: AuthRegisterPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+    public authRegisterPost(authRegisterPostRequest: AuthRegisterPostRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authRegisterPost(authRegisterPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -263,7 +263,8 @@ export class AuthApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+    public authVerifyLoginPost(authVerifyLoginPostRequest: AuthVerifyLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<{token: string, user: User}> {
         return AuthApiFp(this.configuration).authVerifyLoginPost(authVerifyLoginPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
+
