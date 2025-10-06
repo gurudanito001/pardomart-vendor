@@ -67,7 +67,6 @@ export default function AddStoreScreen() {
     setSubmitting(true);
 
     try {
-  // TODO: create a payload and call createVendor when backend is ready.
   const payload: CreateVendorPayload = {
     name,
     email,

@@ -1,35 +1,139 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { UpdateVendorPayload } from '@/api';
+import AddressAutocompleteEnhanced from '@/components/AddressAutocompleteEnhanced';
+import { Input } from '@/components/ui/Input';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useVendor } from '@/hooks/api/useVendors';
+import { useImagePicker } from '@/hooks/useImagePicker';
+import { GooglePlacesSuggestion } from '@/utils/googleMapsLocation';
+import toast from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 
 export default function EditStoreScreen() {
-  const [storeName, setStoreName] = useState('');
-  const [email, setEmail] = useState('Damilareadebanjo@gmail.com');
-  const [phoneNumber, setPhoneNumber] = useState('+1 223 335 6333');
+  const { storeId } = useLocalSearchParams<{ storeId: string }>();
+  const { getVendorById, updateVendor } = useVendor();
+
+  // Data fetching
+  const { data: vendor, isLoading: isLoadingVendor, isError } = useQuery({
+    queryKey: ['vendor', storeId],
+    queryFn: () => getVendorById(storeId!),
+    enabled: !!storeId,
+  });
+
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [details, setDetails] = useState('');
+  const [addressSearch, setAddressSearch] = useState('');
+  const [storeAddress, setStoreAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const {
+    selectedImage,
+    isLoading: imageLoading,
+    error: imageError,
+    pickFromGallery,
+    clearImage,
+  } = useImagePicker({ base64: true });
+
+  // Populate form with fetched data
+  useEffect(() => {
+    if (vendor) {
+      setName(vendor.name || '');
+      setEmail(vendor.email || '');
+      setTagline(vendor.tagline || '');
+      setDetails(vendor.details || '');
+      setStoreAddress(vendor.address || '');
+      setAddressSearch(vendor.address || '');
+      setLatitude(vendor.latitude || null);
+      setLongitude(vendor.longitude || null);
+    }
+  }, [vendor]);
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleSaveChanges = () => {
-    console.log('Save changes:', { storeName, email, phoneNumber });
-    // Add save logic here
-    router.back();
+  const handleNotifications = () => {
+    console.log('Open notifications');
   };
 
   const handleThumbnailPress = () => {
     console.log('Change store thumbnail');
     // Add image picker logic here
+  };
+
+  const handleSaveChanges = async () => {
+    if (!name.trim()) {
+      toast.error('Store name is required');
+      return;
+    }
+    if (!storeId) {
+      toast.error('Store ID is missing. Cannot update.');
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const payload: Partial<UpdateVendorPayload> = {
+        name,
+        email,
+        tagline,
+        details,
+        address: storeAddress,
+        latitude: latitude === null ? undefined : latitude,
+        longitude: longitude === null ? undefined : longitude,
+      };
+
+      // Only include the image if a new one was selected
+      if (selectedImage?.base64) {
+        payload.image = selectedImage.base64;
+      }
+      console.log('Prepared vendor payload', payload);
+      await updateVendor(storeId, payload);
+      toast.success('Store updated successfully!');
+      router.back();
+    } catch (err: any) {
+      console.error('Failed to update vendor', err);
+      toast.error(err?.message || 'Failed to update store');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddressSelect = (suggestion: GooglePlacesSuggestion) => {
+    setStoreAddress(suggestion.address);
+    setLatitude(suggestion.latitude ?? null);
+    setLongitude(suggestion.longitude ?? null);
+    setAddressSearch(suggestion.address);
+  };
+
+  const handleAddressChange = (text: string) => {
+    setAddressSearch(text);
+    if (!text.trim()) {
+      setStoreAddress('');
+      setLatitude(null);
+      setLongitude(null);
+    }
   };
 
   return (
@@ -48,7 +152,7 @@ export default function EditStoreScreen() {
                 />
               </Svg>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Edit Store</Text>
+            <Text style={styles.headerTitle}>Edit Store Profile</Text>
           </View>
           <View style={styles.rightSection}>
             <TouchableOpacity style={styles.iconButton}>
@@ -73,89 +177,105 @@ export default function EditStoreScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Store Thumbnail Section */}
-        <View style={styles.thumbnailSection}>
-          <TouchableOpacity style={styles.thumbnailContainer} onPress={handleThumbnailPress}>
-            <View style={styles.thumbnailBackground}>
-              <Svg width="65" height="67" viewBox="0 0 65 67" fill="none">
-                <Path 
-                  d="M55 20C60.5228 20 65 15.5228 65 10C65 4.47715 60.5228 0 55 0C49.4772 0 45 4.47715 45 10C45 15.5228 49.4772 20 55 20Z" 
-                  fill="#06888C"
-                />
-                <Path 
-                  d="M55 19.5C60.2467 19.5 64.5 15.2467 64.5 10C64.5 4.75329 60.2467 0.5 55 0.5C49.7533 0.5 45.5 4.75329 45.5 10C45.5 15.2467 49.7533 19.5 55 19.5Z" 
-                  stroke="white"
-                />
-                <Path 
-                  d="M58.542 14.166H51.458C51.182 14.1657 50.9174 14.056 50.7222 13.8608C50.527 13.6656 50.4173 13.401 50.417 13.125V8.125C50.417 7.84882 50.5266 7.58393 50.7218 7.38855C50.917 7.19317 51.1818 7.08327 51.458 7.083H52.868L53.378 6.063C53.4123 5.99353 53.4655 5.93512 53.5315 5.89445C53.5974 5.85378 53.6735 5.83249 53.751 5.833H56.251C56.3284 5.83283 56.4043 5.85427 56.4702 5.89491C56.5361 5.93554 56.5894 5.99375 56.624 6.063L57.133 7.083H58.542C58.8182 7.083 59.0831 7.19265 59.2784 7.38784C59.4738 7.58304 59.5837 7.84782 59.584 8.124V13.124C59.584 13.4004 59.4742 13.6654 59.2788 13.8608C59.0834 14.0562 58.8183 14.166 58.542 14.166ZM55.001 8.541C54.5887 8.54061 54.1856 8.66249 53.8426 8.89125C53.4997 9.12 53.2322 9.44534 53.0742 9.8261C52.9162 10.2069 52.8746 10.626 52.9548 11.0303C53.035 11.4347 53.2333 11.8063 53.5247 12.0979C53.816 12.3896 54.1874 12.5882 54.5917 12.6688C54.996 12.7494 55.4151 12.7082 55.796 12.5506C56.177 12.3929 56.5026 12.1258 56.7316 11.783C56.9607 11.4403 57.083 11.0373 57.083 10.625C57.0825 10.0728 56.863 9.54334 56.4727 9.15268C56.0824 8.76203 55.5532 8.54206 55.001 8.541Z" 
-                  fill="white"
-                />
-                <Path 
-                  fillRule="evenodd" 
-                  clipRule="evenodd" 
-                  d="M11.4997 19.1036C22.4783 17.4821 28.6676 17.4964 39.4997 19.1036C39.628 19.1232 39.7537 19.1567 39.8747 19.2036C43.1983 20.47 45.9605 22.8814 47.664 26.0036C49.089 28.5607 49.6069 31.1179 49.6069 32.5464C49.6069 38.1536 44.8926 42.575 39.2354 42.575C36.6104 42.575 34.1997 41.6286 32.3676 40.0607C30.4515 41.6907 28.0153 42.5813 25.4997 42.5714C22.8747 42.5714 20.464 41.625 18.6319 40.0571C16.7162 41.6884 14.2801 42.5803 11.764 42.5714C6.10686 42.5714 1.39258 38.1536 1.39258 32.5464C1.39258 31.1179 1.91044 28.5607 3.33544 26.0036C5.03805 22.882 7.79892 20.4707 11.1211 19.2036C11.2444 19.1562 11.3726 19.1227 11.5033 19.1036M8.48544 47.25C8.48544 46.658 8.25026 46.0902 7.83166 45.6716C7.41305 45.253 6.84529 45.0179 6.25329 45.0179C5.66129 45.0179 5.09354 45.253 4.67493 45.6716C4.25632 46.0902 4.02115 46.658 4.02115 47.25V56.7321C4.02115 59.2179 5.00838 61.602 6.76576 63.36C8.52314 65.1181 10.9068 66.1062 13.3926 66.1071H37.6069C40.0933 66.1071 42.4778 65.1194 44.236 63.3613C45.9941 61.6031 46.9819 59.2186 46.9819 56.7321V47.25C46.9819 46.658 46.7467 46.0902 46.3281 45.6716C45.9095 45.253 45.3417 45.0179 44.7497 45.0179C44.1577 45.0179 43.59 45.253 43.1714 45.6716C42.7528 46.0902 42.5176 46.658 42.5176 47.25V56.7321C42.5176 59.4464 40.3176 61.6429 37.6069 61.6429H32.9819V47.25C32.9819 46.658 32.7467 46.0902 32.3281 45.6716C31.9095 45.253 31.3417 45.0179 30.7497 45.0179C30.1577 45.0179 29.59 45.253 29.1714 45.6716C28.7527 46.0902 28.5176 46.658 28.5176 47.25V50.2679H8.48186L8.48544 47.25ZM8.48544 56.7321V54.7321H28.5212V61.6429H13.3926C10.6783 61.6429 8.48186 59.4429 8.48186 56.7321" 
-                  fill="#06888C"
-                />
-              </Svg>
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.thumbnailText}>Store Thumbnail</Text>
+      {isLoadingVendor ? (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color="#06888C" />
+          <Text style={styles.loadingText}>Loading Store Details...</Text>
         </View>
+      ) : (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+            <View style={styles.formSection}>
+              {/* Avatar Image upload */}
+              <View style={styles.avatarSection}>
+                <TouchableOpacity onPress={pickFromGallery} activeOpacity={0.8}>
+                  <View style={styles.avatarContainer}>
+                  {selectedImage?.uri ? (
+                      <Image source={{ uri: selectedImage.uri }} style={styles.avatarImage} />
+                  ) : vendor?.image ? (
+                      <Image source={{ uri: vendor.image }} style={styles.avatarImage} />
+                  ) : (
+                    <Svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <Path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.5L14.5 12L19 18H5L8.5 13.5Z" fill="#B4BED4"/>
+                    </Svg>
+                  )}
+                    <View style={styles.editIconContainer}>
+                      <Svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <Path d="M3 17.25V21H6.75L17.81 9.94L14.06 6.19L3 17.25ZM20.71 7.04C21.1 6.65 21.1 6.02 20.71 5.63L18.37 3.29C17.98 2.9 17.35 2.9 16.96 3.29L15.13 5.12L18.88 8.87L20.71 7.04Z" fill="white"/>
+                      </Svg>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                {imageError && <Text style={styles.errorText}>{imageError}</Text>}
+              </View>
 
-        {/* Form Section */}
-        <View style={styles.formSection}>
-          {/* Store Name */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Store Name</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter store's name"
-                placeholderTextColor="#7C8BA0"
-                value={storeName}
-                onChangeText={setStoreName}
-                autoCapitalize="words"
-              />
+              {/* Store Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Name</Text>
+                <Input placeholder="Enter store's name" value={name} onChangeText={setName} />
+              </View>
+
+              {/* Store Address */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Address</Text>
+                <AddressAutocompleteEnhanced
+                  placeholder="Search for store address"
+                  value={addressSearch}
+                  onValueChange={handleAddressChange}
+                  onAddressSelect={handleAddressSelect}
+                  requireConfirmation={true}
+                />
+              </View>
+
+              {/* Store Email */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Email</Text>
+                <Input
+                  placeholder="Enter store's email address"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                />
+              </View>
+
+              {/* Store Tagline */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Tagline</Text>
+                <Input placeholder="e.g., Fresh and Local" value={tagline} onChangeText={setTagline} />
+              </View>
+
+              {/* Store Details */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Details</Text>
+                <Input
+                  placeholder="Describe your store"
+                  value={details}
+                  onChangeText={setDetails}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  inputStyle={{ height: 100, paddingTop: 16 }}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Email Address */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email Address</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.textInput, styles.filledInput]}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+            {/* Save Button */}
+            <View style={styles.buttonSection}>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges} disabled={submitting}>
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Phone Number */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Phone number</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                placeholderTextColor="#7C8BA0"
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Save Button */}
-        <View style={styles.buttonSection}>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {(submitting || imageLoading) && (
+              <LoadingSpinner overlay message={submitting ? 'Saving changes...' : 'Processing image...'} />
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
@@ -164,6 +284,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#484C52',
   },
   header: {
     backgroundColor: '#06888C',
@@ -202,35 +332,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  thumbnailSection: {
-    alignItems: 'center',
-    paddingTop: 39,
-    paddingBottom: 37,
-    gap: 14,
-  },
-  thumbnailContainer: {
-    position: 'relative',
-  },
-  thumbnailBackground: {
-    width: 85,
-    height: 85,
-    borderRadius: 16,
-    backgroundColor: '#FFEBF0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingRight: 2.5,
-    paddingBottom: 18,
-    paddingLeft: 18,
-  },
-  thumbnailText: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#000',
-    textAlign: 'center',
-  },
   formSection: {
     paddingHorizontal: 20,
+    paddingTop: 24,
     gap: 21,
     paddingBottom: 37,
   },
@@ -240,7 +344,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '700',
-    fontFamily: 'Open Sans',
+    fontFamily: 'Raleway',
     color: '#000',
   },
   inputContainer: {
@@ -248,18 +352,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#B4BED4',
     backgroundColor: '#FFF',
-  },
-  textInput: {
-    height: 56,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    fontSize: 12,
-    fontFamily: 'Open Sans',
-    color: '#7C8BA0',
-    fontWeight: '400',
-  },
-  filledInput: {
-    color: '#100A37',
   },
   buttonSection: {
     paddingHorizontal: 20,
@@ -281,11 +373,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
     textAlign: 'center',
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: '#06888C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0F8F8',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  editIconContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#06888C',
+    padding: 8,
+    borderBottomLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  imagePicker: {
+    width: '100%',
+    height: 150,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#F8F8F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  imagePlaceholderText: {
+    fontSize: 14,
+    color: '#7C8BA0',
+  },
+  clearOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 136, 140, 0.15)',
+  },
+  clearOverlayText: {
+    color: '#06888C',
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  errorText: {
+    color: '#FF4D4F',
+    marginTop: 8,
+    fontSize: 12,
   },
 });

@@ -1,5 +1,6 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -19,32 +20,19 @@ import { useVendors } from '../../../hooks/api/useVendors';
 export default function StoreScreen() {
   const { empty } = useLocalSearchParams();
   const { state: authState } = useAuth();
-
   const userId = authState.user?.id;
 
-  const {
-    vendors,
-    pagination,
-    loading,
-    error,
-    fetchVendors,
-  } = useVendors();
+  const { fetchVendors } = useVendors();
 
-  useEffect(() => {
-    if (empty === 'true') {
-      // Force empty state via route param for testing
-      // No-op: rendering will naturally be empty if vendors length is 0
-    }
-  }, [empty]);
-
-  // Fetch vendors whenever the screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (authState.isReady && userId) {
-        fetchVendors({ userId, page: 1, size: 20 });
-      }
-    }, [authState.isReady, userId, fetchVendors])
-  );
+  const { 
+    data: vendorsData, 
+    isLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['vendors', userId],
+    queryFn: () => fetchVendors({ userId, page: 1, size: 20 }),
+    enabled: !!userId && authState.isReady,
+  });
 
   const handleGoBack = () => {
     router.back();
@@ -60,7 +48,7 @@ export default function StoreScreen() {
 
   const handleStorePress = (vendorId: string) => {
     // Navigate to a screen that can use the storeId to fetch details
-    router.push(`/(private)/store/select-category?storeId=${vendorId}`);
+    router.push(`/(private)/store/store-homepage?storeId=${vendorId}`);
   };
 
   const handleAddNewStore = () => {
@@ -110,10 +98,10 @@ export default function StoreScreen() {
     </TouchableOpacity>
   ); */
 
-  const safeVendors = vendors ?? [];
-  const totalStores = (pagination?.totalCount ?? 0) || safeVendors.length || 0;
-  const isEmpty = !loading && totalStores === 0;
-  const isInitialLoading = loading && safeVendors.length === 0;
+  const vendors = vendorsData?.data ?? [];
+  const totalStores = vendorsData?.totalCount ?? 0;
+  const isEmpty = !isLoading && totalStores === 0;
+  const isInitialLoading = isLoading && vendors.length === 0;
 
   // Empty state
   if (empty === 'true' || isEmpty) {
@@ -170,9 +158,9 @@ export default function StoreScreen() {
             {isInitialLoading ? (
               <ActivityIndicator size="large" color="#06888C" style={{ marginTop: 40 }} />
             ) : (
-              Array.from({ length: Math.ceil(safeVendors.length / 2) }).map((_, rowIndex) => (
+              Array.from({ length: Math.ceil(vendors.length / 2) }).map((_, rowIndex) => (
                 <View key={rowIndex} style={styles.storeRow}>
-                  {safeVendors.slice(rowIndex * 2, rowIndex * 2 + 2).map((vendor) => {
+                  {vendors.slice(rowIndex * 2, rowIndex * 2 + 2).map((vendor) => {
                     const name = vendor.name || 'Unnamed Store';
                     const address = vendor.address || '';
                     const image = vendor.image || 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120';

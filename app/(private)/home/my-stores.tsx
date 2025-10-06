@@ -20,33 +20,6 @@ import {
 
 type StoreItem = { id: string; name: string; address: string; logo: string };
 
-const MOCK_STORES: StoreItem[] = [
-  {
-    id: '1',
-    name: 'Jewel Osco',
-    address: 'wallgreaan lane 1234 Wesbromich, New York, 06675',
-    logo: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120',
-  },
-  {
-    id: '2', 
-    name: 'Jewel Osco',
-    address: 'lane 1234 Wesbromich, Southside',
-    logo: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120',
-  },
-  {
-    id: '3',
-    name: 'Jewel Osco',
-    address: 'Wesbromich, New York, 06675\n454miles',
-    logo: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120',
-  },
-  {
-    id: '4',
-    name: 'Jewel Osco',
-    address: 'southsid3e wlassgreenn newyork 6654',
-    logo: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120',
-  },
-];
-
 export default function MyStoresScreen() {
   const handleGoBack = () => {
     router.back();
@@ -109,17 +82,7 @@ export default function MyStoresScreen() {
         <View style={styles.mainContent}>
           <Text style={styles.subtitle}>Select the store you wish to add product</Text>
           
-          {/* Stores Grid */}
-          <View style={styles.storesGrid}>
-            <View style={styles.storeRow}>
-              <StoreCard store={MOCK_STORES[0]} />
-              <StoreCard store={MOCK_STORES[1]} />
-            </View>
-            <View style={styles.storeRow}>
-              <StoreCard store={MOCK_STORES[2]} />
-              <StoreCard store={MOCK_STORES[3]} />
-            </View>
-          </View>
+          
         </View>
 
         {/* Go Back Button */}

@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 // API & Models
 import { apiConfig } from '../../api/config';
 import { VendorApi } from '../../api/endpoints/vendor-api';
-import { CreateVendorPayload, PaginatedVendors, Vendor, VendorWithRelations } from '../../api/models';
+import { CreateVendorPayload, PaginatedVendors, UpdateVendorPayload, Vendor, VendorWithDetails } from '../../api/models';
 
 // Contexts
 import { toast } from 'sonner-native';
@@ -24,7 +24,7 @@ interface UseVendorsState {
 }
 
 interface UseVendorState {
-  vendor: VendorWithRelations | null;
+  vendor: VendorWithDetails | null;
   loading: boolean;
   error: string | null;
 }
@@ -131,12 +131,24 @@ export const useVendors = () => {
     }
   }, [vendorApi, handleError]);
 
+  const getVendorById = useCallback(async (vendorId: string) => {
+    // This is just an alias for fetchVendor for consistency with other hooks
+    try {
+      const response = await vendorApi.vendorsIdGet(vendorId);
+      return response.data;
+    } catch (error: any) {
+      handleError(error, 'Failed to fetch vendor details');
+      throw error;
+    }
+  }, [vendorApi, handleError]);
+
   return {
     ...state,
     fetchVendors,
     fetchNearbyVendors,
     searchVendors,
     createVendor,
+    getVendorById,
   };
 };
 
@@ -156,7 +168,7 @@ export const useVendor = () => {
     return errorMessage;
   }, [showError]);
 
-  const fetchVendor = useCallback(async (vendorId: string) => {
+  const getVendorById = useCallback(async (vendorId: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
@@ -178,8 +190,28 @@ export const useVendor = () => {
     }
   }, [vendorApi, handleError]);
 
+  const updateVendor = useCallback(async (vendorId: string, payload: Partial<UpdateVendorPayload>) => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      const response = await vendorApi.vendorsIdPatch(payload, vendorId);
+      const updatedVendor = response.data as VendorWithDetails;
+
+      setState(prev => ({
+        ...prev,
+        vendor: updatedVendor,
+        loading: false,
+      }));
+      return updatedVendor;
+    } catch (error: any) {
+      const errorMessage = handleError(error, 'Failed to update vendor');
+      setState(prev => ({ ...prev, loading: false, error: errorMessage }));
+      throw error;
+    }
+  }, [vendorApi, handleError]);
+
   return {
     ...state,
-    fetchVendor,
+    getVendorById,
+    updateVendor,
   };
 };

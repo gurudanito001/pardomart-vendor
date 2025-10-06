@@ -1,56 +1,56 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { VendorProduct } from '@/api';
+import { useProducts } from '@/hooks/api/useProducts';
+import { useVendors } from '@/hooks/api/useVendors';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-interface Product {
-  id: string;
+interface StoreDetails {
   name: string;
-  price: number;
-  originalPrice?: number;
-  discountPrice?: number;
-  size: string;
+  address: string;
   image: string;
 }
 
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'celcius life Fit Zero Sugar Essentials ....',
-    price: 3.78,
-    size: '16 fl oz',
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/73ef3ace6cb9e3da41717958fab761f4422f0ed4?width=216',
-  },
-  {
-    id: '2',
-    name: 'celcius life Fit Zero Sugar Essentials ....',
-    price: 3.78,
-    originalPrice: 3.78,
-    discountPrice: 0.89,
-    size: '16 fl oz',
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/a44c4cd4c79fe841be67a1e84d911471ffaf8827?width=210',
-  },
-  {
-    id: '3',
-    name: 'celcius life Fit Zero Sugar Essentials ....',
-    price: 3.78,
-    size: '16 fl oz',
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/2a5cee148104ad29fdebca65e2d500762eea50a8?width=140',
-  },
-];
+export default function StoreProductsScreen() {
+  const { storeId } = useLocalSearchParams<{ storeId: string }>();
+  const { getVendorById } = useVendors();
+  const { fetchProductsByStore } = useProducts();
 
-export default function UnpublishedStoreScreen() {
   const [selectedTab, setSelectedTab] = useState('pickup');
   const [searchQuery, setSearchQuery] = useState('');
+  const [storeDetails, setStoreDetails] = useState<StoreDetails>({
+    name: '',
+    address: '',
+    image: '',
+  });
+
+  const { data: vendor, isLoading: isLoadingVendor } = useQuery({
+    queryKey: ['vendor', storeId],
+    queryFn: () => getVendorById(storeId!),
+    enabled: !!storeId,
+  });
+
+  const { data: productsData, isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['products', storeId],
+    queryFn: () => fetchProductsByStore(storeId!),
+    enabled: !!storeId,
+  });
+
+  useEffect(() => {
+    if (vendor) setStoreDetails({ name: vendor.name || "", address: vendor.address || "", image: vendor.image || "" });
+  }, [vendor]);
 
   const handleGoBack = () => {
     router.back();
@@ -80,44 +80,33 @@ export default function UnpublishedStoreScreen() {
     // Handle store publishing
   };
 
-  const renderProduct = (product: Product) => (
+  const renderProduct = (product: VendorProduct) => (
     <View key={product.id} style={styles.productCard}>
       <View style={styles.productImageContainer}>
         <Image 
-          source={{ uri: product.image }}
+          source={{ uri: product.images?.[0] || 'https://via.placeholder.com/150' }}
           style={styles.productImage}
           resizeMode="contain"
         />
       </View>
       <View style={styles.productDetails}>
         <View style={styles.priceContainer}>
-          {product.discountPrice && (
+          {product.discountedPrice && (
             <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>${product.discountPrice}</Text>
+              <Text style={styles.discountText}>${product.discountedPrice.toFixed(2)}</Text>
             </View>
           )}
-          <Text style={styles.productPrice}>${product.price}</Text>
+          <Text style={styles.productPrice}>${product.price?.toFixed(2)}</Text>
         </View>
         <Text style={styles.productName} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.productSize}>{product.size}</Text>
+        <Text style={styles.productSize}>{product.weight || ''}</Text>
       </View>
     </View>
   );
 
-  const renderProductRow = (products: Product[], startIndex: number) => (
-    <View key={startIndex} style={styles.productRow}>
-      {products.slice(startIndex, startIndex + 3).map(renderProduct)}
-    </View>
-  );
-
-  // Create an array with 9 products (3 rows of 3)
-  const allProducts = [
-    ...MOCK_PRODUCTS,
-    ...MOCK_PRODUCTS,
-    ...MOCK_PRODUCTS,
-  ];
+  const products = productsData?.data || [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -136,12 +125,12 @@ export default function UnpublishedStoreScreen() {
           <View style={styles.storeInfoSection}>
             <View style={styles.storeLogoContainer}>
               <Image
-                source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/9d36f317a6f8107bd18c045ccb4b42f2bad7ba6f?width=120' }}
+                source={{ uri: storeDetails.image }}
                 style={styles.headerStoreLogo}
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.storeLocation}>Wesside 120 ny jersey 2.5 Miles</Text>
+            <Text style={styles.storeLocation}>{storeDetails.address}</Text>
           </View>
 
           <View style={styles.headerIcons}>
@@ -215,14 +204,20 @@ export default function UnpublishedStoreScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Products Header */}
-          <Text style={styles.productsHeader}>Products (423)</Text>
+          <Text style={styles.productsHeader}>Products ({productsData?.totalCount || 0})</Text>
 
           {/* Products Grid */}
-          <View style={styles.productsGrid}>
-            {Array.from({ length: 3 }, (_, rowIndex) => (
-              renderProductRow(allProducts, rowIndex * 3)
-            ))}
-          </View>
+          {isLoadingProducts || isLoadingVendor ? (
+            <ActivityIndicator size="large" color="#06888C" style={{ marginVertical: 40 }} />
+          ) : (
+            <View style={styles.productsGrid}>
+              {products.length > 0 ? (
+                products.map(renderProduct)
+              ) : (
+                <Text style={styles.noProductsText}>No products found for this store.</Text>
+              )}
+            </View>
+          )}
 
           {/* Pagination */}
           <View style={styles.pagination}>
@@ -246,9 +241,6 @@ export default function UnpublishedStoreScreen() {
           <Text style={styles.addProductText}>Add Product</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.publishButton} onPress={handlePublishStore}>
-          <Text style={styles.publishText}>Publish Store</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -266,7 +258,7 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: "flex-start",
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
@@ -315,7 +307,7 @@ const styles = StyleSheet.create({
   },
   overlayContainer: {
     position: 'absolute',
-    top: 120,
+    top: 160,
     left: 0,
     right: 0,
     zIndex: 10,
@@ -385,16 +377,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   productsGrid: {
-    gap: 30,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 30,
     marginBottom: 30,
   },
-  productRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 15,
-  },
   productCard: {
-    width: 120,
+    width: '31%', // Adjust for 3 items per row with spacing
     gap: 6,
   },
   productImageContainer: {
@@ -503,6 +493,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  noProductsText: {
+    flex: 1,
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 16,
+    color: '#6B7280',
   },
   publishButton: {
     paddingVertical: 14,

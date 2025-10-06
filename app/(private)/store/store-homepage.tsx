@@ -1,7 +1,9 @@
-import { router } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  SafeAreaView,
+  ActivityIndicator,
+  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -9,9 +11,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { ClipPath, Defs, G, Path, Rect, Svg } from 'react-native-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Path, Svg } from 'react-native-svg';
+import { useVendor } from '../../../hooks/api/useVendors';
 
 export default function SettingUpStoreScreen() {
+  const { storeId } = useLocalSearchParams<{ storeId: string }>();
+  const { getVendorById } = useVendor();
+
+  const { data: vendor, isLoading, isError } = useQuery({
+    queryKey: ['vendor', storeId],
+    queryFn: () => getVendorById(storeId!),
+    enabled: !!storeId,
+  });
+
   const handleBack = () => {
     router.back();
   };
@@ -20,16 +33,16 @@ export default function SettingUpStoreScreen() {
     console.log(`Handle ${actionType} action`);
 
     switch (actionType) {
-      case 'edit-profile':
-        router.push('/(private)/store/edit-store' as any);
+      case 'store-profile':
+        router.push(`/(private)/store/edit-store?storeId=${storeId}`);
         break;
-      case 'add-store':
-        router.push('/(private)/store?empty=true' as any);
+      case 'store-products':
+        router.push(`/(private)/store/store-products?storeId=${storeId}` as any);
         break;
-      case 'upload-documents':
+      case 'store-documents':
         router.push('/(private)/store/upload-documents' as any);
         break;
-      case 'settings':
+      case 'store-settings':
         // Navigate to settings screen
         console.log('Navigate to settings');
         break;
@@ -65,6 +78,15 @@ export default function SettingUpStoreScreen() {
     </TouchableOpacity>
   );
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#06888C" />
+        <Text style={styles.loadingText}>Loading Store...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#06888C" />
@@ -81,7 +103,7 @@ export default function SettingUpStoreScreen() {
                 />
               </Svg>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>My Store</Text>
+            <Text style={styles.headerTitle}>{vendor?.name || 'My Store'}</Text>
           </View>
           <View style={styles.rightSection}>
             <TouchableOpacity style={styles.iconButton}>
@@ -118,21 +140,16 @@ export default function SettingUpStoreScreen() {
         {/* Store Profile Picture Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
-              <G clipPath="url(#clip0_776_1470)">
-                <Path 
-                  fillRule="evenodd" 
-                  clipRule="evenodd" 
-                  d="M10.9997 2.10357C21.9783 0.482142 28.1676 0.496428 38.9997 2.10357C39.128 2.12318 39.2537 2.15671 39.3747 2.20357C42.6983 3.46999 45.4605 5.88139 47.164 9.00357C48.589 11.5607 49.1069 14.1179 49.1069 15.5464C49.1069 21.1536 44.3926 25.575 38.7354 25.575C36.1104 25.575 33.6997 24.6286 31.8676 23.0607C29.9515 24.6907 27.5153 25.5813 24.9997 25.5714C22.3747 25.5714 19.964 24.625 18.1319 23.0571C16.2162 24.6884 13.7801 25.5803 11.264 25.5714C5.60686 25.5714 0.892578 21.1536 0.892578 15.5464C0.892578 14.1179 1.41044 11.5607 2.83544 9.00357C4.53805 5.88204 7.29892 3.47071 10.6211 2.20357C10.7444 2.15621 10.8726 2.12267 11.0033 2.10357M7.98544 30.25C7.98544 29.658 7.75026 29.0902 7.33166 28.6716C6.91305 28.253 6.34529 28.0179 5.75329 28.0179C5.16129 28.0179 4.59354 28.253 4.17493 28.6716C3.75632 29.0902 3.52115 29.658 3.52115 30.25V39.7321C3.52115 42.2179 4.50838 44.602 6.26576 46.36C8.02314 48.1181 10.4068 49.1062 12.8926 49.1071H37.1069C39.5933 49.1071 41.9778 48.1194 43.736 46.3613C45.4941 44.6031 46.4819 42.2185 46.4819 39.7321V30.25C46.4819 29.658 46.2467 29.0902 45.8281 28.6716C45.4095 28.253 44.8417 28.0179 44.2497 28.0179C43.6577 28.0179 43.09 28.253 42.6714 28.6716C42.2528 29.0902 42.0176 29.658 42.0176 30.25V39.7321C42.0176 42.4464 39.8176 44.6429 37.1069 44.6429H32.4819V30.25C32.4819 29.658 32.2467 29.0902 31.8281 28.6716C31.4095 28.253 30.8417 28.0179 30.2497 28.0179C29.6577 28.0179 29.09 28.253 28.6714 28.6716C28.2527 29.0902 28.0176 29.658 28.0176 30.25V33.2679H7.98186L7.98544 30.25ZM7.98544 39.7321V37.7321H28.0212V44.6429H12.8926C10.1783 44.6429 7.98186 42.4429 7.98186 39.7321" 
-                  fill="#06888C"
-                />
-              </G>
-              <Defs>
-                <ClipPath id="clip0_776_1470">
-                  <Rect width="50" height="50" fill="white"/>
-                </ClipPath>
-              </Defs>
-            </Svg>
+            {vendor?.image ? (
+              <Image
+                source={{ uri: vendor.image }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <Svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                <Path d="M45.8333 8.33333H4.16667C3.24583 8.33333 2.5 9.07917 2.5 10V40C2.5 40.9208 3.24583 41.6667 4.16667 41.6667H45.8333C46.7542 41.6667 47.5 40.9208 47.5 40V10C47.5 9.07917 46.7542 8.33333 45.8333 8.33333ZM18.75 27.0833L14.5833 32.2917H35.4167L29.1667 23.9583L25 29.1667L18.75 27.0833Z" fill="#06888C"/>
+              </Svg>
+            )}
           </View>
           <Text style={styles.profileImageText}>Store Profile picture</Text>
         </View>
@@ -143,39 +160,35 @@ export default function SettingUpStoreScreen() {
             icon={
               <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                 <Path 
-                  d="M18.3333 5.50001H3.66667V3.66667H18.3333V5.50001ZM12.8333 14.7858L10.0833 17.5358V18.3333H3.66667V12.8333H2.75V11L3.66667 6.41667H18.3333L18.8925 9.23084C18.48 9.3225 18.0858 9.53334 17.7742 9.84501L14.7858 12.8333H12.8333V14.7858ZM11 12.8333H5.5V16.5H11V12.8333ZM20.9458 12.3475L19.7358 11.1375C19.5525 10.9542 19.25 10.9542 19.0758 11.1375L18.1775 12.0358L20.0475 13.9058L20.9458 13.0075C21.1292 12.8333 21.1292 12.5308 20.9458 12.3475ZM11.9167 18.2967V20.1667H13.7867L19.4058 14.5567L17.5358 12.6775L11.9167 18.2967Z" 
-                  fill="black"
-                />
-              </Svg>
-            }
-            title="Edit Store Profile"
-            onPress={() => handleAction('edit-profile')}
-          />
-          
-          <ActionItem
-            icon={
-              <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <Path 
                   d="M4.58359 3.66667H17.4169C17.6767 3.66667 17.8945 3.75467 18.0705 3.93067C18.2465 4.10667 18.3342 4.32423 18.3336 4.58334C18.333 4.84245 18.245 5.06031 18.0696 5.23692C17.8942 5.41353 17.6767 5.50123 17.4169 5.50001H4.58359C4.32387 5.50001 4.10632 5.412 3.93093 5.236C3.75554 5.06 3.66754 4.84245 3.66693 4.58334C3.66632 4.32423 3.75432 4.10667 3.93093 3.93067C4.10754 3.75467 4.32509 3.66667 4.58359 3.66667ZM4.58359 18.3333C4.32387 18.3333 4.10632 18.2453 3.93093 18.0693C3.75554 17.8933 3.66754 17.6758 3.66693 17.4167V12.8333H3.50651C3.21623 12.8333 2.97943 12.7224 2.79609 12.5006C2.61276 12.2788 2.55165 12.023 2.61276 11.7333L3.52943 7.15001C3.57526 6.93612 3.6822 6.76042 3.85026 6.62292C4.01832 6.48542 4.20929 6.41667 4.42318 6.41667H17.5773C17.7912 6.41667 17.9822 6.48542 18.1503 6.62292C18.3183 6.76042 18.4253 6.93612 18.4711 7.15001L19.3878 11.7333C19.4489 12.0236 19.3878 12.2794 19.2044 12.5006C19.0211 12.7218 18.7843 12.8327 18.494 12.8333H18.3336V17.4167C18.3336 17.6764 18.2456 17.8943 18.0696 18.0703C17.8936 18.2463 17.676 18.3339 17.4169 18.3333C17.1578 18.3327 16.9403 18.2447 16.7643 18.0693C16.5883 17.8939 16.5003 17.6764 16.5003 17.4167V12.8333H12.8336V17.4167C12.8336 17.6764 12.7456 17.8943 12.5696 18.0703C12.3936 18.2463 12.176 18.3339 11.9169 18.3333H4.58359ZM5.50026 16.5H11.0003V12.8333H5.50026V16.5Z" 
                   fill="black"
                 />
               </Svg>
             }
-            title="Add Store"
-            onPress={() => handleAction('add-store')}
+            title="Store Profile"
+            onPress={() => handleAction('store-profile')}
+          />
+          
+          <ActionItem
+            icon={
+              <Svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                {/* Product Icon */}
+                <Path d="M18.3333 5.5H3.66667V4.58333C3.66667 4.08667 4.08667 3.66667 4.58333 3.66667H17.4167C17.9133 3.66667 18.3333 4.08667 18.3333 4.58333V5.5ZM19.25 7.33333L18.3333 17.4167C18.3333 17.9133 17.9133 18.3333 17.4167 18.3333H4.58333C4.08667 18.3333 3.66667 17.9133 3.66667 17.4167L2.75 7.33333H19.25ZM11 10.0833C11 9.58667 10.58 9.16667 10.0833 9.16667C9.58667 9.16667 9.16667 9.58667 9.16667 10.0833V14.6667C9.16667 15.1633 9.58667 15.5833 10.0833 15.5833C10.58 15.5833 11 15.1633 11 14.6667V10.0833ZM14.6667 10.0833C14.6667 9.58667 14.2467 9.16667 13.75 9.16667C13.2533 9.16667 12.8333 9.58667 12.8333 10.0833V14.6667C12.8333 15.1633 13.2533 15.5833 13.75 15.5833C14.2467 15.5833 14.6667 15.1633 14.6667 14.6667V10.0833ZM7.33333 10.0833C7.33333 9.58667 6.91333 9.16667 6.41667 9.16667C5.92 9.16667 5.5 9.58667 5.5 10.0833V14.6667C5.5 15.1633 5.92 15.5833 6.41667 15.5833C6.91333 15.5833 7.33333 15.1633 7.33333 14.6667V10.0833Z" fill="black"/>
+              </Svg>
+            }
+            title="Store Products"
+            onPress={() => handleAction('store-products')}
           />
           
           <ActionItem
             icon={
               <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path 
-                  d="M11 16V7.85L8.4 10.45L7 9L12 4L17 9L15.6 10.45L13 7.85V16H11ZM4 20V15H6V18H18V15H20V20H4Z" 
-                  fill="black"
-                />
+                {/* Document Icon */}
+                <Path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM16 18H8V16H16V18ZM16 14H8V12H16V14ZM13 9V3.5L18.5 9H13Z" fill="black"/>
               </Svg>
             }
-            title="Upload Documents"
-            onPress={() => handleAction('upload-documents')}
+            title="Store Documents"
+            onPress={() => handleAction('store-documents')}
           />
           
           <ActionItem
@@ -187,8 +200,8 @@ export default function SettingUpStoreScreen() {
                 />
               </Svg>
             }
-            title="Settings"
-            onPress={() => handleAction('settings')}
+            title="Store Settings"
+            onPress={() => handleAction('store-settings')}
           />
         </View>
       </ScrollView>
@@ -200,6 +213,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Raleway',
+    color: '#484C52',
   },
   header: {
     backgroundColor: '#06888C',
@@ -271,6 +294,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEBF0',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 16,
   },
   profileImageText: {
     fontSize: 16,
