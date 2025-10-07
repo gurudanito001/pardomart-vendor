@@ -13,6 +13,7 @@ export default function HomeLayout() {
       <Stack.Screen name="my-stores" />
       <Stack.Screen name="completed-orders" />
       <Stack.Screen name="view-shopper" />
+      <Stack.Screen name="add-shopper" />
       <Stack.Screen name="customer-details" />
     </Stack>
   );

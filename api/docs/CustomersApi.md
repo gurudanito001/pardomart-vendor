@@ -4,10 +4,10 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1CustomersGet**](#apiv1customersget) | **GET** /api/v1/customers | List customers for a vendor account or a specific store|
+|[**customersGet**](#customersget) | **GET** /customers | List customers for a vendor account or a specific store|
 
-# **apiV1CustomersGet**
-> apiV1CustomersGet()
+# **customersGet**
+> customersGet()
 
 
 ### Example
@@ -23,7 +23,7 @@ const apiInstance = new CustomersApi(configuration);
 
 let vendorId: string; //Optional. The ID of a specific store to filter customers for. If omitted, returns customers from all stores. (optional) (default to undefined)
 
-const { status, data } = await apiInstance.apiV1CustomersGet(
+const { status, data } = await apiInstance.customersGet(
     vendorId
 );
 ```

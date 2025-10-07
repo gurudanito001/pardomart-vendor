@@ -1,8 +1,11 @@
-import { User } from '@/api';
+import { StaffApi, User } from '@/api';
+import { apiConfig } from '@/api/config';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,48 +15,42 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { NotificationSVG, SupportSVG } from '../../../components/icons';
 
-const MOCK_SHOPPERS: User[] = [
-  {
-    id: '1',
-    name: 'Mr Damilare Adebanjo',
-    email: 'damilareadebanjo@gmail.com',
-    mobileNumber: '+1 334 654 7788',
-  },
-  {
-    id: '2',
-    name: 'Magrett Kingsley',
-    email: 'damilareadebanjo@gmail.com',
-    mobileNumber: '+1 334 654 7788',
-  },
-  {
-    id: '3',
-    name: 'Magrett Kingsley',
-    email: 'damilareadebanjo@gmail.com',
-    mobileNumber: '+1 334 654 7788',
-  },
-  {
-    id: '4',
-    name: 'Mr Damilare Adebanjo',
-    email: 'damilareadebanjo@gmail.com',
-    mobileNumber: '+1 334 654 7788'
-  },
-  {
-    id: '5',
-    name: 'Mr Damilare Adebanjo',
-    email: 'damilareadebanjo@gmail.com',
-    mobileNumber: '+1 334 654 7788',
-  },
-];
+interface StaffMember extends User {
+  image?: string | null;
+  isAvailable?: boolean;
+}
 
 export default function MyShoppersScreen() {
+  const params = useLocalSearchParams<{ storeId?: string | string[] }>();
+
+  const staffApi = React.useMemo(() => new StaffApi(apiConfig), []);
+
+  const storeIdFromParam = React.useMemo(() => {
+    const value = params.storeId;
+    const id = Array.isArray(value) ? value[0] : value;
+    // Fallback to default store id when param is empty or undefined
+    return id && id !== '' ? id : '1ef6ba84-8998-4e87-80ed-2f987e9889f4';
+  }, [params.storeId]);
+
+  const { data: staffMembers, isLoading, error, isFetching } = useQuery({
+    queryKey: ['staff', storeIdFromParam],
+    queryFn: async () => {
+      if (!storeIdFromParam) throw new Error('Store ID not found');
+      const response = await staffApi.staffStoreVendorIdGet(storeIdFromParam);
+      return (response.data as unknown as StaffMember[]) || [];
+    },
+    enabled: !!storeIdFromParam,
+    staleTime: 60 * 1000,
+  });
+
   const handleGoBack = () => {
     router.back();
   };
 
   const handleNotifications = () => {
-    console.log('Open notifications');
+    router.push('/(private)/shared/notifications' as any);
   };
 
   const handleSupport = () => {
@@ -62,55 +59,136 @@ export default function MyShoppersScreen() {
 
   const handleShopperPress = (shopperId?: string) => {
     if (!shopperId) return;
-    router.push(`/(private)/home/view-shopper?shopperId=${shopperId}`);
+    router.push(`/(private)/home/view-shopper?shopperId=${shopperId}` as any);
   };
 
   const handleAddShopper = () => {
-    console.log('Add new shopper');
-    // Navigate to add shopper page
+    if (!storeIdFromParam) return;
+    router.push({ pathname: '/(private)/home/add-shopper', params: { storeId: storeIdFromParam } } as any);
   };
 
-  const ShopperCard = ({ shopper }: { shopper: User }) => (
-    <TouchableOpacity 
-      style={styles.shopperCard} 
-      onPress={() => handleShopperPress(shopper?.id)}
-    >
-      <View style={styles.shopperContent}>
-        <Image 
-          source={require('../../../assets/images/user profile.png')}
-          style={styles.shopperAvatar}
-        />
-        <View style={styles.shopperInfo}>
-          <View style={styles.shopperDetails}>
-            <Text style={styles.shopperName}>{shopper.name}</Text>
-            <View style={[
-              styles.statusBadge, styles.availableBadge 
-              ]}>
-              <Text style={[
-                styles.statusText,
-                styles.statusBadge, styles.availableBadge 
-              ]}>
-              </Text>
-            </View>
-          </View>
-          <Svg width="7" height="13" viewBox="0 0 7 13" fill="none">
-            <Path d="M0.866949 12.4985C0.66474 12.4988 0.468777 12.4292 0.313076 12.3017C0.225444 12.2299 0.153007 12.1418 0.0999113 12.0423C0.0468157 11.9428 0.0141058 11.8339 0.00365506 11.7219C-0.0067957 11.6098 0.00521815 11.4969 0.0390082 11.3895C0.0727983 11.2821 0.1277 11.1823 0.200571 11.0958L4.07768 6.51173L0.339039 1.91906C0.267152 1.83158 0.213468 1.73092 0.181074 1.62286C0.148679 1.51481 0.138213 1.4015 0.150276 1.28944C0.16234 1.17738 0.196694 1.06878 0.251367 0.969879C0.306039 0.870982 0.379951 0.783737 0.468853 0.713159C0.558395 0.635301 0.663255 0.576573 0.776853 0.540662C0.89045 0.504751 1.01033 0.492432 1.12898 0.504478C1.24762 0.516525 1.36246 0.552676 1.4663 0.610663C1.57014 0.66865 1.66072 0.747221 1.73237 0.841446L5.91238 5.97292C6.03967 6.12596 6.10925 6.31791 6.10925 6.51601C6.10925 6.7141 6.03967 6.90606 5.91238 7.05909L1.58525 12.1906C1.49843 12.2941 1.38815 12.3759 1.26335 12.4294C1.13854 12.4829 1.00274 12.5065 0.866949 12.4985Z" fill="#333333"/>
-          </Svg>
-        </View>
-      </View>
-    </TouchableOpacity>
+  const BackArrowIcon = () => (
+    <Svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+      <Path
+        d="M19.6278 21.993C19.8661 22.2135 20 22.5125 20 22.8243C20 23.1361 19.8661 23.4352 19.6278 23.6556C19.3895 23.8761 19.0662 24 18.7292 24C18.3921 24 18.0689 23.8761 17.8306 23.6556L9.37313 15.8313C9.25486 15.7223 9.16102 15.5927 9.09699 15.4501C9.03296 15.3074 9 15.1545 9 15C9 14.8455 9.03296 14.6926 9.09699 14.5499C9.16102 14.4073 9.25486 14.2777 9.37313 14.1687L17.8306 6.34435C18.0689 6.12387 18.3921 6 18.7292 6C19.0662 6 19.3895 6.12387 19.6278 6.34435C19.8661 6.56483 20 6.86387 20 7.17568C20 7.48749 19.8661 7.78653 19.6278 8.00702L12.07 14.999L19.6278 21.993Z"
+        fill="white"
+      />
+    </Svg>
   );
+
+  const ChevronRightIcon = () => (
+    <Svg width="7" height="13" viewBox="0 0 7 13" fill="none">
+      <Path
+        d="M0.866949 12.4985C0.66474 12.4988 0.468777 12.4292 0.313076 12.3017C0.225444 12.2299 0.153007 12.1418 0.0999113 12.0423C0.0468157 11.9428 0.0141058 11.8339 0.00365506 11.7219C-0.0067957 11.6098 0.00521815 11.4969 0.0390082 11.3895C0.0727983 11.2821 0.1277 11.1823 0.200571 11.0958L4.07768 6.51173L0.339039 1.91906C0.267152 1.83158 0.213468 1.73092 0.181074 1.62286C0.148679 1.51481 0.138213 1.4015 0.150276 1.28944C0.16234 1.17738 0.196694 1.06878 0.251367 0.969879C0.306039 0.870982 0.379951 0.783737 0.468853 0.713159C0.558395 0.635301 0.663255 0.576573 0.776853 0.540662C0.89045 0.504751 1.01033 0.492432 1.12898 0.504478C1.24762 0.516525 1.36246 0.552676 1.4663 0.610663C1.57014 0.66865 1.66072 0.747221 1.73237 0.841446L5.91238 5.97292C6.03967 6.12596 6.10925 6.31791 6.10925 6.51601C6.10925 6.7141 6.03967 6.90606 5.91238 7.05909L1.58525 12.1906C1.49843 12.2941 1.38815 12.3759 1.26335 12.4294C1.13854 12.4829 1.00274 12.5065 0.866949 12.4985Z"
+        fill="#333333"
+      />
+    </Svg>
+  );
+
+  const ShopperCard = ({ shopper }: { shopper: StaffMember }) => {
+    const isAvailable = shopper.isAvailable ?? shopper.active ?? false;
+    
+    return (
+      <TouchableOpacity
+        style={styles.shopperCard}
+        onPress={() => handleShopperPress(shopper?.id)}
+      >
+        <View style={styles.shopperContent}>
+          <Image
+            source={
+              shopper.image
+                ? { uri: shopper.image }
+                : require('../../../assets/images/user profile.png')
+            }
+            style={styles.shopperAvatar}
+          />
+          <View style={styles.shopperInfo}>
+            <View style={styles.shopperDetails}>
+              <Text style={styles.shopperName}>{shopper.name || 'Unknown'}</Text>
+              <View
+                style={[
+                  styles.statusBadge,
+                  isAvailable ? styles.availableBadge : styles.unavailableBadge,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.statusText,
+                    isAvailable ? styles.availableText : styles.unavailableText,
+                  ]}
+                >
+                  {isAvailable ? 'Available' : 'Not available'}
+                </Text>
+              </View>
+            </View>
+            <ChevronRightIcon />
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderContent = () => {
+    if (!storeIdFromParam) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyText}>No store selected</Text>
+          <Text style={styles.emptySubtext}>Choose a store to manage shoppers.</Text>
+        </View>
+      );
+    }
+
+    if (isLoading || isFetching) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#06888C" />
+          <Text style={styles.loadingText}>Loading shoppers...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>Failed to load shoppers</Text>
+          <Text style={styles.errorSubtext}>{(error as Error).message}</Text>
+        </View>
+      );
+    }
+
+    if (!staffMembers || staffMembers.length === 0) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyText}>No shoppers yet</Text>
+          <Text style={styles.emptySubtext}>Add your first shopper to get started</Text>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        <Text style={styles.shoppersCount}>
+          You have {staffMembers.length} shopper{staffMembers.length !== 1 ? 's' : ''}
+        </Text>
+
+        <View style={styles.shoppersList}>
+          {staffMembers.map((shopper) => (
+            <ShopperCard key={shopper.id} shopper={shopper} />
+          ))}
+        </View>
+      </>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-      
-      {/* Header */}
+
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.leftSection}>
             <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-              <ArrowBackSVG width={30} height={30} color="white" />
+              <BackArrowIcon />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Shoppers</Text>
           </View>
@@ -127,17 +205,8 @@ export default function MyShoppersScreen() {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
-          {/* Shoppers Count */}
-          <Text style={styles.shoppersCount}>You have 5 shoppers</Text>
+          {renderContent()}
 
-          {/* Shoppers List */}
-          <View style={styles.shoppersList}>
-            {MOCK_SHOPPERS.map((shopper) => (
-              <ShopperCard key={shopper.id} shopper={shopper} />
-            ))}
-          </View>
-
-          {/* Add Shopper Button */}
           <TouchableOpacity style={styles.addShopperButton} onPress={handleAddShopper}>
             <Text style={styles.addShopperText}>Add Shopper</Text>
           </TouchableOpacity>
@@ -161,7 +230,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 21,
   },
   leftSection: {
     flexDirection: 'row',
@@ -197,12 +266,12 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 21,
-    paddingTop: 24,
+    paddingTop: 17,
     paddingBottom: 30,
   },
   shoppersCount: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     fontFamily: 'Raleway',
     color: '#000',
     marginBottom: 20,
@@ -241,9 +310,10 @@ const styles = StyleSheet.create({
   },
   shopperName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     fontFamily: 'Open Sans',
     color: '#000',
+    lineHeight: 19,
   },
   statusBadge: {
     paddingVertical: 3,
@@ -259,7 +329,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 8,
-    fontWeight: '700',
+    fontWeight: '600',
     fontFamily: 'Open Sans',
   },
   availableText: {
@@ -270,7 +340,6 @@ const styles = StyleSheet.create({
   },
   addShopperButton: {
     paddingVertical: 14,
-    paddingHorizontal: 50,
     borderRadius: 16,
     backgroundColor: '#06888C',
     justifyContent: 'center',
@@ -290,5 +359,45 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+    color: '#06888C',
+    marginTop: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#E94435',
+  },
+  errorSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    fontFamily: 'Open Sans',
+    color: '#7C8BA0',
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#000',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    fontFamily: 'Open Sans',
+    color: '#7C8BA0',
+    textAlign: 'center',
   },
 });

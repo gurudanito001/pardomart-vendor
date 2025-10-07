@@ -4,15 +4,15 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1StaffGet**](#apiv1staffget) | **GET** /api/v1/staff | List all staff members for the authenticated vendor owner|
-|[**apiV1StaffPost**](#apiv1staffpost) | **POST** /api/v1/staff | Create a new staff member (shopper) for a vendor|
-|[**apiV1StaffStaffIdDelete**](#apiv1staffstaffiddelete) | **DELETE** /api/v1/staff/{staffId} | Delete a staff member\&#39;s account|
-|[**apiV1StaffStaffIdGet**](#apiv1staffstaffidget) | **GET** /api/v1/staff/{staffId} | Get a single staff member by ID|
-|[**apiV1StaffStaffIdPatch**](#apiv1staffstaffidpatch) | **PATCH** /api/v1/staff/{staffId} | Update a staff member\&#39;s details|
-|[**apiV1StaffStoreVendorIdGet**](#apiv1staffstorevendoridget) | **GET** /api/v1/staff/store/{vendorId} | List all staff members for a specific store|
+|[**staffGet**](#staffget) | **GET** /staff | List all staff members for the authenticated vendor owner|
+|[**staffPost**](#staffpost) | **POST** /staff | Create a new staff member (shopper) for a vendor|
+|[**staffStaffIdDelete**](#staffstaffiddelete) | **DELETE** /staff/{staffId} | Delete a staff member\&#39;s account|
+|[**staffStaffIdGet**](#staffstaffidget) | **GET** /staff/{staffId} | Get a single staff member by ID|
+|[**staffStaffIdPatch**](#staffstaffidpatch) | **PATCH** /staff/{staffId} | Update a staff member\&#39;s details|
+|[**staffStoreVendorIdGet**](#staffstorevendoridget) | **GET** /staff/store/{vendorId} | List all staff members for a specific store|
 
-# **apiV1StaffGet**
-> apiV1StaffGet()
+# **staffGet**
+> staffGet()
 
 
 ### Example
@@ -26,7 +26,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new StaffApi(configuration);
 
-const { status, data } = await apiInstance.apiV1StaffGet();
+const { status, data } = await apiInstance.staffGet();
 ```
 
 ### Parameters
@@ -55,8 +55,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1StaffPost**
-> apiV1StaffPost(apiV1StaffPostRequest)
+# **staffPost**
+> staffPost(staffPostRequest)
 
 
 ### Example
@@ -65,16 +65,16 @@ void (empty response body)
 import {
     StaffApi,
     Configuration,
-    ApiV1StaffPostRequest
+    StaffPostRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new StaffApi(configuration);
 
-let apiV1StaffPostRequest: ApiV1StaffPostRequest; //
+let staffPostRequest: StaffPostRequest; //
 
-const { status, data } = await apiInstance.apiV1StaffPost(
-    apiV1StaffPostRequest
+const { status, data } = await apiInstance.staffPost(
+    staffPostRequest
 );
 ```
 
@@ -82,7 +82,7 @@ const { status, data } = await apiInstance.apiV1StaffPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **apiV1StaffPostRequest** | **ApiV1StaffPostRequest**|  | |
+| **staffPostRequest** | **StaffPostRequest**|  | |
 
 
 ### Return type
@@ -107,8 +107,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1StaffStaffIdDelete**
-> apiV1StaffStaffIdDelete()
+# **staffStaffIdDelete**
+> staffStaffIdDelete()
 
 
 ### Example
@@ -124,7 +124,7 @@ const apiInstance = new StaffApi(configuration);
 
 let staffId: string; // (default to undefined)
 
-const { status, data } = await apiInstance.apiV1StaffStaffIdDelete(
+const { status, data } = await apiInstance.staffStaffIdDelete(
     staffId
 );
 ```
@@ -157,8 +157,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1StaffStaffIdGet**
-> apiV1StaffStaffIdGet()
+# **staffStaffIdGet**
+> staffStaffIdGet()
 
 
 ### Example
@@ -174,7 +174,7 @@ const apiInstance = new StaffApi(configuration);
 
 let staffId: string; // (default to undefined)
 
-const { status, data } = await apiInstance.apiV1StaffStaffIdGet(
+const { status, data } = await apiInstance.staffStaffIdGet(
     staffId
 );
 ```
@@ -209,8 +209,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1StaffStaffIdPatch**
-> apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest, )
+# **staffStaffIdPatch**
+> staffStaffIdPatch(staffStaffIdPatchRequest, )
 
 
 ### Example
@@ -219,17 +219,17 @@ void (empty response body)
 import {
     StaffApi,
     Configuration,
-    ApiV1StaffStaffIdPatchRequest
+    StaffStaffIdPatchRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new StaffApi(configuration);
 
-let apiV1StaffStaffIdPatchRequest: ApiV1StaffStaffIdPatchRequest; //
+let staffStaffIdPatchRequest: StaffStaffIdPatchRequest; //
 let staffId: string; // (default to undefined)
 
-const { status, data } = await apiInstance.apiV1StaffStaffIdPatch(
-    apiV1StaffStaffIdPatchRequest,
+const { status, data } = await apiInstance.staffStaffIdPatch(
+    staffStaffIdPatchRequest,
     staffId
 );
 ```
@@ -238,7 +238,7 @@ const { status, data } = await apiInstance.apiV1StaffStaffIdPatch(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **apiV1StaffStaffIdPatchRequest** | **ApiV1StaffStaffIdPatchRequest**|  | |
+| **staffStaffIdPatchRequest** | **StaffStaffIdPatchRequest**|  | |
 | **staffId** | [**string**] |  | defaults to undefined|
 
 
@@ -263,8 +263,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1StaffStoreVendorIdGet**
-> apiV1StaffStoreVendorIdGet()
+# **staffStoreVendorIdGet**
+> staffStoreVendorIdGet()
 
 
 ### Example
@@ -280,7 +280,7 @@ const apiInstance = new StaffApi(configuration);
 
 let vendorId: string; // (default to undefined)
 
-const { status, data } = await apiInstance.apiV1StaffStoreVendorIdGet(
+const { status, data } = await apiInstance.staffStoreVendorIdGet(
     vendorId
 );
 ```

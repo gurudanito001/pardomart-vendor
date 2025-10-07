@@ -33,8 +33,8 @@ export const CustomersApiAxiosParamCreator = function (configuration?: Configura
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1CustomersGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/customers`;
+        customersGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/customers`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -81,10 +81,10 @@ export const CustomersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1CustomersGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1CustomersGet(vendorId, options);
+        async customersGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersGet(vendorId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CustomersApi.apiV1CustomersGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -103,8 +103,8 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1CustomersGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1CustomersGet(vendorId, options).then((request) => request(axios, basePath));
+        customersGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersGet(vendorId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -120,8 +120,8 @@ export class CustomersApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1CustomersGet(vendorId?: string, options?: RawAxiosRequestConfig) {
-        return CustomersApiFp(this.configuration).apiV1CustomersGet(vendorId, options).then((request) => request(this.axios, this.basePath));
+    public customersGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

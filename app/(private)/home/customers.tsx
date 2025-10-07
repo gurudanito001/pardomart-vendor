@@ -1,4 +1,4 @@
-import { User } from '@/api';
+import { CustomerItem, useCustomers } from '@/hooks/api/useCustomers';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React from 'react';
@@ -14,44 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
 
-const MOCK_CUSTOMERS: User[] = [
-  {
-    id: '1',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com',
-    mobileNumber: '+1 334 654 7788'
-  },
-  {
-    id: '2',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-  {
-    id: '3',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-  {
-    id: '4',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-  {
-    id: '5',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-  {
-    id: '6',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-  {
-    id: '7',
-    name: 'Jonathan Smith',
-    email: 'jonathansmith@gmail.com'
-  },
-];
+
+// Customers are loaded from the API via useCustomers hook (see below).
 
 export default function CustomersScreen() {
   const handleGoBack = () => {
@@ -75,17 +39,26 @@ export default function CustomersScreen() {
     router.push({ pathname: '/(private)/home/customer-details' as any, params: { customerId } });
   };
 
-  const CustomerCard = ({ customer }: { customer: User }) => (
+  const { data: customers, isLoading, isError, refetch } = useCustomers();
+
+  const displayedCustomers: CustomerItem[] = Array.isArray(customers) ? customers : [];
+
+  const CustomerCard = ({ customer }: { customer: CustomerItem }) => (
     <View style={styles.customerCard}>
       <View style={styles.customerContent}>
         <View style={styles.customerLeft}>
-          <Image source={require('../../../assets/images/user profile.png')} style={styles.avatar} />
+          <Image
+            source={customer.avatarUrl ? { uri: customer.avatarUrl } : require('../../../assets/images/user profile.png')}
+            style={styles.avatar}
+          />
           <View style={styles.customerInfo}>
             <Text style={styles.customerName}>{customer.name}</Text>
             <Text style={styles.customerEmail}>{customer.email}</Text>
+            <Text style={styles.orderCount}>{customer.orderCount} Orders</Text>
           </View>
         </View>
         <View style={styles.customerRight}>
+          <Text style={styles.totalAmount}>{customer.totalAmount}</Text>
           <TouchableOpacity
             style={styles.viewDetailsButton}
             onPress={() => handleViewDetails(customer.id)}
@@ -142,13 +115,27 @@ export default function CustomersScreen() {
         </View>
 
         {/* Customers List */}
-        <ScrollView style={styles.customersContainer} showsVerticalScrollIndicator={false}>
-          <View style={styles.customersList}>
-            {MOCK_CUSTOMERS.map((customer) => (
-              <CustomerCard key={customer.id} customer={customer} />
-            ))}
+        {isLoading ? (
+          <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+            <Text style={{color:'#7C8BA0'}}>Loading customers...</Text>
           </View>
-        </ScrollView>
+        ) : displayedCustomers.length === 0 ? (
+          <View style={{flex:1,justifyContent:'center',alignItems:'center',paddingTop:40}}>
+            <Text style={{fontSize:16,fontWeight:'600',color:'#333'}}>No customers yet</Text>
+            <Text style={{color:'#7C8BA0',marginTop:8}}>You don&apos;t have any customers yet.</Text>
+            <TouchableOpacity onPress={() => refetch()} style={{marginTop:16,paddingHorizontal:16,paddingVertical:8,borderRadius:8,borderWidth:1,borderColor:'#06888C'}}>
+              <Text style={{color:'#06888C'}}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ScrollView style={styles.customersContainer} showsVerticalScrollIndicator={false}>
+            <View style={styles.customersList}>
+              {displayedCustomers.map((customer: CustomerItem) => (
+                <CustomerCard key={customer.id} customer={customer} />
+              ))}
+            </View>
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -270,7 +257,7 @@ const styles = StyleSheet.create({
   },
   customerName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     fontFamily: 'Open Sans',
     color: '#000',
   },
@@ -289,7 +276,7 @@ const styles = StyleSheet.create({
   customerRight: {
     alignItems: 'flex-end',
     gap: 5,
-    width: 94,
+    width: 78,
   },
   totalAmount: {
     fontSize: 14,
@@ -307,7 +294,7 @@ const styles = StyleSheet.create({
   },
   viewDetailsText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
     textAlign: 'center',
