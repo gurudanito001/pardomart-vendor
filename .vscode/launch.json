@@ -1,0 +1,41 @@
+{
+  // Generated React Native / Expo debug configurations
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug in Exponent (Expo Go)",
+      "request": "launch",
+      "type": "reactnative",
+      "cwd": "${workspaceFolder}",
+      "platform": "exponent",
+      "expoHostType": "lan",
+      "env": {
+        "EXPO_DEVTOOLS_LISTEN_ADDRESS": "localhost"
+      }
+    },
+    {
+      "name": "Debug Expo Web - Experimental",
+      "request": "launch",
+      "type": "reactnativedirect",
+      "cwd": "${workspaceFolder}",
+      "platform": "expoweb",
+      "browserTarget": "chrome",
+      "url": "http://localhost:19006"
+    },
+    {
+      "name": "Start Metro and Attach (expo-dev-client)",
+      "request": "launch",
+      "type": "reactnativedirect",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "expo:start:dev-client",
+      "platform": "exponent",
+      "port": 8081
+    },
+    {
+      "name": "Attach to Hermes application",
+      "request": "attach",
+      "type": "reactnativedirect",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
