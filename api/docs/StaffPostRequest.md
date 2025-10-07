@@ -1,4 +1,4 @@
-# ApiV1StaffPostRequest
+# StaffPostRequest
 
 
 ## Properties
@@ -13,9 +13,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { ApiV1StaffPostRequest } from './api';
+import { StaffPostRequest } from './api';
 
-const instance: ApiV1StaffPostRequest = {
+const instance: StaffPostRequest = {
     name,
     email,
     mobileNumber,

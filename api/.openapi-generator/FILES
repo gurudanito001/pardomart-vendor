@@ -11,8 +11,6 @@ docs/ApiV1OrderOrderIdMessagesPostRequest.md
 docs/ApiV1OrderOrderIdMessagesReadPatch200Response.md
 docs/ApiV1PaymentsCreatePaymentIntentPost200Response.md
 docs/ApiV1PaymentsCreatePaymentIntentPostRequest.md
-docs/ApiV1StaffPostRequest.md
-docs/ApiV1StaffStaffIdPatchRequest.md
 docs/AuthApi.md
 docs/AuthInitiateLoginPostRequest.md
 docs/AuthRegisterPostRequest.md
@@ -115,6 +113,8 @@ docs/Role.md
 docs/SavedPaymentMethod.md
 docs/ShoppingMethod.md
 docs/StaffApi.md
+docs/StaffPostRequest.md
+docs/StaffStaffIdPatchRequest.md
 docs/StoreWithLimitedProducts.md
 docs/StoreWithProducts.md
 docs/StoresByProductResult.md
@@ -206,8 +206,6 @@ models/api-v1-order-order-id-messages-post-request.ts
 models/api-v1-order-order-id-messages-read-patch200-response.ts
 models/api-v1-payments-create-payment-intent-post-request.ts
 models/api-v1-payments-create-payment-intent-post200-response.ts
-models/api-v1-staff-post-request.ts
-models/api-v1-staff-staff-id-patch-request.ts
 models/auth-initiate-login-post-request.ts
 models/auth-register-post-request.ts
 models/auth-time-zones-get200-response.ts
@@ -291,6 +289,8 @@ models/respond-to-replacement-payload.ts
 models/role.ts
 models/saved-payment-method.ts
 models/shopping-method.ts
+models/staff-post-request.ts
+models/staff-staff-id-patch-request.ts
 models/store-with-limited-products.ts
 models/store-with-products.ts
 models/stores-by-product-result.ts

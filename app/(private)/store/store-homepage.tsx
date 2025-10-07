@@ -40,7 +40,7 @@ export default function SettingUpStoreScreen() {
         router.push(`/(private)/store/store-products?storeId=${storeId}` as any);
         break;
       case 'store-documents':
-        router.push('/(private)/store/upload-documents' as any);
+        router.push(`/(private)/store/upload-documents?storeId=${storeId}` as any);
         break;
       case 'store-settings':
         // Navigate to settings screen

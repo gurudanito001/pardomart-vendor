@@ -14,13 +14,13 @@
 
 
 
-export interface ApiV1StaffPostRequest {
-    'name': string;
-    'email': string;
-    'mobileNumber': string;
+export interface StaffStaffIdPatchRequest {
+    'name'?: string;
+    'email'?: string;
+    'mobileNumber'?: string;
     /**
-     * The ID of the store this staff belongs to.
+     * Use to deactivate/reactivate account
      */
-    'vendorId': string;
+    'active'?: boolean;
 }
 

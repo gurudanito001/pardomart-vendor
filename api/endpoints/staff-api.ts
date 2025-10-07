@@ -22,9 +22,9 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1StaffPostRequest } from '../models';
+import type { StaffPostRequest } from '../models';
 // @ts-ignore
-import type { ApiV1StaffStaffIdPatchRequest } from '../models';
+import type { StaffStaffIdPatchRequest } from '../models';
 /**
  * StaffApi - axios parameter creator
  */
@@ -36,8 +36,8 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/staff`;
+        staffGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/staff`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -67,14 +67,14 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * 
          * @summary Create a new staff member (shopper) for a vendor
-         * @param {ApiV1StaffPostRequest} apiV1StaffPostRequest 
+         * @param {StaffPostRequest} staffPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffPost: async (apiV1StaffPostRequest: ApiV1StaffPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'apiV1StaffPostRequest' is not null or undefined
-            assertParamExists('apiV1StaffPost', 'apiV1StaffPostRequest', apiV1StaffPostRequest)
-            const localVarPath = `/api/v1/staff`;
+        staffPost: async (staffPostRequest: StaffPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'staffPostRequest' is not null or undefined
+            assertParamExists('staffPost', 'staffPostRequest', staffPostRequest)
+            const localVarPath = `/staff`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -97,7 +97,7 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(apiV1StaffPostRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(staffPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -111,10 +111,10 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdDelete: async (staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        staffStaffIdDelete: async (staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'staffId' is not null or undefined
-            assertParamExists('apiV1StaffStaffIdDelete', 'staffId', staffId)
-            const localVarPath = `/api/v1/staff/{staffId}`
+            assertParamExists('staffStaffIdDelete', 'staffId', staffId)
+            const localVarPath = `/staff/{staffId}`
                 .replace(`{${"staffId"}}`, encodeURIComponent(String(staffId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -149,10 +149,10 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdGet: async (staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        staffStaffIdGet: async (staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'staffId' is not null or undefined
-            assertParamExists('apiV1StaffStaffIdGet', 'staffId', staffId)
-            const localVarPath = `/api/v1/staff/{staffId}`
+            assertParamExists('staffStaffIdGet', 'staffId', staffId)
+            const localVarPath = `/staff/{staffId}`
                 .replace(`{${"staffId"}}`, encodeURIComponent(String(staffId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -183,17 +183,17 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * 
          * @summary Update a staff member\'s details
-         * @param {ApiV1StaffStaffIdPatchRequest} apiV1StaffStaffIdPatchRequest 
+         * @param {StaffStaffIdPatchRequest} staffStaffIdPatchRequest 
          * @param {string} staffId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdPatch: async (apiV1StaffStaffIdPatchRequest: ApiV1StaffStaffIdPatchRequest, staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'apiV1StaffStaffIdPatchRequest' is not null or undefined
-            assertParamExists('apiV1StaffStaffIdPatch', 'apiV1StaffStaffIdPatchRequest', apiV1StaffStaffIdPatchRequest)
+        staffStaffIdPatch: async (staffStaffIdPatchRequest: StaffStaffIdPatchRequest, staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'staffStaffIdPatchRequest' is not null or undefined
+            assertParamExists('staffStaffIdPatch', 'staffStaffIdPatchRequest', staffStaffIdPatchRequest)
             // verify required parameter 'staffId' is not null or undefined
-            assertParamExists('apiV1StaffStaffIdPatch', 'staffId', staffId)
-            const localVarPath = `/api/v1/staff/{staffId}`
+            assertParamExists('staffStaffIdPatch', 'staffId', staffId)
+            const localVarPath = `/staff/{staffId}`
                 .replace(`{${"staffId"}}`, encodeURIComponent(String(staffId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -217,7 +217,7 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(apiV1StaffStaffIdPatchRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(staffStaffIdPatchRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -231,10 +231,10 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStoreVendorIdGet: async (vendorId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        staffStoreVendorIdGet: async (vendorId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'vendorId' is not null or undefined
-            assertParamExists('apiV1StaffStoreVendorIdGet', 'vendorId', vendorId)
-            const localVarPath = `/api/v1/staff/store/{vendorId}`
+            assertParamExists('staffStoreVendorIdGet', 'vendorId', vendorId)
+            const localVarPath = `/staff/store/{vendorId}`
                 .replace(`{${"vendorId"}}`, encodeURIComponent(String(vendorId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -277,23 +277,23 @@ export const StaffApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffGet(options);
+        async staffGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Create a new staff member (shopper) for a vendor
-         * @param {ApiV1StaffPostRequest} apiV1StaffPostRequest 
+         * @param {StaffPostRequest} staffPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffPost(apiV1StaffPostRequest: ApiV1StaffPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffPost(apiV1StaffPostRequest, options);
+        async staffPost(staffPostRequest: StaffPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffPost(staffPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -303,10 +303,10 @@ export const StaffApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffStaffIdDelete(staffId, options);
+        async staffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffStaffIdDelete(staffId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffStaffIdDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffStaffIdDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -316,24 +316,24 @@ export const StaffApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffStaffIdGet(staffId, options);
+        async staffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffStaffIdGet(staffId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffStaffIdGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffStaffIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @summary Update a staff member\'s details
-         * @param {ApiV1StaffStaffIdPatchRequest} apiV1StaffStaffIdPatchRequest 
+         * @param {StaffStaffIdPatchRequest} staffStaffIdPatchRequest 
          * @param {string} staffId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest: ApiV1StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest, staffId, options);
+        async staffStaffIdPatch(staffStaffIdPatchRequest: StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffStaffIdPatch(staffStaffIdPatchRequest, staffId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffStaffIdPatch']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffStaffIdPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -343,10 +343,10 @@ export const StaffApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1StaffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1StaffStoreVendorIdGet(vendorId, options);
+        async staffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffStoreVendorIdGet(vendorId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['StaffApi.apiV1StaffStoreVendorIdGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffStoreVendorIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -364,18 +364,18 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffGet(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffGet(options).then((request) => request(axios, basePath));
+        staffGet(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffGet(options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Create a new staff member (shopper) for a vendor
-         * @param {ApiV1StaffPostRequest} apiV1StaffPostRequest 
+         * @param {StaffPostRequest} staffPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffPost(apiV1StaffPostRequest: ApiV1StaffPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffPost(apiV1StaffPostRequest, options).then((request) => request(axios, basePath));
+        staffPost(staffPostRequest: StaffPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffPost(staffPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -384,8 +384,8 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffStaffIdDelete(staffId, options).then((request) => request(axios, basePath));
+        staffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffStaffIdDelete(staffId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -394,19 +394,19 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffStaffIdGet(staffId, options).then((request) => request(axios, basePath));
+        staffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffStaffIdGet(staffId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
          * @summary Update a staff member\'s details
-         * @param {ApiV1StaffStaffIdPatchRequest} apiV1StaffStaffIdPatchRequest 
+         * @param {StaffStaffIdPatchRequest} staffStaffIdPatchRequest 
          * @param {string} staffId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest: ApiV1StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest, staffId, options).then((request) => request(axios, basePath));
+        staffStaffIdPatch(staffStaffIdPatchRequest: StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffStaffIdPatch(staffStaffIdPatchRequest, staffId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -415,8 +415,8 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1StaffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1StaffStoreVendorIdGet(vendorId, options).then((request) => request(axios, basePath));
+        staffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffStoreVendorIdGet(vendorId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -431,19 +431,19 @@ export class StaffApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffGet(options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffGet(options).then((request) => request(this.axios, this.basePath));
+    public staffGet(options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
      * @summary Create a new staff member (shopper) for a vendor
-     * @param {ApiV1StaffPostRequest} apiV1StaffPostRequest 
+     * @param {StaffPostRequest} staffPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffPost(apiV1StaffPostRequest: ApiV1StaffPostRequest, options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffPost(apiV1StaffPostRequest, options).then((request) => request(this.axios, this.basePath));
+    public staffPost(staffPostRequest: StaffPostRequest, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffPost(staffPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -453,8 +453,8 @@ export class StaffApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffStaffIdDelete(staffId, options).then((request) => request(this.axios, this.basePath));
+    public staffStaffIdDelete(staffId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffStaffIdDelete(staffId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -464,20 +464,20 @@ export class StaffApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffStaffIdGet(staffId, options).then((request) => request(this.axios, this.basePath));
+    public staffStaffIdGet(staffId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffStaffIdGet(staffId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
      * @summary Update a staff member\'s details
-     * @param {ApiV1StaffStaffIdPatchRequest} apiV1StaffStaffIdPatchRequest 
+     * @param {StaffStaffIdPatchRequest} staffStaffIdPatchRequest 
      * @param {string} staffId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest: ApiV1StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffStaffIdPatch(apiV1StaffStaffIdPatchRequest, staffId, options).then((request) => request(this.axios, this.basePath));
+    public staffStaffIdPatch(staffStaffIdPatchRequest: StaffStaffIdPatchRequest, staffId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffStaffIdPatch(staffStaffIdPatchRequest, staffId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -487,8 +487,8 @@ export class StaffApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1StaffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).apiV1StaffStoreVendorIdGet(vendorId, options).then((request) => request(this.axios, this.basePath));
+    public staffStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffStoreVendorIdGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

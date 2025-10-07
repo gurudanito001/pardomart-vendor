@@ -1,4 +1,4 @@
-# ApiV1StaffStaffIdPatchRequest
+# StaffStaffIdPatchRequest
 
 
 ## Properties
@@ -13,9 +13,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { ApiV1StaffStaffIdPatchRequest } from './api';
+import { StaffStaffIdPatchRequest } from './api';
 
-const instance: ApiV1StaffStaffIdPatchRequest = {
+const instance: StaffStaffIdPatchRequest = {
     name,
     email,
     mobileNumber,
