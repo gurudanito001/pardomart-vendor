@@ -136,8 +136,8 @@ export default function UploadDocumentsScreen() {
       const idFile = await prepareUploadFile(idCardImage, 'identity-document.jpg');
 
       await Promise.all([
-        mediaApi.mediaUploadPost(certFile as any, String(storeId), 'Vendor'),
-        mediaApi.mediaUploadPost(idFile as any, String(storeId), 'Vendor'),
+        mediaApi.mediaUploadPost(certFile as any, String(storeId), 'document'),
+        mediaApi.mediaUploadPost(idFile as any, String(storeId), 'document'),
       ]);
 
       toast.success('Documents uploaded successfully.');
