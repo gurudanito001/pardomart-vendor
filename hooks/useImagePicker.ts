@@ -33,15 +33,26 @@ interface UseImagePickerConfig extends Partial<ImagePickerOptions> {
 
 interface UseImagePickerState {
   selectedImage: ImagePickerResult | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-interface UseMultipleImagePickerState {
   selectedImages: ImagePickerResult[];
   isLoading: boolean;
   error: string | null;
 }
+
+interface UseSingleImagePickerReturn extends UseImagePickerState {
+  pickFromGallery: () => Promise<ImagePickerResult | null>;
+  pickFromCamera: () => Promise<ImagePickerResult | null>;
+  showImagePicker: () => void;
+  clearImage: () => void;
+  reset: () => void;
+}
+
+interface UseMultipleImagePickerReturn extends UseImagePickerState {
+  pickFromGallery: () => Promise<ImagePickerResult | null>;
+  removeImage: (index: number) => void;
+  clearImages: () => void;
+  reset: () => void;
+}
+
 
 // Constants
 const DEFAULT_CONFIG: Required<UseImagePickerConfig> = {
@@ -124,8 +135,8 @@ const handleWebFileSelection = (
           fileSize: file.size,
         };
 
-        if (options.base64 && typeof event.target?.result === 'string') {
-          result.base64 = event.target.result.split(',')[1];
+        if (options.base64) {
+          result.base64 = event.target?.result as string;
         }
 
         resolve(result);
@@ -212,10 +223,20 @@ const useImageValidation = (maxSize: number, allowedTypes: string[]) => {
 
 
 // Main image picker hook
-export function useImagePicker(config: UseImagePickerConfig = {}) {
-  const options = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
+export function useImagePicker(config: UseImagePickerConfig & { multiple: true }): UseMultipleImagePickerReturn;
+export function useImagePicker(config?: UseImagePickerConfig & { multiple?: false }): UseSingleImagePickerReturn;
+export function useImagePicker(config: UseImagePickerConfig & { multiple?: boolean } = {}): UseSingleImagePickerReturn | UseMultipleImagePickerReturn {
+  const isMultiple = config.multiple ?? false;
+  const options = useMemo(() => ({ 
+    ...DEFAULT_CONFIG, 
+    ...config,
+    allowsMultipleSelection: isMultiple,
+    allowsEditing: isMultiple ? false : config.allowsEditing ?? DEFAULT_CONFIG.allowsEditing,
+  }), [config, isMultiple]);
+
   const [state, setState] = useState<UseImagePickerState>({
     selectedImage: null,
+    selectedImages: [],
     isLoading: false,
     error: null,
   });
@@ -231,10 +252,40 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
     setState(prev => ({ ...prev, error }));
   }, []);
 
-  const setSelectedImage = useCallback((image: ImagePickerResult | null) => {
-    setState(prev => ({ ...prev, selectedImage: image }));
-  }, []);
+  const validateAndSetImages = useCallback((result: ImagePicker.ImagePickerResult): ImagePickerResult[] => {
+    if (result.canceled || !result.assets) return [];
 
+    const validImages: ImagePickerResult[] = [];
+    const errors: string[] = [];
+
+    result.assets.forEach((asset, index) => {
+      if (asset.fileSize && asset.fileSize > options.maxSize) {
+        errors.push(`Image ${index + 1}: Size exceeds ${formatFileSize(options.maxSize)}`);
+        return;
+      }
+
+      if (asset.mimeType && !options.allowedTypes.includes(asset.mimeType)) {
+        errors.push(`Image ${index + 1}: Invalid file type`);
+        return;
+      }
+
+      validImages.push(createImageResult(asset));
+    });
+
+    if (errors.length > 0) {
+      setError(errors.join('\n'));
+    }
+
+    if (isMultiple) {
+      setState(prev => ({ ...prev, selectedImages: [...prev.selectedImages, ...validImages] }));
+    } else if (validImages.length > 0) {
+      setState(prev => ({ ...prev, selectedImage: validImages[0] }));
+    }
+
+    return validImages;
+  }, [options.maxSize, options.allowedTypes, setError, isMultiple]);
+
+  
   const pickFromGallery = useCallback(async (): Promise<ImagePickerResult | null> => {
     try {
       setLoading(true);
@@ -251,11 +302,38 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
           input.onchange = async (e) => {
             try {
               const target = e.target as HTMLInputElement;
-              const result = await handleWebFileSelection(target.files, options);
-              if (result) {
-                setSelectedImage(result);
+              const files = target.files;
+
+              if (!files) {
+                resolve(null);
+                return;
               }
-              resolve(result);
+
+              const validImages: ImagePickerResult[] = [];
+              const errors: string[] = [];
+
+              for (let i = 0; i < files.length; i++) {
+                try {
+                  const result = await handleWebFileSelection(
+                    { ...files, 0: files[i], length: 1 } as FileList,
+                    options
+                  );
+                  if (result) {
+                    validImages.push(result);
+                  }
+                } catch (error) {
+                  errors.push(`File ${i + 1}: ${error instanceof Error ? error.message : 'Failed to process'}`);
+                }
+              }
+
+              if (errors.length > 0) {
+                setError(errors.join('\n'));
+              }
+
+              if (isMultiple) setState(prev => ({ ...prev, selectedImages: [...prev.selectedImages, ...validImages] }));
+              else if (validImages.length > 0) setState(prev => ({ ...prev, selectedImage: validImages[0] }));
+
+              resolve(validImages.length > 0 ? validImages[0] : null);
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : 'Failed to process file';
               setError(errorMessage);
@@ -286,15 +364,9 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
         base64: options.base64,
       });
 
-      const validation = validateImage(result);
-      if (!validation.isValid) {
-        setError(validation.error || 'Invalid image');
-        return null;
-      }
+      const validImages = validateAndSetImages(result);
+      return validImages.length > 0 ? validImages[0] : null;
 
-      const imageResult = createImageResult(result.assets![0]);
-      setSelectedImage(imageResult);
-      return imageResult;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to pick image from gallery';
       setError(errorMessage);
@@ -302,7 +374,7 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options, requestGalleryPermission, validateImage, setLoading, setError, setSelectedImage]);
+  }, [options, requestGalleryPermission, validateAndSetImages, setLoading, setError, isMultiple]);
 
   const pickFromCamera = useCallback(async (): Promise<ImagePickerResult | null> => {
     try {
@@ -342,15 +414,9 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
         base64: options.base64,
       });
 
-      const validation = validateImage(result);
-      if (!validation.isValid) {
-        setError(validation.error || 'Invalid image');
-        return null;
-      }
+      const validImages = validateAndSetImages(result);
+      return validImages.length > 0 ? validImages[0] : null;
 
-      const imageResult = createImageResult(result.assets![0]);
-      setSelectedImage(imageResult);
-      return imageResult;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to take photo';
       setError(errorMessage);
@@ -358,7 +424,7 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
     } finally {
       setLoading(false);
     }
-  }, [options, requestCameraPermission, validateImage, setLoading, setError, setSelectedImage]);
+  }, [options, requestCameraPermission, validateAndSetImages, setLoading, setError]);
 
   const showImagePicker = useCallback(() => {
     // On web, the user has already clicked the upload area.
@@ -386,171 +452,8 @@ export function useImagePicker(config: UseImagePickerConfig = {}) {
   }, [options.showAlert, options.alertTitle, options.alertMessage, pickFromCamera, pickFromGallery]);
 
   const clearImage = useCallback(() => {
-    setSelectedImage(null);
-    setError(null);
-  }, [setSelectedImage, setError]);
-
-  const reset = useCallback(() => {
-    setState({
-      selectedImage: null,
-      isLoading: false,
-      error: null,
-    });
+    setState(prev => ({ ...prev, selectedImage: null, error: null }));
   }, []);
-
-  return {
-    ...state,
-    pickFromGallery,
-    pickFromCamera,
-    showImagePicker,
-    clearImage,
-    reset,
-  };
-}
-
-// Multiple image picker hook
-export function useMultipleImagePicker(config: UseImagePickerConfig = {}) {
-  const options = useMemo(() => ({
-    ...DEFAULT_CONFIG,
-    ...config,
-    allowsEditing: false, // Disable editing for multiple selection
-    allowsMultipleSelection: true,
-  }), [config]);
-  const [state, setState] = useState<UseMultipleImagePickerState>({
-    selectedImages: [],
-    isLoading: false,
-    error: null,
-  });
-
-  const { requestGalleryPermission } = usePermissions();
-
-  const setLoading = useCallback((loading: boolean) => {
-    setState(prev => ({ ...prev, isLoading: loading }));
-  }, []);
-
-  const setError = useCallback((error: string | null) => {
-    setState(prev => ({ ...prev, error }));
-  }, []);
-
-  const validateImages = useCallback((result: ImagePicker.ImagePickerResult): ImagePickerResult[] => {
-    if (result.canceled || !result.assets) return [];
-
-    const validImages: ImagePickerResult[] = [];
-    const errors: string[] = [];
-
-    result.assets.forEach((asset, index) => {
-      if (asset.fileSize && asset.fileSize > options.maxSize) {
-        errors.push(`Image ${index + 1}: Size exceeds ${formatFileSize(options.maxSize)}`);
-        return;
-      }
-
-      if (asset.mimeType && !options.allowedTypes.includes(asset.mimeType)) {
-        errors.push(`Image ${index + 1}: Invalid file type`);
-        return;
-      }
-
-      validImages.push(createImageResult(asset));
-    });
-
-    if (errors.length > 0) {
-      setError(errors.join('\n'));
-    }
-
-    return validImages;
-  }, [options.maxSize, options.allowedTypes, setError]);
-
-  const pickImages = useCallback(async (): Promise<ImagePickerResult[]> => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      if (Platform.OS === 'web') {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = WEB_FILE_INPUT_ACCEPT[options.mediaTypes];
-        input.multiple = true;
-
-        return new Promise((resolve) => {
-          input.onchange = async (e) => {
-            try {
-              const target = e.target as HTMLInputElement;
-              const files = target.files;
-              
-              if (!files) {
-                resolve([]);
-                return;
-              }
-
-              const validImages: ImagePickerResult[] = [];
-              const errors: string[] = [];
-
-              for (let i = 0; i < files.length; i++) {
-                try {
-                  const result = await handleWebFileSelection(
-                    { ...files, 0: files[i], length: 1 } as FileList,
-                    options
-                  );
-                  if (result) {
-                    validImages.push(result);
-                  }
-                } catch (error) {
-                  errors.push(`File ${i + 1}: ${error instanceof Error ? error.message : 'Failed to process'}`);
-                }
-              }
-
-              if (errors.length > 0) {
-                setError(errors.join('\n'));
-              }
-
-              setState(prev => ({
-                ...prev,
-                selectedImages: [...prev.selectedImages, ...validImages]
-              }));
-
-              resolve(validImages);
-            } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Failed to process files';
-              setError(errorMessage);
-              resolve([]);
-            }
-          };
-
-          input.oncancel = () => {
-            resolve([]);
-          };
-
-          input.click();
-        });
-      }
-
-      if (!(await requestGalleryPermission())) {
-        setError('Gallery permission denied');
-        return [];
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: options.mediaTypes as ImagePicker.MediaTypeOptions,
-        allowsEditing: options.allowsEditing,
-        quality: options.quality,
-        allowsMultipleSelection: true,
-        base64: options.base64,
-      });
-
-      const validImages = validateImages(result);
-      setState(prev => ({
-        ...prev,
-        selectedImages: [...prev.selectedImages, ...validImages]
-      }));
-
-      return validImages;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to pick images';
-      setError(errorMessage);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [options, requestGalleryPermission, validateImages, setLoading, setError]);
 
   const removeImage = useCallback((index: number) => {
     setState(prev => ({
@@ -565,17 +468,29 @@ export function useMultipleImagePicker(config: UseImagePickerConfig = {}) {
 
   const reset = useCallback(() => {
     setState({
+      selectedImage: null,
       selectedImages: [],
       isLoading: false,
       error: null,
     });
   }, []);
 
+  if (isMultiple) {
+    return {
+      ...state,
+      pickFromGallery,
+      removeImage,
+      clearImages,
+      reset,
+    };
+  }
+
   return {
     ...state,
-    pickImages,
-    removeImage,
-    clearImages,
+    pickFromGallery,
+    pickFromCamera,
+    showImagePicker,
+    clearImage,
     reset,
   };
 }

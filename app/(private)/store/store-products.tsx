@@ -71,8 +71,10 @@ export default function StoreProductsScreen() {
 
   const handleAddProduct = () => {
     console.log('Add new product');
-    // Navigate to add product screen
-    router.push('/(private)/store/add-product');
+    router.push({
+      pathname: '/(private)/store/add-product',
+      params: { storeId },
+    });
   };
 
   const handlePublishStore = () => {
