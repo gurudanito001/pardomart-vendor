@@ -1,6 +1,6 @@
 import { CustomerItem, useCustomers } from '@/hooks/api/useCustomers';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
   ScrollView,
@@ -15,9 +15,8 @@ import Svg, { Path } from 'react-native-svg';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
 
 
-// Customers are loaded from the API via useCustomers hook (see below).
-
 export default function CustomersScreen() {
+  const { storeId } = useLocalSearchParams<{ storeId?: string }>();
   const handleGoBack = () => {
     router.back();
   };
@@ -36,10 +35,10 @@ export default function CustomersScreen() {
 
   const handleViewDetails = (customerId?: string) => {
     if (!customerId) return;
-    router.push({ pathname: '/(private)/home/customer-details' as any, params: { customerId } });
+    router.push({ pathname: '/(private)/shared/customer-details' as any, params: { customerId } });
   };
 
-  const { data: customers, isLoading, isError, refetch } = useCustomers();
+  const { data: customers, isLoading, isError, refetch } = useCustomers(storeId as string | undefined);
 
   const displayedCustomers: CustomerItem[] = Array.isArray(customers) ? customers : [];
 
@@ -122,7 +121,7 @@ export default function CustomersScreen() {
         ) : displayedCustomers.length === 0 ? (
           <View style={{flex:1,justifyContent:'center',alignItems:'center',paddingTop:40}}>
             <Text style={{fontSize:16,fontWeight:'600',color:'#333'}}>No customers yet</Text>
-            <Text style={{color:'#7C8BA0',marginTop:8}}>You don&apos;t have any customers yet.</Text>
+            <Text style={{color:'#7C8BA0',marginTop:8}}>You don\&apos;t have any customers yet.</Text>
             <TouchableOpacity onPress={() => refetch()} style={{marginTop:16,paddingHorizontal:16,paddingVertical:8,borderRadius:8,borderWidth:1,borderColor:'#06888C'}}>
               <Text style={{color:'#06888C'}}>Refresh</Text>
             </TouchableOpacity>

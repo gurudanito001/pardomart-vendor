@@ -36,7 +36,7 @@ export default function HomeScreen() {
     console.log(`Navigate to ${cardType}`);
     switch (cardType) {
       case "shoppers":
-        router.push("/(private)/home/my-shoppers" as any);
+        router.push("/(private)/shared/my-shoppers" as any);
         break;
       case "store":
         router.push("/(private)/store" as any);
@@ -48,7 +48,7 @@ export default function HomeScreen() {
         router.push("/(private)/home/transactions" as any);
         break;
       case "customers":
-        router.push("/(private)/home/customers" as any);
+        router.push("/(private)/shared/customers" as any);
         break;
       case "wallet":
         router.push("/(private)/home/earnings-wallet" as any);
