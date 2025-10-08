@@ -32,7 +32,6 @@ export default function CustomerDetailsScreen() {
   const params = useLocalSearchParams();
   const customerId = params.customerId as string;
 
-  // Mock customer data - in a real app, you'd fetch this based on customerId
   const customer: User = {
     id: customerId || '1',
     name: 'Jonathan Smith',
@@ -75,7 +74,6 @@ export default function CustomerDetailsScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <ArrowBackSVG width={30} height={30} color="white" />
@@ -95,7 +93,6 @@ export default function CustomerDetailsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Customer Information Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Customer Information</Text>
           
@@ -110,7 +107,6 @@ export default function CustomerDetailsScreen() {
           </View>
         </View>
 
-        {/* Contact Information Fields */}
         <View style={styles.fieldsContainer}>
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Email Address</Text>
@@ -133,7 +129,6 @@ export default function CustomerDetailsScreen() {
           </View>
         </View>
 
-        {/* Payment History Section */}
         <View style={styles.transactionSection}>
           <View style={styles.transactionHeader}>
             <Text style={styles.sectionTitle}>Payment history</Text>
@@ -149,7 +144,6 @@ export default function CustomerDetailsScreen() {
           </View>
         </View>
 
-        {/* Go Back Button */}
         <TouchableOpacity style={styles.goBackButton} onPress={handleGoBack}>
           <ArrowBackButtonSVG width={24} height={24} color="white" />
           <Text style={styles.goBackText}>Go back</Text>
@@ -240,13 +234,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000',
     lineHeight: 16,
-  },
-  orderCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#000',
-    lineHeight: 14,
   },
   customerEmail: {
     fontSize: 12,
@@ -339,20 +326,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000',
     lineHeight: 14,
-  },
-  transactionDate: {
-    fontSize: 10,
-    fontWeight: '400',
-    fontFamily: 'Open Sans',
-    color: '#707070',
-    lineHeight: 12,
-  },
-  transactionAmount: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#2CAF0B',
-    lineHeight: 19,
   },
   goBackButton: {
     flexDirection: 'row',

@@ -30,18 +30,20 @@ export default function MyShoppersScreen() {
   const storeIdFromParam = React.useMemo(() => {
     const value = params.storeId;
     const id = Array.isArray(value) ? value[0] : value;
-    // Fallback to default store id when param is empty or undefined
-    return id && id !== '' ? id : '1ef6ba84-8998-4e87-80ed-2f987e9889f4';
+    return id && id !== '' ? id : undefined;
   }, [params.storeId]);
 
   const { data: staffMembers, isLoading, error, isFetching } = useQuery({
-    queryKey: ['staff', storeIdFromParam],
+    queryKey: ['staff', storeIdFromParam ?? 'all'],
     queryFn: async () => {
-      if (!storeIdFromParam) throw new Error('Store ID not found');
-      const response = await staffApi.staffStoreVendorIdGet(storeIdFromParam);
+      if (storeIdFromParam) {
+        const response = await staffApi.staffStoreVendorIdGet(storeIdFromParam);
+        return (response.data as unknown as StaffMember[]) || [];
+      }
+      const response = await staffApi.staffGet();
       return (response.data as unknown as StaffMember[]) || [];
     },
-    enabled: !!storeIdFromParam,
+    enabled: true,
     staleTime: 60 * 1000,
   });
 
@@ -59,12 +61,12 @@ export default function MyShoppersScreen() {
 
   const handleShopperPress = (shopperId?: string) => {
     if (!shopperId) return;
-    router.push(`/(private)/home/view-shopper?shopperId=${shopperId}` as any);
+    router.push(`/(private)/shared/view-shopper?shopperId=${shopperId}` as any);
   };
 
   const handleAddShopper = () => {
     if (!storeIdFromParam) return;
-    router.push({ pathname: '/(private)/home/add-shopper', params: { storeId: storeIdFromParam } } as any);
+    router.push({ pathname: '/(private)/store/add-shopper', params: { storeId: storeIdFromParam } } as any);
   };
 
   const BackArrowIcon = () => (
@@ -129,15 +131,6 @@ export default function MyShoppersScreen() {
   };
 
   const renderContent = () => {
-    if (!storeIdFromParam) {
-      return (
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>No store selected</Text>
-          <Text style={styles.emptySubtext}>Choose a store to manage shoppers.</Text>
-        </View>
-      );
-    }
-
     if (isLoading || isFetching) {
       return (
         <View style={styles.centerContainer}>
@@ -207,9 +200,11 @@ export default function MyShoppersScreen() {
         <View style={styles.content}>
           {renderContent()}
 
-          <TouchableOpacity style={styles.addShopperButton} onPress={handleAddShopper}>
-            <Text style={styles.addShopperText}>Add Shopper</Text>
-          </TouchableOpacity>
+          {storeIdFromParam ? (
+            <TouchableOpacity style={styles.addShopperButton} onPress={handleAddShopper}>
+              <Text style={styles.addShopperText}>Add Shopper</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

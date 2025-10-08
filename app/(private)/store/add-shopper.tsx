@@ -99,7 +99,6 @@ export default function AddShopperScreen() {
       <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
-            {/* Store Assigned (read-only) */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Store Assigned</Text>
               <View style={styles.readonlyField}> 
@@ -109,19 +108,16 @@ export default function AddShopperScreen() {
               </View>
             </View>
 
-            {/* Name */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Full Name</Text>
               <Input placeholder="Enter shopper name" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="next" />
             </View>
 
-            {/* Mobile */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Phone Number</Text>
               <Input placeholder="e.g. +1 555 123 4567" keyboardType="phone-pad" value={mobileNumber} onChangeText={setMobileNumber} returnKeyType="next" />
             </View>
 
-            {/* Email */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Email Address</Text>
               <Input placeholder="user@example.com" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} returnKeyType="done" />

@@ -1,46 +1,38 @@
+import { useStaffMember } from '@/hooks/api/useStaff';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import {
-    ArrowBackSVG,
-    ChatFilledSVG,
-    LocationSVG,
-    NotificationSVG,
-    PhoneOutlineSVG,
-    SupportSVG
+  ArrowBackSVG,
+  ChatFilledSVG,
+  LocationSVG,
+  NotificationSVG,
+  PhoneOutlineSVG,
+  SupportSVG
 } from '../../../components/icons';
-// Removed legacy types import
 
 export default function ViewShopperScreen() {
   const params = useLocalSearchParams();
-  const shopperId = params.shopperId as string;
+  const shopperId = params.shopperId as string | undefined;
 
-  // Mock shopper data - in a real app, you'd fetch this based on shopperId
-  const shopper: Shopper = {
-    id: shopperId || '1',
-    name: 'Mr Damilare Adebanjo',
-    email: 'damilareadebanjo@gmail.com',
-    phone: '+1 334 654 7788',
-    storeAddress: '450 South Cradle Avenue, Chicago, IL',
-    isAvailable: true,
-    avatar: 'https://api.builder.io/api/v1/image/assets/TEMP/3903888e367800e286fd49d74addfae6ead15583?width=168',
-  };
+  const { data: shopper, isLoading, isError, error, refetch, isFetching } = useStaffMember(shopperId);
 
   const handleGoBack = () => {
     router.back();
   };
 
   const handleNotifications = () => {
-    console.log('Open notifications');
+    router.push('/(private)/shared/notifications' as any);
   };
 
   const handleSupport = () => {
@@ -71,23 +63,28 @@ export default function ViewShopperScreen() {
     console.log('Delete shopper');
   };
 
+  if (!shopperId) {
+    return (
+      <SafeAreaView style={[styles.container, {justifyContent:'center',alignItems:'center'}]}> 
+        <Text style={{color:'#7C8BA0'}}>No shopper selected</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const isBusy = isLoading || isFetching;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-      
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
-        
         <Text style={styles.headerTitle}>View Shopper</Text>
-        
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
           </TouchableOpacity>
-          
           <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
             <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
@@ -95,79 +92,93 @@ export default function ViewShopperScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Contact Information Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
-          
-          <View style={styles.contactContainer}>
-            <Image source={{ uri: shopper.avatar }} style={styles.shopperAvatar} />
-            <View style={styles.shopperDetails}>
-              <View style={styles.shopperNameRow}>
-                <Text style={styles.shopperName}>{shopper.name}</Text>
-                <View style={[
-                  styles.statusBadge, 
-                  shopper.isAvailable ? styles.availableBadge : styles.unavailableBadge
-                ]}>
-                  <Text style={[
-                    styles.statusText,
-                    shopper.isAvailable ? styles.availableText : styles.unavailableText
-                  ]}>
-                    {shopper.isAvailable ? 'Available' : 'Not available'}
-                  </Text>
+        {isBusy ? (
+          <View style={{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:40}}>
+            <ActivityIndicator size="large" color="#06888C" />
+            <Text style={{marginTop:10,color:'#7C8BA0'}}>Loading shopper...</Text>
+          </View>
+        ) : isError ? (
+          <View style={{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:40}}>
+            <Text style={{fontSize:16,fontWeight:'600',color:'#333'}}>Failed to load shopper</Text>
+            <Text style={{color:'#7C8BA0',marginTop:8}}>{(error as Error)?.message}</Text>
+            <TouchableOpacity onPress={() => refetch()} style={{marginTop:16,paddingHorizontal:16,paddingVertical:8,borderRadius:8,borderWidth:1,borderColor:'#06888C'}}>
+              <Text style={{color:'#06888C',fontWeight:'700'}}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Contact Information</Text>
+              <View style={styles.contactContainer}>
+                <Image
+                  source={
+                    shopper?.image
+                      ? { uri: shopper.image as string }
+                      : require('../../../assets/images/user profile.png')
+                  }
+                  style={styles.shopperAvatar}
+                />
+                <View style={styles.shopperDetails}>
+                  <View style={styles.shopperNameRow}>
+                    <Text style={styles.shopperName}>{shopper?.name ?? 'Unknown'}</Text>
+                    <View style={[styles.statusBadge, (shopper?.isAvailable ?? shopper?.active) ? styles.availableBadge : styles.unavailableBadge]}>
+                      <Text style={[styles.statusText, (shopper?.isAvailable ?? shopper?.active) ? styles.availableText : styles.unavailableText]}>
+                        {(shopper?.isAvailable ?? shopper?.active) ? 'Available' : 'Not available'}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity style={styles.chatButton} onPress={handleChat}>
+                      <ChatFilledSVG width={30} height={30} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.phoneButton} onPress={handleCall}>
+                      <PhoneOutlineSVG width={30} height={30} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-              <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.chatButton} onPress={handleChat}>
-                  <ChatFilledSVG width={30} height={30} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.phoneButton} onPress={handleCall}>
-                  <PhoneOutlineSVG width={30} height={30} />
-                </TouchableOpacity>
+            </View>
+
+            <View style={styles.fieldsContainer}>
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Store Assigned</Text>
+                <View style={styles.fieldInputWithButton}>
+                  <View style={styles.addressContainer}>
+                    <LocationSVG width={18} height={20} color="black" />
+                    <Text style={styles.fieldValue}>{shopper?.vendorId ?? 'N/A'}</Text>
+                  </View>
+                  <TouchableOpacity style={styles.editButton} onPress={handleChangeStore}>
+                    <Text style={styles.editButtonText}>Change</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Phone Number</Text>
+                <View style={styles.fieldInputWithButton}>
+                  <Text style={styles.fieldValue}>{shopper?.mobileNumber ?? 'N/A'}</Text>
+                  <TouchableOpacity style={styles.editButton} onPress={handleEditPhone}>
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Email Address</Text>
+                <View style={styles.fieldInputWithButton}>
+                  <Text style={styles.fieldValue}>{shopper?.email ?? 'N/A'}</Text>
+                  <TouchableOpacity style={styles.editButton} onPress={handleEditEmail}>
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
 
-        {/* Store Assigned Field */}
-        <View style={styles.fieldsContainer}>
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Store Assigned</Text>
-            <View style={styles.fieldInputWithButton}>
-              <View style={styles.addressContainer}>
-                <LocationSVG width={18} height={20} color="black" />
-                <Text style={styles.fieldValue}>{shopper.storeAddress}</Text>
-              </View>
-              <TouchableOpacity style={styles.editButton} onPress={handleChangeStore}>
-                <Text style={styles.editButtonText}>Change</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Phone Number</Text>
-            <View style={styles.fieldInputWithButton}>
-              <Text style={styles.fieldValue}>{shopper.phone}</Text>
-              <TouchableOpacity style={styles.editButton} onPress={handleEditPhone}>
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email Address</Text>
-            <View style={styles.fieldInputWithButton}>
-              <Text style={styles.fieldValue}>{shopper.email}</Text>
-              <TouchableOpacity style={styles.editButton} onPress={handleEditEmail}>
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* Delete Shopper Button */}
-        <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteShopper}>
-          <Text style={styles.deleteButtonText}>Delete Shopper</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteShopper}>
+              <Text style={styles.deleteButtonText}>Delete Shopper</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
