@@ -1,17 +1,25 @@
+import { StaffApi } from '@/api';
+import { apiConfig } from '@/api/config';
+import { useAuth } from '@/context/AppProvider';
 import { useStaffMember } from '@/hooks/api/useStaff';
+import { useVendor, useVendors } from '@/hooks/api/useVendors';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { toast } from 'sonner-native';
 import {
   ArrowBackSVG,
   ChatFilledSVG,
@@ -24,8 +32,85 @@ import {
 export default function ViewShopperScreen() {
   const params = useLocalSearchParams();
   const shopperId = params.shopperId as string | undefined;
+  const qc = useQueryClient();
+  const { state: authState } = useAuth();
 
   const { data: shopper, isLoading, isError, error, refetch, isFetching } = useStaffMember(shopperId);
+
+  // Fetch assigned store/vendor name from shopper.vendorId
+  const { getVendorById } = useVendor();
+  const assignedVendorQuery = useQuery({
+    queryKey: ['vendor-name', shopper?.vendorId ?? 'none'],
+    enabled: !!shopper?.vendorId,
+    queryFn: () => getVendorById(String(shopper?.vendorId)),
+    staleTime: 60 * 1000,
+  });
+  const assignedStoreName = (assignedVendorQuery.data as any)?.name ?? 'N/A';
+
+  // Fetch all stores for current vendor owner (used in /store/index.tsx)
+  const { fetchVendors } = useVendors();
+  const { data: vendorsListData } = useQuery({
+    queryKey: ['vendors', authState.user?.id ?? 'me'],
+    enabled: !!authState.user?.id && authState.isReady,
+    queryFn: () => fetchVendors({ userId: authState.user?.id, page: 1, size: 100 }),
+    staleTime: 60 * 1000,
+  });
+  const vendorOptions = (vendorsListData as any)?.data?.map((v: any) => ({ label: v.name, value: v.id })) ?? [];
+
+  // Edit state management
+  const [isStoreSelectModalVisible, setStoreSelectModalVisible] = React.useState(false);
+  const [selectedStoreId, setSelectedStoreId] = React.useState<string | undefined>(undefined);
+
+  const [isEditingPhone, setIsEditingPhone] = React.useState(false);
+  const [tempPhone, setTempPhone] = React.useState<string>('');
+
+  const [isEditingEmail, setIsEditingEmail] = React.useState(false);
+  const [tempEmail, setTempEmail] = React.useState<string>('');
+
+  React.useEffect(() => {
+    if (shopper) {
+      setSelectedStoreId(shopper.vendorId || undefined);
+      setTempPhone(shopper.mobileNumber || '');
+      setTempEmail(shopper.email || '');
+    }
+  }, [shopper]);
+
+  // Mutations for updating shopper
+  const staffApi = React.useMemo(() => new StaffApi(apiConfig), []);
+
+  const updateMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      if (!shopperId) throw new Error('Missing staffId');
+      const res = await staffApi.staffStaffIdPatch(payload, shopperId);
+      return res.data;
+    },
+    onSuccess: async () => {
+      toast.success('Updated successfully');
+      await qc.invalidateQueries({ queryKey: ['staff', 'detail', shopperId] });
+      await qc.invalidateQueries({ queryKey: ['staff'] });
+      setStoreSelectModalVisible(false);
+      setIsEditingPhone(false);
+      setIsEditingEmail(false);
+    },
+    onError: (e: any) => {
+      toast.error(e?.response?.data?.message || e?.message || 'Update failed');
+    }
+  });
+
+  // Delete shopper
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!shopperId) throw new Error('Missing staffId');
+      await staffApi.staffStaffIdDelete(shopperId);
+    },
+    onSuccess: async () => {
+      toast.success('Shopper deleted');
+      await qc.invalidateQueries({ queryKey: ['staff'] });
+      router.back();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Delete failed')
+  });
 
   const handleGoBack = () => {
     router.back();
@@ -47,20 +132,31 @@ export default function ViewShopperScreen() {
     console.log('Call shopper');
   };
 
-  const handleChangeStore = () => {
-    console.log('Change store assignment');
+  const handleSaveStore = () => {
+    if (!selectedStoreId) return;
+    updateMutation.mutate({ vendorId: selectedStoreId });
   };
 
   const handleEditPhone = () => {
-    console.log('Edit phone number');
+    if (!isEditingPhone) setTempPhone(shopper?.mobileNumber || '');
+    setIsEditingPhone((v) => !v);
+  };
+
+  const handleSavePhone = () => {
+    updateMutation.mutate({ mobileNumber: tempPhone });
   };
 
   const handleEditEmail = () => {
-    console.log('Edit email address');
+    if (!isEditingEmail) setTempEmail(shopper?.email || '');
+    setIsEditingEmail((v) => !v);
+  };
+
+  const handleSaveEmail = () => {
+    updateMutation.mutate({ email: tempEmail });
   };
 
   const handleDeleteShopper = () => {
-    console.log('Delete shopper');
+    setConfirmDeleteOpen(true);
   };
 
   if (!shopperId) {
@@ -140,35 +236,67 @@ export default function ViewShopperScreen() {
             </View>
 
             <View style={styles.fieldsContainer}>
+              {/* Store Assigned */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Store Assigned</Text>
                 <View style={styles.fieldInputWithButton}>
                   <View style={styles.addressContainer}>
                     <LocationSVG width={18} height={20} color="black" />
-                    <Text style={styles.fieldValue}>{shopper?.vendorId ?? 'N/A'}</Text>
+                    <Text style={styles.fieldValue} numberOfLines={1}>
+                      {assignedStoreName}
+                    </Text>
                   </View>
-                  <TouchableOpacity style={styles.editButton} onPress={handleChangeStore}>
-                    <Text style={styles.editButtonText}>Change</Text>
-                  </TouchableOpacity>
+                  {selectedStoreId && selectedStoreId !== shopper?.vendorId ? (
+                    <TouchableOpacity style={styles.editButton} onPress={handleSaveStore} disabled={updateMutation.isPending}>
+                      <Text style={styles.editButtonText}>{updateMutation.isPending ? 'Saving...' : 'Save'}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.editButton} onPress={() => setStoreSelectModalVisible(true)}>
+                      <Text style={styles.editButtonText}>Change</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
 
+              {/* Phone Number */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Phone Number</Text>
                 <View style={styles.fieldInputWithButton}>
-                  <Text style={styles.fieldValue}>{shopper?.mobileNumber ?? 'N/A'}</Text>
-                  <TouchableOpacity style={styles.editButton} onPress={handleEditPhone}>
-                    <Text style={styles.editButtonText}>Edit</Text>
+                  {isEditingPhone ? (
+                    <TextInput
+                      style={styles.fieldValue}
+                      value={tempPhone}
+                      onChangeText={setTempPhone}
+                      keyboardType="phone-pad"
+                      autoFocus
+                    />
+                  ) : (
+                    <Text style={styles.fieldValue}>{shopper?.mobileNumber ?? 'N/A'}</Text>
+                  )}
+                  <TouchableOpacity style={styles.editButton} onPress={isEditingPhone ? handleSavePhone : handleEditPhone} disabled={updateMutation.isPending}>
+                    <Text style={styles.editButtonText}>{isEditingPhone ? (updateMutation.isPending ? 'Saving...' : 'Save') : 'Edit'}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
+              {/* Email Address */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>Email Address</Text>
                 <View style={styles.fieldInputWithButton}>
-                  <Text style={styles.fieldValue}>{shopper?.email ?? 'N/A'}</Text>
-                  <TouchableOpacity style={styles.editButton} onPress={handleEditEmail}>
-                    <Text style={styles.editButtonText}>Edit</Text>
+                  {isEditingEmail ? (
+                    <TextInput
+                      style={styles.fieldValue}
+                      value={tempEmail}
+                      onChangeText={setTempEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoFocus
+                    />
+                  ) : (
+                    <Text style={styles.fieldValue}>{shopper?.email ?? 'N/A'}</Text>
+                  )}
+                  <TouchableOpacity style={styles.editButton} onPress={isEditingEmail ? handleSaveEmail : handleEditEmail} disabled={updateMutation.isPending}>
+                    <Text style={styles.editButtonText}>{isEditingEmail ? (updateMutation.isPending ? 'Saving...' : 'Save') : 'Edit'}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -180,6 +308,47 @@ export default function ViewShopperScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Store Select Modal */}
+      <Modal transparent visible={isStoreSelectModalVisible} animationType="fade" onRequestClose={() => setStoreSelectModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setStoreSelectModalVisible(false)}>
+          <View style={styles.storeSelectModalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select a Store</Text>
+            <ScrollView>
+              {vendorOptions.map((opt: any) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.optionItem, selectedStoreId === opt.value && styles.selectedOption]}
+                  onPress={() => {
+                    setSelectedStoreId(opt.value);
+                    setStoreSelectModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.optionText, selectedStoreId === opt.value && styles.selectedOptionText]}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal transparent visible={confirmDeleteOpen} animationType="fade" onRequestClose={() => setConfirmDeleteOpen(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Delete shopper?</Text>
+            <Text style={styles.modalMessage}>This action cannot be undone.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#E5E7EB' }]} onPress={() => setConfirmDeleteOpen(false)}>
+                <Text style={[styles.modalButtonText, { color: '#111827' }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#C70000' }]} onPress={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+                <Text style={styles.modalButtonText}>{deleteMutation.isPending ? 'Deleting...' : 'Delete'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -387,5 +556,85 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 25,
     textAlign: 'center',
+  },
+  // Simple select styles
+  selectBox: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FFF',
+    marginBottom: 8,
+  },
+  optionList: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFF',
+    maxHeight: 160,
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  selectedOption: {
+    backgroundColor: '#06888C',
+  },
+  selectedOptionText: {
+    color: '#FFF',
+    fontWeight: '600',
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    borderRadius: 12,
+    backgroundColor: '#FFF',
+    padding: 16,
+  },
+  storeSelectModalContent: {
+    width: '100%',
+    maxHeight: '60%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  modalMessage: {
+    fontSize: 13,
+    color: '#374151',
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  modalButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontWeight: '700',
   },
 });
