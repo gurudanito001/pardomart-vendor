@@ -1,6 +1,6 @@
 import { apiConfig } from '@/api/config';
 import { ProductApi } from '@/api/endpoints/product-api';
-import { PaginatedVendorProducts, VendorProduct } from '@/api/models';
+import { CreateVendorProductWithBarcodePayload, PaginatedVendorProducts, VendorProduct, VendorProductWithRelations } from '@/api/models';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner-native';
 
@@ -27,6 +27,7 @@ export const useProducts = () => {
   });
 
   const showError = useCallback((m: string) => toast.error(m), []);
+  const showSuccess = useCallback((m: string) => toast.success(m), []);
   const productApi = useMemo(() => new ProductApi(apiConfig), []);
 
   const handleError = useCallback((error: ApiError, defaultMessage: string) => {
@@ -82,8 +83,30 @@ export const useProducts = () => {
     }
   }, [productApi, handleError]);
 
+  const createProductWithBarcode = useCallback(async (
+    payload: CreateVendorProductWithBarcodePayload
+  ): Promise<VendorProductWithRelations | null> => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      const response = await productApi.productVendorBarcodePost(payload);
+      const newProduct = response.data;
+      setState(prev => ({
+        ...prev,
+        products: [newProduct, ...prev.products],
+        loading: false,
+      }));
+      showSuccess('Product created successfully!');
+      return newProduct;
+    } catch (error: any) {
+      handleError(error, 'Failed to create product');
+      setState(prev => ({ ...prev, loading: false, error: 'Failed to create product' }));
+      return null;
+    }
+  }, [productApi, handleError, showSuccess]);
+
   return {
     ...state,
     fetchProductsByStore,
+    createProductWithBarcode,
   };
 };

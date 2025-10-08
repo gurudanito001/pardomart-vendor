@@ -27,6 +27,6 @@ export interface CreateVendorProductWithBarcodePayload {
     'stock'?: number | null;
     'isAvailable'?: boolean;
     'attributes'?: { [key: string]: any; };
-    'tagIds'?: Array<string> | null;
+    'tags'?: Array<string> | null;
 }
 

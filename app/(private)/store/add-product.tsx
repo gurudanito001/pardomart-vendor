@@ -1,9 +1,23 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { CreateVendorProductWithBarcodePayload } from '@/api';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MultiSelect } from '@/components/ui/MultiSelect';
+import { useCategories } from '@/hooks/api/useCategories';
+import { useProducts } from '@/hooks/api/useProducts';
+import { useTags } from '@/hooks/api/useTags';
+import { useImagePicker } from '@/hooks/useImagePicker';
+import { useQuery } from '@tanstack/react-query';
+import { Camera, CameraView } from 'expo-camera';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,23 +25,56 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
 
 export default function AddProductScreen() {
-  const [productName, setProductName] = useState('');
-  const [description, setDescription] = useState('');
-  const [unit, setUnit] = useState('');
-  const [price, setPrice] = useState('');
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedDiscount, setSelectedDiscount] = useState('');
+  const { storeId } = useLocalSearchParams<{ storeId: string }>();
+  const { createProductWithBarcode, loading: isSubmitting } = useProducts();
+  const { fetchAllSubCategories } = useCategories();
+  const { fetchAllTags } = useTags();
 
-  const colors = [
-    '#ECE7C9',
-    '#93D1FF', 
-    '#93FF9C',
-    '#AE93FF',
-    '#464A4D'
-  ];
+  const { data: subCategories, isLoading: isLoadingCategories } = useQuery({
+    queryKey: ['subCategories'],
+    queryFn: fetchAllSubCategories,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const { data: tags, isLoading: isLoadingTags } = useQuery({
+    queryKey: ['tags'],
+    queryFn: fetchAllTags,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const [barcode, setBarcode] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [discountedPrice, setDiscountedPrice] = useState('');
+  const [stock, setStock] = useState('');
+  const [sku, setSku] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [isAvailable, setIsAvailable] = useState(true);
+
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+
+  useEffect(() => {
+    const getCameraPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    };
+
+    getCameraPermissions();
+  }, []);
+
+  const {
+    selectedImages,
+    pickFromGallery,
+    removeImage,
+    isLoading: imageLoading,
+  } = useImagePicker({ base64: true, multiple: true });
 
   const handleGoBack = () => {
     router.back();
@@ -41,52 +88,109 @@ export default function AddProductScreen() {
     console.log('Open support');
   };
 
-  const handleImageUpload = () => {
-    console.log('Upload image');
-    // Implement image picker functionality
-  };
-
-  const handleAddImage = () => {
-    console.log('Add additional image');
-    // Implement image picker functionality
-  };
-
   const handleCancel = () => {
     router.back();
   };
 
-  const handlePublishProduct = () => {
-    console.log('Publishing product...');
-    // Implement product publishing logic
-    router.back();
+  const handleScanBarcode = async () => {
+    if (hasPermission === null) {
+      toast.info('Requesting for camera permission...');
+      return;
+    }
+    if (hasPermission === false) {
+      toast.error('No access to camera. Please enable it in your settings.');
+      return;
+    }
+    setIsScannerVisible(true);
   };
 
+
+
+  const handlePublishProduct = async () => {
+    console.log('Publishing product...');
+    if (!storeId) {
+      toast.error("Store ID is missing. Can't create product.");
+      return;
+    }
+    if (!barcode.trim()) return toast.error('Barcode is required.');
+    if (!name.trim()) return toast.error('Product name is required.');
+    if (!price) return toast.error('Price is required.');
+    if (categoryIds.length === 0) return toast.error('At least one Category is required.');
+
+    const payload: CreateVendorProductWithBarcodePayload = {
+      vendorId: storeId,
+      barcode: barcode.trim(),
+      name: name.trim(),
+      price: parseFloat(price),
+      categoryIds: categoryIds,
+      description: description.trim() || undefined,
+      discountedPrice: discountedPrice ? parseFloat(discountedPrice) : undefined,
+      sku: sku.trim() || undefined,
+      stock: stock ? parseInt(stock, 10) : undefined,
+      isAvailable,
+      tags: tagIds,
+      images: selectedImages.map(img => img.base64).filter((b64): b64 is string => !!b64),
+    };
+
+    const newProduct = await createProductWithBarcode(payload);
+
+    if (newProduct) {
+      router.replace({
+        pathname: '/(private)/store/store-products',
+        params: { storeId },
+      });
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <Modal
+        visible={isScannerVisible}
+        animationType="slide"
+        onRequestClose={() => setIsScannerVisible(false)}
+      >
+        <View style={styles.scannerContainer}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            onBarcodeScanned={(scanningResult) => {
+              if (scanningResult.data) {
+                setIsScannerVisible(false);
+                setBarcode(scanningResult.data);
+                toast.success(`Barcode Scanned: ${scanningResult.data}`);
+              }
+            }}
+            barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "qr", "code128"] }}
+          />
+          <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setIsScannerVisible(false)}><Text style={styles.scannerCloseText}>Cancel</Text></TouchableOpacity>
+        </View>
+      </Modal>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-            <ArrowBackSVG width={30} height={30} color="white" />
-          </TouchableOpacity>
-          
-          <Text style={styles.headerTitle}>Add Product</Text>
-          
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+              <ArrowBackSVG />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Add Product</Text>
+          </View>
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-              <NotificationSVG width={24} height={24} color="white" />
+              <NotificationSVG />
             </TouchableOpacity>
-            
             <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-              <SupportSVG width={24} height={24} color="white" />
+              <SupportSVG />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Add Product Details Section */}
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Add Product details</Text>
@@ -97,46 +201,56 @@ export default function AddProductScreen() {
         <View style={styles.imageSection}>
           <Text style={styles.fieldLabel}>Product Image</Text>
           
-          {/* Image Upload Area */}
-          <TouchableOpacity style={styles.uploadArea} onPress={handleImageUpload}>
-            <View style={styles.uploadIcon}>
-              <Svg width="60" height="60" viewBox="0 0 61 60" fill="none">
-                <Path d="M22.275 19.275L28 13.525V37.5C28 38.163 28.2634 38.7989 28.7322 39.2677C29.2011 39.7366 29.837 40 30.5 40C31.163 40 31.7989 39.7366 32.2678 39.2677C32.7366 38.7989 33 38.163 33 37.5V13.525L38.725 19.275C38.9574 19.5093 39.2339 19.6953 39.5386 19.8222C39.8432 19.9491 40.17 20.0145 40.5 20.0145C40.83 20.0145 41.1568 19.9491 41.4614 19.8222C41.7661 19.6953 42.0426 19.5093 42.275 19.275C42.5093 19.0426 42.6953 18.7661 42.8222 18.4614C42.9492 18.1568 43.0145 17.83 43.0145 17.5C43.0145 17.17 42.9492 16.8432 42.8222 16.5385C42.6953 16.2339 42.5093 15.9574 42.275 15.725L32.275 5.72499C32.0372 5.49738 31.7569 5.31897 31.45 5.19998C30.8413 4.94994 30.1587 4.94994 29.55 5.19998C29.2431 5.31897 28.9628 5.49738 28.725 5.72499L18.725 15.725C18.4919 15.9581 18.307 16.2348 18.1809 16.5394C18.0547 16.8439 17.9898 17.1703 17.9898 17.5C17.9898 17.8296 18.0547 18.1561 18.1809 18.4606C18.307 18.7652 18.4919 19.0419 18.725 19.275C18.9581 19.5081 19.2348 19.693 19.5394 19.8191C19.8439 19.9453 20.1704 20.0102 20.5 20.0102C20.8296 20.0102 21.1561 19.9453 21.4606 19.8191C21.7652 19.693 22.0419 19.5081 22.275 19.275ZM53 30C52.337 30 51.7011 30.2634 51.2322 30.7322C50.7634 31.2011 50.5 31.8369 50.5 32.5V47.5C50.5 48.163 50.2366 48.7989 49.7678 49.2678C49.2989 49.7366 48.663 50 48 50H13C12.337 50 11.7011 49.7366 11.2322 49.2678C10.7634 48.7989 10.5 48.163 10.5 47.5V32.5C10.5 31.8369 10.2366 31.2011 9.76777 30.7322C9.29893 30.2634 8.66304 30 8 30C7.33696 30 6.70107 30.2634 6.23223 30.7322C5.76339 31.2011 5.5 31.8369 5.5 32.5V47.5C5.5 49.4891 6.29018 51.3968 7.6967 52.8033C9.10322 54.2098 11.0109 55 13 55H48C49.9891 55 51.8968 54.2098 53.3033 52.8033C54.7098 51.3968 55.5 49.4891 55.5 47.5V32.5C55.5 31.8369 55.2366 31.2011 54.7678 30.7322C54.2989 30.2634 53.663 30 53 30Z" fill="#4B4E61"/>
-              </Svg>
-            </View>
-            <View style={styles.uploadText}>
-              <Text style={styles.uploadMainText}>
-                Drop Your Images here or <Text style={styles.uploadLinkText}>Click to browse</Text>
-              </Text>
-              <Text style={styles.uploadSubText}>PNG, JPEG and GIF files are allowed</Text>
-            </View>
-          </TouchableOpacity>
-
           {/* Image Thumbnails */}
-          <View style={styles.imageThumbnails}>
-            <View style={styles.imageThumbnail} />
-            <View style={styles.imageThumbnail} />
-            <TouchableOpacity style={styles.addImageButton} onPress={handleAddImage}>
-              <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-                <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
-              </Svg>
-              <Text style={styles.addImageText}>Add Image</Text>
-            </TouchableOpacity>
-          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.imageThumbnails}>
+              {selectedImages.map((image, index) => (
+                <View key={index} style={styles.imageThumbnail}>
+                  <Image source={{ uri: image.uri }} style={styles.previewImage} />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
+                    <Text style={styles.removeImageText}>✕</Text>
+                  </TouchableOpacity>
+                </View>)
+              )}
+              <TouchableOpacity style={styles.addImageButton} onPress={() => pickFromGallery()}>
+                <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
+                  <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
+                </Svg>
+                <Text style={styles.addImageText}>Add Image</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
 
         {/* Form Fields */}
         <View style={styles.formSection}>
+          {/* Barcode */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.fieldLabel}>Barcode*</Text>
+            <View style={styles.barcodeContainer}>
+              <TextInput
+                style={[styles.textInput, styles.barcodeInput]}
+                placeholder="Enter or scan barcode"
+                placeholderTextColor="#7C8BA0"
+                value={barcode}
+                onChangeText={setBarcode}
+              />
+              <TouchableOpacity style={styles.scanButton} onPress={handleScanBarcode}>
+                <Text style={styles.scanButtonText}>Scan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Product Name */}
           <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Product Name</Text>
+            <Text style={styles.fieldLabel}>Product Name*</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.textInput}
                 placeholder="Enter store's name"
                 placeholderTextColor="#7C8BA0"
-                value={productName}
-                onChangeText={setProductName}
+                value={name}
+                onChangeText={setName}
               />
             </View>
           </View>
@@ -158,23 +272,9 @@ export default function AddProductScreen() {
             </View>
           </View>
 
-          {/* Unit */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Unit (per lb)</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter Unit"
-                placeholderTextColor="#7C8BA0"
-                value={unit}
-                onChangeText={setUnit}
-              />
-            </View>
-          </View>
-
           {/* Price */}
           <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Price ($)</Text>
+            <Text style={styles.fieldLabel}>Price ($)*</Text>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.textInput}
@@ -187,48 +287,100 @@ export default function AddProductScreen() {
             </View>
           </View>
 
-          {/* Discount */}
+          {/* Discounted Price */}
           <View style={styles.fieldContainer}>
-            <Text style={styles.fieldLabel}>Discount</Text>
-            <TouchableOpacity style={styles.dropdownContainer}>
-              <Text style={styles.dropdownText}>Select</Text>
-              <Svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <Path d="M4.5 6L8 9.5L11.5 6" stroke="black"/>
-              </Svg>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Color Selection */}
-        <View style={styles.colorSection}>
-          <Text style={styles.colorLabel}>Select your color</Text>
-          <View style={styles.colorPalette}>
-            {colors.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  { backgroundColor: color },
-                  selectedColor === color && styles.selectedColor
-                ]}
-                onPress={() => setSelectedColor(color)}
+            <Text style={styles.fieldLabel}>Discounted Price ($)</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter discounted price (optional)"
+                placeholderTextColor="#7C8BA0"
+                value={discountedPrice}
+                onChangeText={setDiscountedPrice}
+                keyboardType="numeric"
               />
-            ))}
+            </View>
+          </View>
+
+          {/* Stock & SKU */}
+          <View style={styles.row}>
+            <View style={[styles.fieldContainer, { flex: 1 }]}>
+              <Text style={styles.fieldLabel}>Stock</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g., 100"
+                  placeholderTextColor="#7C8BA0"
+                  value={stock}
+                  onChangeText={setStock}
+                  keyboardType="number-pad"
+                />
+              </View>
+            </View>
+            <View style={[styles.fieldContainer, { flex: 1 }]}>
+              <Text style={styles.fieldLabel}>SKU</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="e.g., SKU123"
+                  placeholderTextColor="#7C8BA0"
+                  value={sku}
+                  onChangeText={setSku}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Category IDs */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.fieldLabel}>Categories*</Text>
+            <MultiSelect
+              options={subCategories || []}
+              selectedItems={categoryIds}
+              onSelectionChange={setCategoryIds}
+              placeholder="Select categories"
+              isLoading={isLoadingCategories}
+            />
+          </View>
+
+          {/* Tag IDs */}
+          <View style={styles.fieldContainer}>
+            <Text style={styles.fieldLabel}>Tags</Text>
+            <MultiSelect
+              options={tags || []}
+              selectedItems={tagIds}
+              onSelectionChange={setTagIds}
+              placeholder="Select tags"
+              isLoading={isLoadingTags}
+            />
+          </View>
+
+          <View style={styles.switchContainer}>
+            <Text style={styles.fieldLabel}>Is Available?</Text>
+            <Switch
+              trackColor={{ false: "#767577", true: "#06888C" }}
+              thumbColor={isAvailable ? "#f4f3f4" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={setIsAvailable}
+              value={isAvailable}
+            />
           </View>
         </View>
 
         {/* Bottom Actions */}
         <View style={styles.bottomActions}>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel} disabled={isSubmitting}>
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.publishButton} onPress={handlePublishProduct}>
+          <TouchableOpacity style={styles.publishButton} onPress={handlePublishProduct} disabled={isSubmitting || imageLoading}>
             <Text style={styles.publishText}>Publish product</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+      {(isSubmitting || imageLoading) && <LoadingSpinner overlay message={isSubmitting ? 'Saving product...' : 'Processing images...'} />}
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -248,11 +400,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 21,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   backButton: {
     width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: -10, // Adjust for visual alignment
   },
   headerTitle: {
     fontSize: 18,
@@ -273,7 +431,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    flex: 1,
+    paddingBottom: 40,
   },
   detailsSection: {
     paddingHorizontal: 21,
@@ -307,64 +465,47 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginBottom: 10,
   },
-  uploadArea: {
-    padding: 48,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#9393A3',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    gap: 32,
-  },
-  uploadIcon: {
-    alignItems: 'center',
-  },
-  uploadText: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  uploadMainText: {
-    fontSize: 14,
-    fontWeight: '400',
-    fontFamily: 'Nunito Sans',
-    color: '#000',
-    textAlign: 'center',
-  },
-  uploadLinkText: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Nunito Sans',
-    color: '#007BFF',
-  },
-  uploadSubText: {
-    fontSize: 12,
-    fontWeight: '400',
-    fontFamily: 'Nunito Sans',
-    color: '#50555C',
-    textAlign: 'center',
-  },
   imageThumbnails: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 17,
+    gap: 12,
   },
   imageThumbnail: {
     width: 100,
     height: 99,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#9CA3AF',
-    backgroundColor: '#F9F9F9',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   addImageButton: {
-    width: 157,
-    padding: 25,
+    width: 100,
+    height: 99,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#9CA3AF',
     borderStyle: 'dashed',
     alignItems: 'center',
     gap: 1,
+    justifyContent: 'center',
   },
   addImageText: {
     fontSize: 15,
@@ -380,6 +521,31 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     gap: 10,
+  },
+  barcodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FFF',
+    paddingLeft: 18,
+  },
+  barcodeInput: {
+    flex: 1,
+  },
+  scanButton: {
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    backgroundColor: '#E0E0E0',
+    borderTopRightRadius: 15,
+    borderBottomRightRadius: 15,
+  },
+  scanButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#000',
   },
   inputContainer: {
     padding: 18,
@@ -403,54 +569,21 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
-  dropdownContainer: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 16,
+  },
+  switchContainer: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 18,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#B4BED4',
-    backgroundColor: '#FFF',
-  },
-  dropdownText: {
-    fontSize: 12,
-    fontWeight: '400',
-    fontFamily: 'Open Sans',
-    color: '#7C8BA0',
-  },
-  colorSection: {
-    paddingHorizontal: 22,
-    paddingTop: 23,
-    gap: 12,
-  },
-  colorLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: 'Open Sans',
-    color: '#023337',
-  },
-  colorPalette: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  colorOption: {
-    width: 30,
-    height: 30,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  selectedColor: {
-    borderColor: '#06888C',
+    paddingVertical: 10,
   },
   bottomActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 22,
     paddingTop: 46,
-    paddingBottom: 40,
     gap: 6,
   },
   cancelButton: {
@@ -498,5 +631,23 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  scannerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+  },
+  scannerCloseButton: {
+    position: 'absolute',
+    bottom: 50,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 20,
+  },
+  scannerCloseText: {
+    color: '#000',
+    fontSize: 16,
   },
 });
