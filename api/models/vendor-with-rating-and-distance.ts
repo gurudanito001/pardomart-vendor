@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 /**
  * PardoMart Node API
  * API documentation for the PardoMart Node.js application.
@@ -15,10 +15,40 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { DeliveryMethod } from './delivery-method';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { OrderStatus } from './order-status';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { PaymentMethods } from './payment-methods';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { PaymentStatus } from './payment-status';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { ShoppingMethod } from './shopping-method';
 
 export interface VendorWithRatingAndDistance {
-    'status': OrderStatus;
+    'subtotal'?: number;
+    'totalAmount'?: number;
+    'deliveryFee'?: number;
+    'serviceFee'?: number;
+    'shoppingFee'?: number;
+    'shopperTip'?: number;
+    'deliveryPersonTip'?: number;
+    'paymentMethod'?: PaymentMethods;
+    'paymentStatus'?: PaymentStatus;
+    'orderStatus'?: OrderStatus;
+    'deliveryAddressId'?: string;
+    'deliveryInstructions'?: string;
+    'shopperId'?: string;
+    'deliveryPersonId'?: string;
+    'shoppingMethod'?: ShoppingMethod;
+    'deliveryMethod'?: DeliveryMethod;
+    'shoppingStartTime'?: string;
+    'scheduledDeliveryTime'?: string;
+    'actualDeliveryTime'?: string;
 }
 
 
