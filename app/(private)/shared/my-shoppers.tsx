@@ -5,17 +5,17 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { NotificationSVG, SupportSVG } from '../../../components/icons';
+import { NotificationSVG } from '../../../components/icons';
 
 interface StaffMember extends User {
   image?: string | null;
@@ -55,9 +55,6 @@ export default function MyShoppersScreen() {
     router.push('/(private)/shared/notifications' as any);
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
 
   const handleShopperPress = (shopperId?: string) => {
     if (!shopperId) return;
@@ -189,9 +186,7 @@ export default function MyShoppersScreen() {
             <TouchableOpacity style={styles.iconButton} onPress={handleNotifications}>
               <NotificationSVG width={24} height={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleSupport}>
-              <SupportSVG width={24} height={24} color="white" />
-            </TouchableOpacity>
+            {/* Support icon removed from header (kept only on Help page) */}
           </View>
         </View>
       </View>

@@ -11,7 +11,9 @@ export default function StoreLayout() {
       <Stack.Screen name="document-verification" />
       <Stack.Screen name="unpublished-store" />
       <Stack.Screen name="select-category" />
+      <Stack.Screen name="view-product" />
       <Stack.Screen name="add-product" />
+      <Stack.Screen name="edit-product" />
       <Stack.Screen name="add-shopper" />
       <Stack.Screen name="fully-set-up-store" />
       <Stack.Screen name="setting-up-store" />

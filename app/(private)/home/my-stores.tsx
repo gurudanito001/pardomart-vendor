@@ -14,7 +14,6 @@ import {
   ArrowBackButtonSVG,
   ArrowBackSVG,
   NotificationSVG,
-  SupportSVG
 } from '../../../components/icons';
 // Removed legacy types import
 
@@ -27,10 +26,6 @@ export default function MyStoresScreen() {
 
   const handleNotifications = () => {
     console.log('Open notifications');
-  };
-
-  const handleSupport = () => {
-    console.log('Open support');
   };
 
   const handleStoreSelect = (storeId: string) => {
@@ -71,9 +66,7 @@ export default function MyStoresScreen() {
             <NotificationSVG width={24} height={24} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
+          {/* Support icon removed from header (kept only on Help page) */}
         </View>
       </View>
 

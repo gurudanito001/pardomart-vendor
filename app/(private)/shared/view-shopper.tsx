@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -19,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import {
   ArrowBackSVG,
@@ -26,7 +26,6 @@ import {
   LocationSVG,
   NotificationSVG,
   PhoneOutlineSVG,
-  SupportSVG
 } from '../../../components/icons';
 
 export default function ViewShopperScreen() {
@@ -120,9 +119,6 @@ export default function ViewShopperScreen() {
     router.push('/(private)/shared/notifications' as any);
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
 
   const handleChat = () => {
     console.log('Start chat with shopper');
@@ -181,9 +177,7 @@ export default function ViewShopperScreen() {
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
+            {/* Support icon removed from header (kept only on Help page) */}
         </View>
       </View>
 

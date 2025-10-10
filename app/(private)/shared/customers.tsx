@@ -3,16 +3,16 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
 
 export default function CustomersScreen() {
@@ -25,9 +25,6 @@ export default function CustomersScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
 
   const handleFilter = () => {
     console.log('Open filter');
@@ -86,9 +83,7 @@ export default function CustomersScreen() {
             <NotificationSVG width={24} height={24} color="white" />
           </TouchableOpacity>
           
-          <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
+          {/* Support icon removed from header (kept only on Help page) */}
         </View>
       </View>
 

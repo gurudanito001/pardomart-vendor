@@ -1,4 +1,16 @@
 {
+  "react-native-packager": {
+    "env": {
+      "EXPO_DEVTOOLS_LISTEN_ADDRESS": "localhost"
+    }
+  },
+  "react-native-tools.showExopnHostWarning": false,
+  "files.watcherExclude": {
+    "**/.expo/**": true,
+    "**/.expo-shared/**": true
+  },
+  // Use the built-in TypeScript/JavaScript language features but prefer the workspace TypeScript
+  "typescript.tsdk": "node_modules/typescript/lib",
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",

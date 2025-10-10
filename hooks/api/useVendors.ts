@@ -55,7 +55,7 @@ export const useVendors = () => {
     size?: number;
   }) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const response = await vendorApi.vendorsGet(
         params?.name,
@@ -65,9 +65,9 @@ export const useVendors = () => {
         params?.page,
         params?.size
       );
-      
+
       const data = response.data as PaginatedVendors;
-      
+
       setState({
         vendors: data?.data || [],
         pagination: {
@@ -89,6 +89,17 @@ export const useVendors = () => {
         error: errorMessage,
       });
       throw error;
+    }
+  }, [vendorApi, handleError]);
+
+  const fetchIncompleteSetups = useCallback(async () => {
+    try {
+      const response = await vendorApi.vendorsIncompleteSetupsGet();
+      const vendors = (response.data?.incompleteVendors ?? []) as Vendor[];
+      return vendors;
+    } catch (error: any) {
+      handleError(error, 'Failed to fetch incomplete vendor setups');
+      return [];
     }
   }, [vendorApi, handleError]);
 
@@ -145,6 +156,7 @@ export const useVendors = () => {
   return {
     ...state,
     fetchVendors,
+    fetchIncompleteSetups,
     fetchNearbyVendors,
     searchVendors,
     createVendor,

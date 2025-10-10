@@ -3,20 +3,19 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ArrowBackButtonSVG,
-  ArrowBackSVG,
-  NotificationSVG,
-  OrderSVG,
-  SupportSVG
+    ArrowBackButtonSVG,
+    ArrowBackSVG,
+    NotificationSVG,
+    OrderSVG,
 } from '../../../components/icons';
 
 const MOCK_TRANSACTIONS: Payment[] = [
@@ -47,9 +46,7 @@ export default function CustomerDetailsScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
+  
 
   const handleViewAllTransactions = () => {
     console.log('View all transactions');
@@ -84,10 +81,6 @@ export default function CustomerDetailsScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

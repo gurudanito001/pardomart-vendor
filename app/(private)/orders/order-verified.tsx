@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-import { ArrowBackButtonSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
 import { shadows } from '../../../styles/theme';
 
 const OrderVerifiedIcon = () => (
@@ -61,9 +61,6 @@ export default function OrderVerifiedScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

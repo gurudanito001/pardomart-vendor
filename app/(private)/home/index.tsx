@@ -2,7 +2,9 @@ import { AntDesign } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React from "react";
+
 import {
+  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,26 +13,105 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Circle, ClipPath, Defs, G, Mask, Path, Rect, Svg } from "react-native-svg";
+import {
+  Circle,
+  ClipPath,
+  Defs,
+  G,
+  Mask,
+  Path,
+  Rect,
+  Svg,
+} from "react-native-svg";
+import type { Vendor } from "../../../api/models";
 import DashboardCard from "../../../components/ui/DashboardCard";
-
-const fetchDashboardData = async () => {
-  // This is a mock function. Replace with your actual API call.
-  // For demonstration, we'll use a promise that resolves after a delay.
-  console.log("Fetching dashboard data...");
-  // Example of a real API call you might make:
-  // const { data } = await apiService.get('/dashboard-summary');
-  // return data;
-  return new Promise((resolve) =>
-    setTimeout(() => resolve({ user: { name: "Pardofood" } }), 1000)
-  );
-};
+import { useAuth } from "../../../context/AuthContext";
+import { useVendors } from "../../../hooks/api/useVendors";
 
 export default function HomeScreen() {
-  const { data, isLoading, error } = useQuery({ queryKey: ['dashboardData'], queryFn: fetchDashboardData });
+  const { state: authState } = useAuth();
+  const { user } = authState;
+  const { fetchIncompleteSetups } = useVendors();
+
+  const { data: incompleteVendors = [], isLoading: isIncompleteLoading } =
+    useQuery<Vendor[]>({
+      queryKey: ["vendors", "incomplete-setups"],
+      queryFn: fetchIncompleteSetups,
+      enabled: !authState.isLoading,
+      staleTime: 60_000,
+    });
+
+  const firstIncompleteVendor = incompleteVendors[0];
+  const showSetupBanner = !isIncompleteLoading && incompleteVendors.length > 0;
+
+  const userDisplayName = React.useMemo(() => {
+    if (user && typeof user.name === "string" && user.name.trim().length > 0) {
+      return user.name.trim();
+    }
+
+    const businessName =
+      user && typeof (user as any).businessName === "string"
+        ? (user as any).businessName.trim()
+        : "";
+    if (businessName) {
+      return businessName;
+    }
+
+    if (
+      user &&
+      typeof user.mobileNumber === "string" &&
+      user.mobileNumber.trim().length > 0
+    ) {
+      return user.mobileNumber.trim();
+    }
+
+    return "Vendor";
+  }, [user]);
+
+  const userAvatarUri = React.useMemo(() => {
+    if (!user) {
+      return null;
+    }
+
+    const dynamicMedia = ((user as any)?.dynamicMediaUrls ?? {}) as any;
+    const avatarSources: unknown[] = [
+      (user as any)?.image,
+      (user as any)?.profileImage,
+      (user as any)?.avatar,
+      (user as any)?.avatarUrl,
+      dynamicMedia?.avatar?.small,
+      dynamicMedia?.avatar?.medium,
+      dynamicMedia?.avatar?.large,
+      dynamicMedia?.profile?.small,
+      dynamicMedia?.profile?.medium,
+      dynamicMedia?.profile?.large,
+    ];
+
+    const resolved = avatarSources.find((value) => {
+      if (typeof value !== "string") {
+        return false;
+      }
+
+      return value.trim().length > 0;
+    });
+
+    return typeof resolved === "string" ? resolved.trim() : null;
+  }, [user]);
+
+  const isAuthLoading = authState.isLoading;
 
   const handleSetupStore = () => {
-    router.push("/(private)/home/setting-up-store" as any);
+    if (!firstIncompleteVendor?.id) {
+      return;
+    }
+
+    router.push({
+      pathname: "/(private)/store/store-homepage",
+      params: {
+        storeId: firstIncompleteVendor.id,
+        fromIncompleteSetup: "1",
+      },
+    } as never);
   };
 
   const handleCardPress = (cardType: string) => {
@@ -65,6 +146,33 @@ export default function HomeScreen() {
         console.log(`Navigation not implemented for ${cardType}`);
     }
   };
+
+  const DefaultAvatarIcon = () => (
+    <Svg width="40" height="41" viewBox="0 0 40 41" fill="none">
+      <Defs>
+        <ClipPath id="clip0_801_3353">
+          <Rect
+            width="40"
+            height="40"
+            rx="20"
+            fill="white"
+            transform="translate(0 0.958008)"
+          />
+        </ClipPath>
+      </Defs>
+      <G clipPath="url(#clip0_801_3353)">
+        <Circle cx="20" cy="20.958" r="20" fill="#BFE3C6" />
+        <Path
+          d="M30 20.9657C35.5228 20.9657 40 16.2723 40 10.4828C40 4.69332 35.5228 0 30 0C24.4772 0 20 4.69332 20 10.4828C20 16.2723 24.4772 20.9657 30 20.9657Z"
+          fill="white"
+        />
+        <Path
+          d="M33.542 14.85H26.458C26.182 14.8497 25.9174 14.7346 25.7222 14.53C25.527 14.3255 25.4173 14.0481 25.417 13.7587V8.5173C25.417 8.22778 25.5266 7.95011 25.7218 7.74529C25.917 7.54047 26.1818 7.42527 26.458 7.42499H27.868L28.378 6.35574C28.4123 6.28292 28.4655 6.22169 28.5315 6.17905C28.5974 6.13642 28.6735 6.11409 28.751 6.11463H31.251C31.3284 6.11446 31.4043 6.13693 31.4702 6.17953C31.5361 6.22212 31.5894 6.28315 31.624 6.35574L32.133 7.42499H33.542C33.8182 7.42499 34.0831 7.53993 34.2784 7.74455C34.4738 7.94917 34.5837 8.22673 34.584 8.51625V13.7577C34.584 14.0474 34.4742 14.3252 34.2788 14.53C34.0834 14.7349 33.8183 14.85 33.542 14.85Z"
+          fill="#06888C"
+        />
+      </G>
+    </Svg>
+  );
 
   const StoreIcon = () => (
     <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -204,7 +312,10 @@ export default function HomeScreen() {
 
   const CompletedOrdersIcon = () => (
     <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <Path d="M23.7773 17.0273L17.25 23.5664L14.0977 20.4023L15.1523 19.3477L17.25 21.4336L22.7227 15.9727L23.7773 17.0273ZM12 7.5H7.5V6H12V7.5ZM12 10.5H7.5V9H12V10.5ZM7.5 12H12V13.5H7.5V12ZM6 7.5H4.5V6H6V7.5ZM6 10.5H4.5V9H6V10.5ZM4.5 12H6V13.5H4.5V12ZM13.5 7.5V1.5H3V22.5H13.5V24H1.5V0H14.5664L21 6.43359V15L19.5 16.5V7.5H13.5ZM15 6H18.4336L15 2.56641V6Z" fill="black"/>
+      <Path
+        d="M23.7773 17.0273L17.25 23.5664L14.0977 20.4023L15.1523 19.3477L17.25 21.4336L22.7227 15.9727L23.7773 17.0273ZM12 7.5H7.5V6H12V7.5ZM12 10.5H7.5V9H12V10.5ZM7.5 12H12V13.5H7.5V12ZM6 7.5H4.5V6H6V7.5ZM6 10.5H4.5V9H6V10.5ZM4.5 12H6V13.5H4.5V12ZM13.5 7.5V1.5H3V22.5H13.5V24H1.5V0H14.5664L21 6.43359V15L19.5 16.5V7.5H13.5ZM15 6H18.4336L15 2.56641V6Z"
+        fill="black"
+      />
     </Svg>
   );
 
@@ -218,24 +329,21 @@ export default function HomeScreen() {
           <View style={styles.leftSection}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <View style={styles.avatarIcon}>
-                  <Svg width="40" height="41" viewBox="0 0 40 41" fill="none">
-                  <Defs>
-                    <ClipPath id="clip0_801_3353">
-                      <Rect width="40" height="40" rx="20" fill="white" transform="translate(0 0.958008)"/>
-                    </ClipPath>
-                  </Defs>
-                  <G clipPath="url(#clip0_801_3353)">
-                    <Circle cx="20" cy="20.958" r="20" fill="#BFE3C6"/>
-                    <Path d="M30 20.9657C35.5228 20.9657 40 16.2723 40 10.4828C40 4.69332 35.5228 0 30 0C24.4772 0 20 4.69332 20 10.4828C20 16.2723 24.4772 20.9657 30 20.9657Z" fill="white"/>
-                    <Path d="M33.542 14.85H26.458C26.182 14.8497 25.9174 14.7346 25.7222 14.53C25.527 14.3255 25.4173 14.0481 25.417 13.7587V8.5173C25.417 8.22778 25.5266 7.95011 25.7218 7.74529C25.917 7.54047 26.1818 7.42527 26.458 7.42499H27.868L28.378 6.35574C28.4123 6.28292 28.4655 6.22169 28.5315 6.17905C28.5974 6.13642 28.6735 6.11409 28.751 6.11463H31.251C31.3284 6.11446 31.4043 6.13693 31.4702 6.17953C31.5361 6.22212 31.5894 6.28315 31.624 6.35574L32.133 7.42499H33.542C33.8182 7.42499 34.0831 7.53993 34.2784 7.74455C34.4738 7.94917 34.5837 8.22673 34.584 8.51625V13.7577C34.584 14.0474 34.4742 14.3252 34.2788 14.53C34.0834 14.7349 33.8183 14.85 33.542 14.85Z" fill="#06888C"/>
-                  </G>
-                  </Svg>
-                </View>
+                {userAvatarUri ? (
+                  <Image
+                    source={{ uri: userAvatarUri }}
+                    style={styles.avatarImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <DefaultAvatarIcon />
+                )}
               </View>
             </View>
             <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>Good morning, {isLoading ? '...' : (data as any)?.user?.name || 'Vendor'}</Text>
+              <Text style={styles.greeting}>
+                Good morning, {isAuthLoading ? "..." : userDisplayName}
+              </Text>
               <View style={styles.storeInfoContainer}>
                 <Text style={styles.storeInfo}>Set up Store info</Text>
                 <View>
@@ -260,16 +368,6 @@ export default function HomeScreen() {
                 />
               </Svg>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Svg width="24" height="25" viewBox="0 0 24 25" fill="none">
-                <Path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M19.8 10.6591C19.49 7.4791 17.61 2.47908 11.8 2.47908C5.99002 2.47908 4.11001 7.4791 3.80002 10.6591C2.71252 11.0718 1.9952 12.1159 2.00002 13.2791V14.6791C2.00002 16.2255 3.25365 17.4791 4.80001 17.4791C6.34642 17.4791 7.60004 16.2255 7.60004 14.6791V13.2791C7.59498 12.141 6.90404 11.1184 5.85001 10.6891C6.05002 8.84906 7.03004 4.4791 11.8 4.4791C16.57 4.4791 17.54 8.84906 17.74 10.6891C16.6882 11.1193 16.0007 12.1426 16 13.2791V14.6791C16.0022 15.206 16.1524 15.7216 16.4335 16.1672C16.7147 16.6128 17.1154 16.9703 17.59 17.1991C17.17 17.9891 16.1 19.0591 13.47 19.3791C12.9443 18.5808 11.9272 18.2661 11.0424 18.628C10.1578 18.9899 9.65279 19.9272 9.83729 20.8651C10.0218 21.803 10.8442 22.4791 11.8 22.4791C12.1704 22.477 12.5329 22.3722 12.8472 22.1762C13.1615 21.9802 13.4152 21.7008 13.58 21.3691C17.87 20.8791 19.24 18.6691 19.67 17.3691C20.8333 16.9922 21.6157 15.9018 21.6 14.6791V13.2791C21.6048 12.1159 20.8875 11.0718 19.8 10.6591Z"
-                  fill="white"
-                />
-              </Svg>
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -279,22 +377,28 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Setup Banner */}
-        <View style={styles.setupBanner}>
-          <View style={styles.setupContent}>
-            <View style={styles.setupIcon}>
-              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M4 6V4H20V6H4ZM4 20V14H3V12L4 7H20L21 12V14H20V20H18V14H14V20H4ZM6 18H12V14H6V18ZM5.05 12H18.95L18.35 9H5.65L5.05 12Z"
-                  fill="black"
-                />
-              </Svg>
+        {showSetupBanner ? (
+          <View style={styles.setupBanner}>
+            <View style={styles.setupContent}>
+              <View style={styles.setupIcon}>
+                <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M4 6V4H20V6H4ZM4 20V14H3V12L4 7H20L21 12V14H20V20H18V14H14V20H4ZM6 18H12V14H6V18ZM5.05 12H18.95L18.35 9H5.65L5.05 12Z"
+                    fill="black"
+                  />
+                </Svg>
+              </View>
+              <Text style={styles.setupText}>
+                {incompleteVendors.length > 1
+                  ? `Finish setting up your stores (${incompleteVendors.length} pending)`
+                  : "Finish setting up your store"}
+              </Text>
             </View>
-            <Text style={styles.setupText}>Finish setting up your store</Text>
+            <TouchableOpacity onPress={handleSetupStore}>
+              <AntDesign name="right" size={24} color="rgba(0,0,0,0.4)" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={handleSetupStore}>
-            <AntDesign name="right" size={24} color="rgba(0,0,0,0.4)" />
-          </TouchableOpacity>
-        </View>
+        ) : null}
 
         {/* Dashboard Grid */}
         <View style={styles.dashboardGrid}>
@@ -395,9 +499,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#BFE3C6",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
-  avatarIcon: {
-    position: "absolute",
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   greetingContainer: {
     gap: 1,
@@ -436,7 +542,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 24,
     marginTop: 21,
-    marginBottom: 17,
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
@@ -467,6 +572,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 23,
     gap: 17,
     paddingBottom: 20,
+    marginTop: 17,
   },
   gridRow: {
     flexDirection: "row",

@@ -1,20 +1,19 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-    ArrowBackButtonSVG,
-    ArrowBackSVG,
-    NotificationSVG,
-    SupportSVG
+  ArrowBackButtonSVG,
+  ArrowBackSVG,
+  NotificationSVG
 } from '../../../components/icons';
 // Removed legacy types import
 
@@ -113,14 +112,11 @@ export default function SelectCategoryScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
 
   const handleCategorySelect = (categoryId: string) => {
     console.log('Selected category:', categoryId);
     // Navigate to unpublished store page
-    router.push('/(private)/store/unpublished-store');
+    // router.push('/(private)/store/unpublished-store');
   };
 
   const CategoryItem = ({ category }: { category: Category }) => (
@@ -164,10 +160,6 @@ export default function SelectCategoryScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
               <NotificationSVG width={24} height={24} color="white" />
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-              <SupportSVG width={24} height={24} color="white" />
             </TouchableOpacity>
           </View>
         </View>
