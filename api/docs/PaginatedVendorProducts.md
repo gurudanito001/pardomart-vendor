@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **totalPages** | **number** |  | [optional] [default to undefined]
 **pageSize** | **number** |  | [optional] [default to undefined]
 **totalCount** | **number** |  | [optional] [default to undefined]
-**data** | [**Array&lt;VendorProduct&gt;**](VendorProduct.md) |  | [optional] [default to undefined]
+**data** | [**Array&lt;VendorProductWithRelations&gt;**](VendorProductWithRelations.md) |  | [optional] [default to undefined]
 
 ## Example
 

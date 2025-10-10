@@ -1,12 +1,12 @@
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '@/components/icons';
+import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ConfettiSVG from '../../../assets/images/confetti_15552843 1.svg';
@@ -40,9 +40,6 @@ export default function SuccessScreen() {
         <View style={styles.headerIcons}>
           <TouchableOpacity style={styles.iconButton}>
             <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

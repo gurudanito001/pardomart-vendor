@@ -1,27 +1,26 @@
 import React from 'react';
 import {
-  Dimensions,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
-  CompletedOrdersSVG,
-  CustomersSVG,
-  EarningsWalletSVG,
-  MyShoppersSVG,
-  NotificationSVG,
-  OrderSVG,
-  ResourcesSVG,
-  SettingsSVG,
-  StoreSVG,
-  SupportSVG,
-  TransactionsSVG
+    CompletedOrdersSVG,
+    CustomersSVG,
+    EarningsWalletSVG,
+    MyShoppersSVG,
+    NotificationSVG,
+    OrderSVG,
+    ResourcesSVG,
+    SettingsSVG,
+    StoreSVG,
+    TransactionsSVG
 } from '../../../components/icons';
 import DashboardCard from '../../../components/ui/DashboardCard';
 import { colors, shadows, spacing, typography } from '../../../styles/theme';
@@ -128,9 +127,6 @@ export default function FullySetUpStore() {
         </View>
         <View style={styles.headerRight}>
           <NotificationSVG width={24} height={24} color="white" />
-          <View style={{ marginLeft: 14 }}>
-            <SupportSVG width={24} height={24} color="white" />
-          </View>
         </View>
       </View>
 

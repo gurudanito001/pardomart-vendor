@@ -853,6 +853,50 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersVendorGet: async (vendorId?: string, status?: OrderStatus, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/orders/vendor`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1119,6 +1163,20 @@ export const OrderApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['OrderApi.ordersOrderIdDeliveryPathGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Order>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersVendorGet(vendorId, status, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.ordersVendorGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -1327,6 +1385,17 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
          */
         ordersOrderIdDeliveryPathGet(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<DeliveryPersonLocation>> {
             return localVarFp.ordersOrderIdDeliveryPathGet(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig): AxiosPromise<Array<Order>> {
+            return localVarFp.ordersVendorGet(vendorId, status, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1552,6 +1621,18 @@ export class OrderApi extends BaseAPI {
      */
     public ordersOrderIdDeliveryPathGet(orderId: string, options?: RawAxiosRequestConfig) {
         return OrderApiFp(this.configuration).ordersOrderIdDeliveryPathGet(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+     * @summary Get all orders for a vendor user\'s stores
+     * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+     * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).ordersVendorGet(vendorId, status, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

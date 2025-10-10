@@ -14,8 +14,7 @@
 
 
 
-export interface VendorWithRatingAndDistanceAllOfRating {
-    'average'?: number;
-    'count'?: number;
+export interface TransactionsCreatePaymentIntentPost200Response {
+    'clientSecret'?: string;
 }
 

@@ -15,28 +15,32 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { TransactionSource } from './transaction-source';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { TransactionStatus } from './transaction-status';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { TransactionType } from './transaction-type';
 
-export interface WalletTransaction {
+export interface Transaction {
     'id'?: string;
-    'walletId'?: string;
-    /**
-     * Positive for credit, negative for debit.
-     */
+    'userId'?: string;
     'amount'?: number;
     'type'?: TransactionType;
+    'source'?: TransactionSource;
     'status'?: TransactionStatus;
     'description'?: string | null;
+    'orderId'?: string;
     /**
-     * Extra metadata, like an order ID.
+     * ID from the external payment provider (e.g., Stripe Payment Intent ID).
+     */
+    'externalId'?: string | null;
+    /**
+     * Additional metadata, such as payment details from Stripe.
      */
     'meta'?: object | null;
     'createdAt'?: string;
     'updatedAt'?: string;
 }
-
-
 

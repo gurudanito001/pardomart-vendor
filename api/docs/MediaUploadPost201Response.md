@@ -1,19 +1,21 @@
-# VendorWithRatingAndDistance
+# MediaUploadPost201Response
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**status** | [**OrderStatus**](OrderStatus.md) |  | [default to undefined]
+**message** | **string** |  | [optional] [default to undefined]
+**data** | [**Media**](Media.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { VendorWithRatingAndDistance } from './api';
+import { MediaUploadPost201Response } from './api';
 
-const instance: VendorWithRatingAndDistance = {
-    status,
+const instance: MediaUploadPost201Response = {
+    message,
+    data,
 };
 ```
 

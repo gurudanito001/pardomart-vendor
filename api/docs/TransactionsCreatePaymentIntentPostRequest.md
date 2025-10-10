@@ -1,19 +1,19 @@
-# VendorWithRatingAndDistance
+# TransactionsCreatePaymentIntentPostRequest
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**status** | [**OrderStatus**](OrderStatus.md) |  | [default to undefined]
+**orderId** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { VendorWithRatingAndDistance } from './api';
+import { TransactionsCreatePaymentIntentPostRequest } from './api';
 
-const instance: VendorWithRatingAndDistance = {
-    status,
+const instance: TransactionsCreatePaymentIntentPostRequest = {
+    orderId,
 };
 ```
 

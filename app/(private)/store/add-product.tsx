@@ -26,7 +26,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
 export default function AddProductScreen() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
@@ -84,9 +84,7 @@ export default function AddProductScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
+  
 
   const handleCancel = () => {
     router.back();
@@ -182,9 +180,6 @@ export default function AddProductScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
               <NotificationSVG />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-              <SupportSVG />
             </TouchableOpacity>
           </View>
         </View>

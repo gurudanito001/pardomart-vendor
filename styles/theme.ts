@@ -4,34 +4,42 @@ import { responsiveFont, responsiveSpacing } from '../utils/responsive';
 // Color palette
 export const colors = {
   primary: '#06888C',
-  primaryLight: 'rgba(6, 136, 140, 0.02)',
+  primaryDark: '#056B70',
+  primaryLight: '#E6F4F3',
+  primaryMuted: '#B4DBDD',
   secondary: '#2B84B3',
+  // use the project's primary green as the accent color for consistency
+  accent: '#06888C',
+  accentLight: '#E6F4F3',
   success: '#01891C',
   warning: '#F8BB15',
   error: '#E94435',
-  
+
   // Text colors
-  textPrimary: '#000',
+  textPrimary: '#101828',
   textSecondary: '#2B2829',
   textMuted: '#7C8BA0',
   textLight: '#888',
   textPlaceholder: '#6F7380',
-  
+
   // Background colors
-  background: '#FFF',
-  backgroundLight: '#F5F9FE',
+  background: '#FFFFFF',
+  backgroundLight: '#F2FBFA',
   backgroundGray: '#D9D9D9',
   backgroundDark: '#1E1E1E',
-  
+  surface: '#FFFFFF',
+  surfaceMuted: '#F7FAFC',
+  surfaceElevated: '#FEFEFE',
+
   // Border colors
   border: '#B4BED4',
   borderLight: '#CBD5E1',
   borderFocus: '#06888C',
-  
+
   // Status bar
-  statusBarBg: '#FFF',
-  statusBarContent: 'dark-content' as const,
-  statusBarContentDark: 'light-content' as const,
+  statusBarBg: '#06888C',
+  statusBarContent: 'light-content' as const,
+  statusBarContentDark: 'dark-content' as const,
 };
 
 // Typography

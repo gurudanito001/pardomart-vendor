@@ -36,15 +36,23 @@ import type { PaginatedTrendingVendorProducts } from '../models';
 // @ts-ignore
 import type { PaginatedVendors } from '../models';
 // @ts-ignore
+import type { TransactionWithRelations } from '../models';
+// @ts-ignore
 import type { UpdateOrderItemShoppingStatusPayload } from '../models';
 // @ts-ignore
 import type { UpdateVendorPayload } from '../models';
+// @ts-ignore
+import type { Vendor } from '../models';
+// @ts-ignore
+import type { VendorListItem } from '../models';
 // @ts-ignore
 import type { VendorOrder } from '../models';
 // @ts-ignore
 import type { VendorWithDetails } from '../models';
 // @ts-ignore
 import type { VendorWithRelations } from '../models';
+// @ts-ignore
+import type { VendorsIncompleteSetupsGet200Response } from '../models';
 /**
  * VendorApi - axios parameter creator
  */
@@ -256,6 +264,50 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersVendorGet: async (vendorId?: string, status?: OrderStatus, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/orders/vendor`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
          * @summary Get trending vendor products
          * @param {string} [vendorId] Optional. Filter trending products by a specific vendor ID.
@@ -287,6 +339,45 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
 
             if (size !== undefined) {
                 localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsVendorGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/vendor`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
             }
 
 
@@ -376,6 +467,40 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
             }
 
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Marks a vendor\'s store as verified by setting `isVerified` to true. This is intended to be an admin-only action. 
+         * @summary Approve a vendor\'s store (Admin)
+         * @param {string} id The ID of the vendor to approve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIdApprovePatch: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('vendorsIdApprovePatch', 'id', id)
+            const localVarPath = `/vendors/{id}/approve`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -521,6 +646,78 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Marks a vendor\'s store as published by setting `isPublished` to true, making it visible to customers. Only the user who owns the vendor can perform this action. 
+         * @summary Publish a vendor\'s store
+         * @param {string} id The ID of the vendor to publish.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIdPublishPatch: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('vendorsIdPublishPatch', 'id', id)
+            const localVarPath = `/vendors/{id}/publish`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a list of vendors for the authenticated user that have not completed their setup. A setup is considered incomplete if the vendor has either not added any products OR has uploaded fewer than two documents. 
+         * @summary Find vendors with incomplete setup
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIncompleteSetupsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vendors/incomplete-setups`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Creates a new vendor profile linked to the authenticated user. Default opening hours from 9:00 to 18:00 are created automatically for all days of the week.
          * @summary Create a new vendor
          * @param {CreateVendorPayload} createVendorPayload 
@@ -638,6 +835,20 @@ export const VendorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Order>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersVendorGet(vendorId, status, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.ordersVendorGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
          * @summary Get trending vendor products
          * @param {string} [vendorId] Optional. Filter trending products by a specific vendor ID.
@@ -650,6 +861,19 @@ export const VendorApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorTrendingGet(vendorId, page, size, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VendorApi.productVendorTrendingGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TransactionWithRelations>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsVendorGet(vendorId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.transactionsVendorGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -676,10 +900,23 @@ export const VendorApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VendorWithRelations>>> {
+        async vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<VendorListItem>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsGetvendorsbyUserIdGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsGetvendorsbyUserIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Marks a vendor\'s store as verified by setting `isVerified` to true. This is intended to be an admin-only action. 
+         * @summary Approve a vendor\'s store (Admin)
+         * @param {string} id The ID of the vendor to approve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async vendorsIdApprovePatch(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Vendor>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsIdApprovePatch(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsIdApprovePatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -722,6 +959,31 @@ export const VendorApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsIdPatch(updateVendorPayload, id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Marks a vendor\'s store as published by setting `isPublished` to true, making it visible to customers. Only the user who owns the vendor can perform this action. 
+         * @summary Publish a vendor\'s store
+         * @param {string} id The ID of the vendor to publish.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async vendorsIdPublishPatch(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Vendor>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsIdPublishPatch(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsIdPublishPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a list of vendors for the authenticated user that have not completed their setup. A setup is considered incomplete if the vendor has either not added any products OR has uploaded fewer than two documents. 
+         * @summary Find vendors with incomplete setup
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async vendorsIncompleteSetupsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VendorsIncompleteSetupsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsIncompleteSetupsGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.vendorsIncompleteSetupsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -800,6 +1062,17 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.orderVendorOrdersGet(status, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+         * @summary Get all orders for a vendor user\'s stores
+         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig): AxiosPromise<Array<Order>> {
+            return localVarFp.ordersVendorGet(vendorId, status, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
          * @summary Get trending vendor products
          * @param {string} [vendorId] Optional. Filter trending products by a specific vendor ID.
@@ -810,6 +1083,16 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
          */
         productVendorTrendingGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedTrendingVendorProducts> {
             return localVarFp.productVendorTrendingGet(vendorId, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * @summary Get payment transactions for a vendor user
+         * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<TransactionWithRelations>> {
+            return localVarFp.transactionsVendorGet(vendorId, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves a list of vendors. Can be filtered by name and sorted by proximity if latitude and longitude are provided. If the user is authenticated, it also returns the number of items in their cart for each vendor.
@@ -832,8 +1115,18 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorWithRelations>> {
+        vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorListItem>> {
             return localVarFp.vendorsGetvendorsbyUserIdGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Marks a vendor\'s store as verified by setting `isVerified` to true. This is intended to be an admin-only action. 
+         * @summary Approve a vendor\'s store (Admin)
+         * @param {string} id The ID of the vendor to approve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIdApprovePatch(id: string, options?: RawAxiosRequestConfig): AxiosPromise<Vendor> {
+            return localVarFp.vendorsIdApprovePatch(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -867,6 +1160,25 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
          */
         vendorsIdPatch(updateVendorPayload: UpdateVendorPayload, id: string, options?: RawAxiosRequestConfig): AxiosPromise<VendorWithRelations> {
             return localVarFp.vendorsIdPatch(updateVendorPayload, id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Marks a vendor\'s store as published by setting `isPublished` to true, making it visible to customers. Only the user who owns the vendor can perform this action. 
+         * @summary Publish a vendor\'s store
+         * @param {string} id The ID of the vendor to publish.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIdPublishPatch(id: string, options?: RawAxiosRequestConfig): AxiosPromise<Vendor> {
+            return localVarFp.vendorsIdPublishPatch(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of vendors for the authenticated user that have not completed their setup. A setup is considered incomplete if the vendor has either not added any products OR has uploaded fewer than two documents. 
+         * @summary Find vendors with incomplete setup
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsIncompleteSetupsGet(options?: RawAxiosRequestConfig): AxiosPromise<VendorsIncompleteSetupsGet200Response> {
+            return localVarFp.vendorsIncompleteSetupsGet(options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a new vendor profile linked to the authenticated user. Default opening hours from 9:00 to 18:00 are created automatically for all days of the week.
@@ -944,6 +1256,18 @@ export class VendorApi extends BaseAPI {
     }
 
     /**
+     * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+     * @summary Get all orders for a vendor user\'s stores
+     * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+     * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ordersVendorGet(vendorId?: string, status?: OrderStatus, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).ordersVendorGet(vendorId, status, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
      * @summary Get trending vendor products
      * @param {string} [vendorId] Optional. Filter trending products by a specific vendor ID.
@@ -954,6 +1278,17 @@ export class VendorApi extends BaseAPI {
      */
     public productVendorTrendingGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return VendorApiFp(this.configuration).productVendorTrendingGet(vendorId, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
+     * @summary Get payment transactions for a vendor user
+     * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).transactionsVendorGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -980,6 +1315,17 @@ export class VendorApi extends BaseAPI {
      */
     public vendorsGetvendorsbyUserIdGet(options?: RawAxiosRequestConfig) {
         return VendorApiFp(this.configuration).vendorsGetvendorsbyUserIdGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Marks a vendor\'s store as verified by setting `isVerified` to true. This is intended to be an admin-only action. 
+     * @summary Approve a vendor\'s store (Admin)
+     * @param {string} id The ID of the vendor to approve.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public vendorsIdApprovePatch(id: string, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).vendorsIdApprovePatch(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1016,6 +1362,27 @@ export class VendorApi extends BaseAPI {
      */
     public vendorsIdPatch(updateVendorPayload: UpdateVendorPayload, id: string, options?: RawAxiosRequestConfig) {
         return VendorApiFp(this.configuration).vendorsIdPatch(updateVendorPayload, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Marks a vendor\'s store as published by setting `isPublished` to true, making it visible to customers. Only the user who owns the vendor can perform this action. 
+     * @summary Publish a vendor\'s store
+     * @param {string} id The ID of the vendor to publish.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public vendorsIdPublishPatch(id: string, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).vendorsIdPublishPatch(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of vendors for the authenticated user that have not completed their setup. A setup is considered incomplete if the vendor has either not added any products OR has uploaded fewer than two documents. 
+     * @summary Find vendors with incomplete setup
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public vendorsIncompleteSetupsGet(options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).vendorsIncompleteSetupsGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

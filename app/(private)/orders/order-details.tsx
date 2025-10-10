@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ellipse, Line, Path, Rect, Svg } from 'react-native-svg';
-import { ArrowBackButtonSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG } from '../../../components/icons';
 
 interface OrderItem {
   id: string;
@@ -92,10 +92,6 @@ export default function OrderDetailsScreen() {
 
   const handleNotifications = () => {
     console.log('Open notifications');
-  };
-
-  const handleSupport = () => {
-    console.log('Open support');
   };
 
   const handleStartShopping = () => {
@@ -183,9 +179,7 @@ export default function OrderDetailsScreen() {
                 <TouchableOpacity onPress={handleNotifications}>
                   <NotificationSVG width={24} height={24} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSupport}>
-                  <SupportSVG width={24} height={24} color="black" />
-                </TouchableOpacity>
+                {/* Support icon removed from header (kept only on Help page) */}
               </View>
             </View>
           </SafeAreaView>

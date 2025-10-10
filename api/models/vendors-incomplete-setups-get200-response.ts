@@ -15,23 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { PaymentStatus } from './payment-status';
+import type { Vendor } from './vendor';
 
-export interface Payment {
-    'id'?: string;
-    'amount'?: number;
-    'currency'?: string;
-    'status'?: PaymentStatus;
-    'userId'?: string;
-    'orderId'?: string;
-    'stripePaymentIntentId'?: string;
-    /**
-     * Details about the payment method used, from Stripe.
-     */
-    'paymentMethodDetails'?: object | null;
-    'createdAt'?: string;
-    'updatedAt'?: string;
+export interface VendorsIncompleteSetupsGet200Response {
+    'incompleteVendors'?: Array<Vendor>;
 }
-
-
 

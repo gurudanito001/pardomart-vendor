@@ -509,13 +509,120 @@ export function useAvatarPicker(config: UseImagePickerConfig = {}) {
 }
 
 export function useDocumentPicker(config: UseImagePickerConfig = {}) {
-  return useImagePicker({
-    quality: 0.9,
+  const options = useMemo(() => ({
+    ...DEFAULT_CONFIG,
+    ...config,
     maxSize: FILE_SIZE_LIMITS.DOCUMENT,
     alertTitle: 'Select Document',
     alertMessage: Platform.OS === 'web'
       ? 'Choose your document file'
-      : 'Choose how you want to capture or select the document',
-    ...config,
+      : 'Choose a file source',
+  }) as Required<UseImagePickerConfig>, [config]);
+
+  const [state, setState] = useState<UseImagePickerState>({
+    selectedImage: null,
+    selectedImages: [],
+    isLoading: false,
+    error: null,
   });
+
+  const setLoading = useCallback((loading: boolean) => {
+    setState(prev => ({ ...prev, isLoading: loading }));
+  }, []);
+
+  const setError = useCallback((error: string | null) => {
+    setState(prev => ({ ...prev, error }));
+  }, []);
+
+  const clearImage = useCallback(() => {
+    setState(prev => ({ ...prev, selectedImage: null, error: null }));
+  }, []);
+
+  const showFileInputWeb = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = false;
+
+    return new Promise<ImagePickerResult | null>((resolve) => {
+      input.onchange = async (e) => {
+        try {
+          const target = e.target as HTMLInputElement;
+          const files = target.files;
+          const result = await handleWebFileSelection(files, options);
+          if (result) {
+            setState(prev => ({ ...prev, selectedImage: result }));
+          }
+          resolve(result);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to select file';
+          setError(message);
+          resolve(null);
+        }
+      };
+      input.oncancel = () => resolve(null);
+      input.click();
+    });
+  }, [options]);
+
+  const showImagePicker = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (Platform.OS === 'web') {
+        await showFileInputWeb();
+        return;
+      }
+
+      let DocumentPicker: any;
+      try {
+        DocumentPicker = await import('expo-document-picker');
+      } catch (e) {
+        setError('Document picker is not available.');
+        return;
+      }
+
+      const res = await DocumentPicker.getDocumentAsync({
+        type: ['image/*'],
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+      if (res.canceled) return;
+      const asset = res.assets?.[0];
+      if (!asset) return;
+
+      const result: ImagePickerResult = {
+        cancelled: false,
+        uri: asset.uri,
+        width: 0,
+        height: 0,
+        type: 'image',
+        fileName: asset.name,
+        fileSize: asset.size,
+      };
+
+      if (result.fileSize && result.fileSize > options.maxSize) {
+        setError(`File size should not exceed ${formatFileSize(options.maxSize)}`);
+        return;
+      }
+
+      setState(prev => ({ ...prev, selectedImage: result }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to pick document';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [options, setLoading, setError, showFileInputWeb]);
+
+  return {
+    ...state,
+    pickFromGallery: async () => null,
+    pickFromCamera: async () => null,
+    showImagePicker,
+    clearImage,
+    reset: () => setState({ selectedImage: null, selectedImages: [], isLoading: false, error: null }),
+  } as any;
 }

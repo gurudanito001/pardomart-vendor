@@ -23,6 +23,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**orderVendorOrdersGet**](#ordervendorordersget) | **GET** /order/vendorOrders | Get orders for a vendor\&#39;s dashboard|
 |[**ordersOrderIdDeliveryLocationPost**](#ordersorderiddeliverylocationpost) | **POST** /orders/{orderId}/delivery-location | Add a location point for a delivery person|
 |[**ordersOrderIdDeliveryPathGet**](#ordersorderiddeliverypathget) | **GET** /orders/{orderId}/delivery-path | Get the delivery path for an order|
+|[**ordersVendorGet**](#ordersvendorget) | **GET** /orders/vendor | Get all orders for a vendor user\&#39;s stores|
 
 # **apiV1OrderOrderIdMessagesGet**
 > Array<MessageWithRelations> apiV1OrderOrderIdMessagesGet()
@@ -1056,6 +1057,62 @@ const { status, data } = await apiInstance.ordersOrderIdDeliveryPathGet(
 |**200** | An array of location points, sorted by time. An empty array is returned if no path data exists yet. |  -  |
 |**403** | Forbidden. User is not authorized to view this path. |  -  |
 |**404** | Order not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **ordersVendorGet**
+> Array<Order> ordersVendorGet()
+
+Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+
+### Example
+
+```typescript
+import {
+    OrderApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new OrderApi(configuration);
+
+let vendorId: string; //Optional. Filter orders by a specific store ID owned by the user. (optional) (default to undefined)
+let status: OrderStatus; //Optional. Filter orders by a specific status. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.ordersVendorGet(
+    vendorId,
+    status
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter orders by a specific store ID owned by the user. | (optional) defaults to undefined|
+| **status** | **OrderStatus** | Optional. Filter orders by a specific status. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Order>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of orders matching the criteria. |  -  |
+|**403** | Forbidden if the user tries to access a vendor they do not own. |  -  |
+|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

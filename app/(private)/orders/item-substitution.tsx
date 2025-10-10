@@ -1,16 +1,16 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-import { ArrowBackButtonSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
 
 interface OrderedItem {
   id: string;
@@ -54,9 +54,7 @@ export default function ItemSubstitutionScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
+  
 
   const handleChatCustomer = () => {
     console.log('Chat with customer');
@@ -85,9 +83,6 @@ export default function ItemSubstitutionScreen() {
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={handleNotifications}>
                 <NotificationSVG width={24} height={24} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSupport}>
-                <SupportSVG width={24} height={24} color="white" />
               </TouchableOpacity>
             </View>
           </View>

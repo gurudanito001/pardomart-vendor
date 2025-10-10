@@ -1,16 +1,16 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
 interface Order {
   id: string;
@@ -69,9 +69,6 @@ export default function OrdersScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
 
   const handlePreviewOrder = (orderId: string) => {
     console.log('Preview order:', orderId);
@@ -191,9 +188,7 @@ export default function OrdersScreen() {
               <NotificationSVG width={24} height={24} color="white" />
             </TouchableOpacity>
             
-            <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-              <SupportSVG width={24} height={24} color="white" />
-            </TouchableOpacity>
+            {/* Support icon removed from header (kept only on Help page) */}
           </View>
         </View>
 

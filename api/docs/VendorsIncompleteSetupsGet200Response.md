@@ -1,19 +1,19 @@
-# VendorWithRatingAndDistance
+# VendorsIncompleteSetupsGet200Response
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**status** | [**OrderStatus**](OrderStatus.md) |  | [default to undefined]
+**incompleteVendors** | [**Array&lt;Vendor&gt;**](Vendor.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { VendorWithRatingAndDistance } from './api';
+import { VendorsIncompleteSetupsGet200Response } from './api';
 
-const instance: VendorWithRatingAndDistance = {
-    status,
+const instance: VendorsIncompleteSetupsGet200Response = {
+    incompleteVendors,
 };
 ```
 

@@ -21,12 +21,12 @@ export interface AuthVerifyLoginPostRequest {
 }
 
 export const AuthVerifyLoginPostRequestRoleEnum = {
-    Admin: 'admin',
-    Vendor: 'vendor',
-    VendorStaff: 'vendor_staff',
-    Delivery: 'delivery',
     Customer: 'customer',
-    Shopper: 'shopper'
+    Vendor: 'vendor',
+    StoreAdmin: 'store_admin',
+    StoreShopper: 'store_shopper',
+    DeliveryPerson: 'delivery_person',
+    Admin: 'admin'
 } as const;
 
 export type AuthVerifyLoginPostRequestRoleEnum = typeof AuthVerifyLoginPostRequestRoleEnum[keyof typeof AuthVerifyLoginPostRequestRoleEnum];

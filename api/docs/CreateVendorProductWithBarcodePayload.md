@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **categoryIds** | **Array&lt;string&gt;** |  | [default to undefined]
 **discountedPrice** | **number** |  | [optional] [default to undefined]
 **sku** | **string** |  | [optional] [default to undefined]
-**images** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**images** | **Array&lt;string&gt;** | Array of image URLs or base64 encoded strings. | [optional] [default to undefined]
 **stock** | **number** |  | [optional] [default to undefined]
 **isAvailable** | **boolean** |  | [optional] [default to true]
 **attributes** | **{ [key: string]: any; }** |  | [optional] [default to undefined]

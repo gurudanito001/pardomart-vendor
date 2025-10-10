@@ -1,15 +1,15 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowBackButtonSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
 
 interface ProductItem {
   id: string;
@@ -40,9 +40,7 @@ export default function FindingItemScreen() {
     console.log('Open notifications');
   };
 
-  const handleSupport = () => {
-    console.log('Open support');
-  };
+  
 
   const handleCancel = () => {
     router.back();
@@ -74,9 +72,6 @@ export default function FindingItemScreen() {
             <View style={styles.headerActions}>
               <TouchableOpacity onPress={handleNotifications}>
                 <NotificationSVG width={24} height={24} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleSupport}>
-                <SupportSVG width={24} height={24} color="white" />
               </TouchableOpacity>
             </View>
           </View>

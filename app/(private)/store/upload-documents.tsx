@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import {
   Image,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Path, Svg } from "react-native-svg";
 import { apiConfig } from "../../../api/config";
 import { MediaApi } from "../../../api/endpoints/media-api";
@@ -103,6 +103,10 @@ export default function UploadDocumentsScreen() {
 
   const handleGoBack = () => {
     router.back();
+  };
+
+  const handleSkip = () => {
+    router.replace("/(private)/store" as any);
   };
 
   const handleStoreCertificateUpload = () => {
@@ -377,6 +381,14 @@ export default function UploadDocumentsScreen() {
           </View>
 
           <TouchableOpacity
+            onPress={handleSkip}
+            style={styles.skipLink}
+            accessibilityRole="button"
+          >
+            <Text style={styles.skipLinkText}>Skip</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.submitButton, isSubmitting && { opacity: 0.7 }]}
             onPress={handleSubmit}
             disabled={isSubmitting}
@@ -586,7 +598,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 9,
     elevation: 3,
-    marginTop: 68,
+    marginTop: 20,
   },
   submitButtonText: {
     fontSize: 20,
@@ -595,5 +607,15 @@ const styles = StyleSheet.create({
     color: "#FFF",
     textAlign: "center",
     lineHeight: 25,
+  },
+  skipLink: {
+    alignSelf: "center",
+    marginTop: 16,
+  },
+  skipLinkText: {
+    color: "#06888C",
+    fontSize: 16,
+    fontFamily: "Raleway",
+    fontWeight: "700",
   },
 });

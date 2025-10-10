@@ -15,13 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorProduct } from './vendor-product';
+import type { VendorProductWithRelations } from './vendor-product-with-relations';
 
 export interface PaginatedVendorProducts {
     'page'?: number;
     'totalPages'?: number;
     'pageSize'?: number;
     'totalCount'?: number;
-    'data'?: Array<VendorProduct>;
+    'data'?: Array<VendorProductWithRelations>;
 }
 

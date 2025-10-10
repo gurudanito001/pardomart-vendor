@@ -22,17 +22,17 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { Wallet } from '../models';
+import type { TransactionWithRelations } from '../models';
 // @ts-ignore
-import type { WalletTransaction } from '../models';
+import type { Wallet } from '../models';
 /**
  * WalletApi - axios parameter creator
  */
 export const WalletApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieves the wallet details and balance for the authenticated user. A wallet is created automatically on first access.
-         * @summary Get my wallet
+         * Retrieves the wallet details and balance for the currently authenticated user. If a wallet does not exist, it will be created automatically.
+         * @summary Get the authenticated user\'s wallet
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -65,8 +65,8 @@ export const WalletApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Retrieves the transaction history for the authenticated user\'s wallet.
-         * @summary Get my wallet transactions
+         * Retrieves a list of all financial transactions for the authenticated user.
+         * @summary Get the authenticated user\'s transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -108,8 +108,8 @@ export const WalletApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = WalletApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieves the wallet details and balance for the authenticated user. A wallet is created automatically on first access.
-         * @summary Get my wallet
+         * Retrieves the wallet details and balance for the currently authenticated user. If a wallet does not exist, it will be created automatically.
+         * @summary Get the authenticated user\'s wallet
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -120,12 +120,12 @@ export const WalletApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves the transaction history for the authenticated user\'s wallet.
-         * @summary Get my wallet transactions
+         * Retrieves a list of all financial transactions for the authenticated user.
+         * @summary Get the authenticated user\'s transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async walletMeTransactionsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<WalletTransaction>>> {
+        async walletMeTransactionsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TransactionWithRelations>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.walletMeTransactionsGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['WalletApi.walletMeTransactionsGet']?.[localVarOperationServerIndex]?.url;
@@ -141,8 +141,8 @@ export const WalletApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = WalletApiFp(configuration)
     return {
         /**
-         * Retrieves the wallet details and balance for the authenticated user. A wallet is created automatically on first access.
-         * @summary Get my wallet
+         * Retrieves the wallet details and balance for the currently authenticated user. If a wallet does not exist, it will be created automatically.
+         * @summary Get the authenticated user\'s wallet
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -150,12 +150,12 @@ export const WalletApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.walletMeGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves the transaction history for the authenticated user\'s wallet.
-         * @summary Get my wallet transactions
+         * Retrieves a list of all financial transactions for the authenticated user.
+         * @summary Get the authenticated user\'s transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        walletMeTransactionsGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<WalletTransaction>> {
+        walletMeTransactionsGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<TransactionWithRelations>> {
             return localVarFp.walletMeTransactionsGet(options).then((request) => request(axios, basePath));
         },
     };
@@ -166,8 +166,8 @@ export const WalletApiFactory = function (configuration?: Configuration, basePat
  */
 export class WalletApi extends BaseAPI {
     /**
-     * Retrieves the wallet details and balance for the authenticated user. A wallet is created automatically on first access.
-     * @summary Get my wallet
+     * Retrieves the wallet details and balance for the currently authenticated user. If a wallet does not exist, it will be created automatically.
+     * @summary Get the authenticated user\'s wallet
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -176,8 +176,8 @@ export class WalletApi extends BaseAPI {
     }
 
     /**
-     * Retrieves the transaction history for the authenticated user\'s wallet.
-     * @summary Get my wallet transactions
+     * Retrieves a list of all financial transactions for the authenticated user.
+     * @summary Get the authenticated user\'s transaction history
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */

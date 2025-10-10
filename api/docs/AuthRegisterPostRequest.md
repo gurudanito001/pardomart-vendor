@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **email** | **string** | The user\&#39;s email address. | [default to undefined]
 **mobileNumber** | **string** | The user\&#39;s mobile number in E.164 format. | [default to undefined]
 **role** | **string** | The role for the new user. | [default to undefined]
-**vendorId** | **string** | Required if role is \&#39;vendor_staff\&#39;. The ID of the vendor this staff member belongs to. | [optional] [default to undefined]
+**vendorId** | **string** | Required if role is \&#39;store_shopper\&#39;. The ID of the vendor this staff member belongs to. | [optional] [default to undefined]
 
 ## Example
 

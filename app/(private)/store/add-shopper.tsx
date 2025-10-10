@@ -7,17 +7,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowBackSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
 export default function AddShopperScreen() {
   const params = useLocalSearchParams<{ storeId?: string | string[] }>();
@@ -57,7 +57,7 @@ export default function AddShopperScreen() {
 
   const handleGoBack = () => router.back();
   const handleNotifications = () => router.push('/(private)/shared/notifications' as any);
-  const handleSupport = () => {};
+  
 
   const canSubmit = name.trim().length > 0 && email.trim().length > 0 && mobileNumber.trim().length > 0 && !!storeIdFromParam;
 
@@ -89,9 +89,6 @@ export default function AddShopperScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSupport} style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

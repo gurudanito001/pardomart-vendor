@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { MediaUploadPost201Response } from '../models';
 /**
  * MediaApi - axios parameter creator
  */
@@ -31,11 +33,11 @@ export const MediaApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Upload a media file
          * @param {File} file The file to upload.
          * @param {string} referenceId The ID of the resource this media is associated with (e.g., a user ID, product ID).
-         * @param {string} referenceType The name of the model this media is associated with (e.g., \\\&quot;User\\\&quot;, \\\&quot;Product\\\&quot;, \\\&quot;Vendor\\\&quot;).
+         * @param {MediaUploadPostReferenceTypeEnum} referenceType The type of resource the media is associated with.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        mediaUploadPost: async (file: File, referenceId: string, referenceType: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        mediaUploadPost: async (file: File, referenceId: string, referenceType: MediaUploadPostReferenceTypeEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'file' is not null or undefined
             assertParamExists('mediaUploadPost', 'file', file)
             // verify required parameter 'referenceId' is not null or undefined
@@ -99,11 +101,11 @@ export const MediaApiFp = function(configuration?: Configuration) {
          * @summary Upload a media file
          * @param {File} file The file to upload.
          * @param {string} referenceId The ID of the resource this media is associated with (e.g., a user ID, product ID).
-         * @param {string} referenceType The name of the model this media is associated with (e.g., \\\&quot;User\\\&quot;, \\\&quot;Product\\\&quot;, \\\&quot;Vendor\\\&quot;).
+         * @param {MediaUploadPostReferenceTypeEnum} referenceType The type of resource the media is associated with.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async mediaUploadPost(file: File, referenceId: string, referenceType: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async mediaUploadPost(file: File, referenceId: string, referenceType: MediaUploadPostReferenceTypeEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MediaUploadPost201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.mediaUploadPost(file, referenceId, referenceType, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MediaApi.mediaUploadPost']?.[localVarOperationServerIndex]?.url;
@@ -123,11 +125,11 @@ export const MediaApiFactory = function (configuration?: Configuration, basePath
          * @summary Upload a media file
          * @param {File} file The file to upload.
          * @param {string} referenceId The ID of the resource this media is associated with (e.g., a user ID, product ID).
-         * @param {string} referenceType The name of the model this media is associated with (e.g., \\\&quot;User\\\&quot;, \\\&quot;Product\\\&quot;, \\\&quot;Vendor\\\&quot;).
+         * @param {MediaUploadPostReferenceTypeEnum} referenceType The type of resource the media is associated with.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        mediaUploadPost(file: File, referenceId: string, referenceType: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        mediaUploadPost(file: File, referenceId: string, referenceType: MediaUploadPostReferenceTypeEnum, options?: RawAxiosRequestConfig): AxiosPromise<MediaUploadPost201Response> {
             return localVarFp.mediaUploadPost(file, referenceId, referenceType, options).then((request) => request(axios, basePath));
         },
     };
@@ -142,12 +144,22 @@ export class MediaApi extends BaseAPI {
      * @summary Upload a media file
      * @param {File} file The file to upload.
      * @param {string} referenceId The ID of the resource this media is associated with (e.g., a user ID, product ID).
-     * @param {string} referenceType The name of the model this media is associated with (e.g., \\\&quot;User\\\&quot;, \\\&quot;Product\\\&quot;, \\\&quot;Vendor\\\&quot;).
+     * @param {MediaUploadPostReferenceTypeEnum} referenceType The type of resource the media is associated with.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public mediaUploadPost(file: File, referenceId: string, referenceType: string, options?: RawAxiosRequestConfig) {
+    public mediaUploadPost(file: File, referenceId: string, referenceType: MediaUploadPostReferenceTypeEnum, options?: RawAxiosRequestConfig) {
         return MediaApiFp(this.configuration).mediaUploadPost(file, referenceId, referenceType, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+export const MediaUploadPostReferenceTypeEnum = {
+    BugReportImage: 'bug_report_image',
+    UserImage: 'user_image',
+    StoreImage: 'store_image',
+    ProductImage: 'product_image',
+    CategoryImage: 'category_image',
+    Document: 'document',
+    Other: 'other'
+} as const;
+export type MediaUploadPostReferenceTypeEnum = typeof MediaUploadPostReferenceTypeEnum[keyof typeof MediaUploadPostReferenceTypeEnum];

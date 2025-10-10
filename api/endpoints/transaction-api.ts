@@ -22,29 +22,29 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1PaymentsCreatePaymentIntentPost200Response } from '../models';
-// @ts-ignore
-import type { ApiV1PaymentsCreatePaymentIntentPostRequest } from '../models';
-// @ts-ignore
-import type { Payment } from '../models';
-// @ts-ignore
 import type { SavedPaymentMethod } from '../models';
+// @ts-ignore
+import type { TransactionWithRelations } from '../models';
+// @ts-ignore
+import type { TransactionsCreatePaymentIntentPost200Response } from '../models';
+// @ts-ignore
+import type { TransactionsCreatePaymentIntentPostRequest } from '../models';
 /**
- * PaymentApi - axios parameter creator
+ * TransactionApi - axios parameter creator
  */
-export const PaymentApiAxiosParamCreator = function (configuration?: Configuration) {
+export const TransactionApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * 
          * @summary Create a Payment Intent for an order
-         * @param {ApiV1PaymentsCreatePaymentIntentPostRequest} apiV1PaymentsCreatePaymentIntentPostRequest 
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsCreatePaymentIntentPost: async (apiV1PaymentsCreatePaymentIntentPostRequest: ApiV1PaymentsCreatePaymentIntentPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'apiV1PaymentsCreatePaymentIntentPostRequest' is not null or undefined
-            assertParamExists('apiV1PaymentsCreatePaymentIntentPost', 'apiV1PaymentsCreatePaymentIntentPostRequest', apiV1PaymentsCreatePaymentIntentPostRequest)
-            const localVarPath = `/api/v1/payments/create-payment-intent`;
+        transactionsCreatePaymentIntentPost: async (transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionsCreatePaymentIntentPostRequest' is not null or undefined
+            assertParamExists('transactionsCreatePaymentIntentPost', 'transactionsCreatePaymentIntentPostRequest', transactionsCreatePaymentIntentPostRequest)
+            const localVarPath = `/transactions/create-payment-intent`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -67,7 +67,7 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(apiV1PaymentsCreatePaymentIntentPostRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(transactionsCreatePaymentIntentPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -76,12 +76,12 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @summary Get my payment history
+         * @summary Get my transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMeGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/payments/me`;
+        transactionsMeGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/me`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -114,8 +114,8 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMePaymentMethodsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/payments/me/payment-methods`;
+        transactionsMePaymentMethodsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/me/payment-methods`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -149,10 +149,10 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete: async (paymentMethodId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        transactionsMePaymentMethodsPaymentMethodIdDelete: async (paymentMethodId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'paymentMethodId' is not null or undefined
-            assertParamExists('apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete', 'paymentMethodId', paymentMethodId)
-            const localVarPath = `/api/v1/payments/me/payment-methods/{paymentMethodId}`
+            assertParamExists('transactionsMePaymentMethodsPaymentMethodIdDelete', 'paymentMethodId', paymentMethodId)
+            const localVarPath = `/transactions/me/payment-methods/{paymentMethodId}`
                 .replace(`{${"paymentMethodId"}}`, encodeURIComponent(String(paymentMethodId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -186,8 +186,8 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsSetupIntentPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/payments/setup-intent`;
+        transactionsSetupIntentPost: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/setup-intent`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -215,14 +215,14 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsVendorGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/payments/vendor`;
+        transactionsVendorGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/vendor`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -257,34 +257,34 @@ export const PaymentApiAxiosParamCreator = function (configuration?: Configurati
 };
 
 /**
- * PaymentApi - functional programming interface
+ * TransactionApi - functional programming interface
  */
-export const PaymentApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = PaymentApiAxiosParamCreator(configuration)
+export const TransactionApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TransactionApiAxiosParamCreator(configuration)
     return {
         /**
          * 
          * @summary Create a Payment Intent for an order
-         * @param {ApiV1PaymentsCreatePaymentIntentPostRequest} apiV1PaymentsCreatePaymentIntentPostRequest 
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest: ApiV1PaymentsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1PaymentsCreatePaymentIntentPost200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest, options);
+        async transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TransactionsCreatePaymentIntentPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsCreatePaymentIntentPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsCreatePaymentIntentPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Get my payment history
+         * @summary Get my transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Payment>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsMeGet(options);
+        async transactionsMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TransactionWithRelations>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsMeGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsMeGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsMeGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -293,10 +293,10 @@ export const PaymentApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsMePaymentMethodsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SavedPaymentMethod>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsMePaymentMethodsGet(options);
+        async transactionsMePaymentMethodsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SavedPaymentMethod>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsMePaymentMethodsGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsMePaymentMethodsGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsMePaymentMethodsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -306,10 +306,10 @@ export const PaymentApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options);
+        async transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsMePaymentMethodsPaymentMethodIdDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -318,52 +318,52 @@ export const PaymentApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsSetupIntentPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1PaymentsCreatePaymentIntentPost200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsSetupIntentPost(options);
+        async transactionsSetupIntentPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TransactionsCreatePaymentIntentPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsSetupIntentPost(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsSetupIntentPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsSetupIntentPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Payment>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1PaymentsVendorGet(vendorId, options);
+        async transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TransactionWithRelations>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsVendorGet(vendorId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['PaymentApi.apiV1PaymentsVendorGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsVendorGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
- * PaymentApi - factory interface
+ * TransactionApi - factory interface
  */
-export const PaymentApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = PaymentApiFp(configuration)
+export const TransactionApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TransactionApiFp(configuration)
     return {
         /**
          * 
          * @summary Create a Payment Intent for an order
-         * @param {ApiV1PaymentsCreatePaymentIntentPostRequest} apiV1PaymentsCreatePaymentIntentPostRequest 
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest: ApiV1PaymentsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1PaymentsCreatePaymentIntentPost200Response> {
-            return localVarFp.apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest, options).then((request) => request(axios, basePath));
+        transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<TransactionsCreatePaymentIntentPost200Response> {
+            return localVarFp.transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Get my payment history
+         * @summary Get my transaction history
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMeGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<Payment>> {
-            return localVarFp.apiV1PaymentsMeGet(options).then((request) => request(axios, basePath));
+        transactionsMeGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<TransactionWithRelations>> {
+            return localVarFp.transactionsMeGet(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -371,8 +371,8 @@ export const PaymentApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMePaymentMethodsGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<SavedPaymentMethod>> {
-            return localVarFp.apiV1PaymentsMePaymentMethodsGet(options).then((request) => request(axios, basePath));
+        transactionsMePaymentMethodsGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<SavedPaymentMethod>> {
+            return localVarFp.transactionsMePaymentMethodsGet(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -381,8 +381,8 @@ export const PaymentApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options).then((request) => request(axios, basePath));
+        transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a Setup Intent to be used on the client-side for saving a new card for future use.
@@ -390,45 +390,45 @@ export const PaymentApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsSetupIntentPost(options?: RawAxiosRequestConfig): AxiosPromise<ApiV1PaymentsCreatePaymentIntentPost200Response> {
-            return localVarFp.apiV1PaymentsSetupIntentPost(options).then((request) => request(axios, basePath));
+        transactionsSetupIntentPost(options?: RawAxiosRequestConfig): AxiosPromise<TransactionsCreatePaymentIntentPost200Response> {
+            return localVarFp.transactionsSetupIntentPost(options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+         * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<Payment>> {
-            return localVarFp.apiV1PaymentsVendorGet(vendorId, options).then((request) => request(axios, basePath));
+        transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<TransactionWithRelations>> {
+            return localVarFp.transactionsVendorGet(vendorId, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * PaymentApi - object-oriented interface
+ * TransactionApi - object-oriented interface
  */
-export class PaymentApi extends BaseAPI {
+export class TransactionApi extends BaseAPI {
     /**
      * 
      * @summary Create a Payment Intent for an order
-     * @param {ApiV1PaymentsCreatePaymentIntentPostRequest} apiV1PaymentsCreatePaymentIntentPostRequest 
+     * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest: ApiV1PaymentsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest, options).then((request) => request(this.axios, this.basePath));
+    public transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Get my payment history
+     * @summary Get my transaction history
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsMeGet(options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsMeGet(options).then((request) => request(this.axios, this.basePath));
+    public transactionsMeGet(options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsMeGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -437,8 +437,8 @@ export class PaymentApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsMePaymentMethodsGet(options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsMePaymentMethodsGet(options).then((request) => request(this.axios, this.basePath));
+    public transactionsMePaymentMethodsGet(options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsMePaymentMethodsGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -448,8 +448,8 @@ export class PaymentApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options).then((request) => request(this.axios, this.basePath));
+    public transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsMePaymentMethodsPaymentMethodIdDelete(paymentMethodId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -458,19 +458,19 @@ export class PaymentApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsSetupIntentPost(options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsSetupIntentPost(options).then((request) => request(this.axios, this.basePath));
+    public transactionsSetupIntentPost(options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsSetupIntentPost(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+     * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
      * @summary Get payment transactions for a vendor user
      * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1PaymentsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig) {
-        return PaymentApiFp(this.configuration).apiV1PaymentsVendorGet(vendorId, options).then((request) => request(this.axios, this.basePath));
+    public transactionsVendorGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsVendorGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

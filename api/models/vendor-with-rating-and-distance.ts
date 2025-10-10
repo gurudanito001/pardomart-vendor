@@ -15,14 +15,11 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { Vendor } from './vendor';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { VendorWithRatingAndDistanceAllOfRating } from './vendor-with-rating-and-distance-all-of-rating';
+import type { OrderStatus } from './order-status';
 
-/**
- * @type VendorWithRatingAndDistance
- */
-export type VendorWithRatingAndDistance = Vendor;
+export interface VendorWithRatingAndDistance {
+    'status': OrderStatus;
+}
+
 
 

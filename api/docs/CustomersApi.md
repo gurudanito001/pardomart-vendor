@@ -7,7 +7,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**customersGet**](#customersget) | **GET** /customers | List customers for a vendor account or a specific store|
 
 # **customersGet**
-> customersGet()
+> Array<UserSummary> customersGet()
 
 
 ### Example
@@ -37,7 +37,7 @@ const { status, data } = await apiInstance.customersGet(
 
 ### Return type
 
-void (empty response body)
+**Array<UserSummary>**
 
 ### Authorization
 
@@ -46,13 +46,13 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | A list of customers who have made a purchase. |  -  |
+|**200** | A list of customers who have made a purchase from the vendor\&#39;s store(s). |  -  |
 |**403** | Forbidden. The authenticated user does not own the specified vendor. |  -  |
 |**500** | Internal server error. |  -  |
 

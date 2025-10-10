@@ -1,17 +1,17 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ellipse, Path, Rect, Svg } from 'react-native-svg';
-import { ArrowBackButtonSVG, NotificationSVG, SupportSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
 import { Button } from '../../../components/ui/Button';
 
 interface OTPInputProps {
@@ -152,9 +152,6 @@ export default function VerifyOrderCode() {
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction}>
-            <SupportSVG width={24} height={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

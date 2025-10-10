@@ -21,6 +21,8 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from '../common';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
+// @ts-ignore
+import type { UserSummary } from '../models';
 /**
  * CustomersApi - axios parameter creator
  */
@@ -81,7 +83,7 @@ export const CustomersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async customersGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async customersGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<UserSummary>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.customersGet(vendorId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersGet']?.[localVarOperationServerIndex]?.url;
@@ -103,7 +105,7 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        customersGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        customersGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<UserSummary>> {
             return localVarFp.customersGet(vendorId, options).then((request) => request(axios, basePath));
         },
     };
