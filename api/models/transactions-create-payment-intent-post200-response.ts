@@ -14,7 +14,7 @@
 
 
 
-export interface ApiV1PaymentsCreatePaymentIntentPost200Response {
+export interface TransactionsCreatePaymentIntentPost200Response {
     'clientSecret'?: string;
 }
 

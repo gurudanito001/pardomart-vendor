@@ -4,13 +4,13 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**walletMeGet**](#walletmeget) | **GET** /wallet/me | Get my wallet|
-|[**walletMeTransactionsGet**](#walletmetransactionsget) | **GET** /wallet/me/transactions | Get my wallet transactions|
+|[**walletMeGet**](#walletmeget) | **GET** /wallet/me | Get the authenticated user\&#39;s wallet|
+|[**walletMeTransactionsGet**](#walletmetransactionsget) | **GET** /wallet/me/transactions | Get the authenticated user\&#39;s transaction history|
 
 # **walletMeGet**
 > Wallet walletMeGet()
 
-Retrieves the wallet details and balance for the authenticated user. A wallet is created automatically on first access.
+Retrieves the wallet details and balance for the currently authenticated user. If a wallet does not exist, it will be created automatically.
 
 ### Example
 
@@ -48,15 +48,14 @@ This endpoint does not have any parameters.
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | The user\&#39;s wallet. |  -  |
-|**401** | Unauthorized. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **walletMeTransactionsGet**
-> Array<WalletTransaction> walletMeTransactionsGet()
+> Array<TransactionWithRelations> walletMeTransactionsGet()
 
-Retrieves the transaction history for the authenticated user\'s wallet.
+Retrieves a list of all financial transactions for the authenticated user.
 
 ### Example
 
@@ -78,7 +77,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<WalletTransaction>**
+**Array<TransactionWithRelations>**
 
 ### Authorization
 
@@ -93,8 +92,7 @@ This endpoint does not have any parameters.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | A list of wallet transactions. |  -  |
-|**401** | Unauthorized. |  -  |
+|**200** | A list of the user\&#39;s transactions. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

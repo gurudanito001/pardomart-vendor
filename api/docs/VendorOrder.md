@@ -27,7 +27,7 @@ Name | Type | Description | Notes
 **updatedAt** | **string** |  | [optional] [default to undefined]
 **orderItems** | [**Array&lt;OrderItemWithRelations&gt;**](OrderItemWithRelations.md) |  | [optional] [default to undefined]
 **user** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
-**vendor** | [**VendorWithRatingAndDistance**](VendorWithRatingAndDistance.md) |  | [optional] [default to undefined]
+**vendor** | [**VendorWithDetails**](VendorWithDetails.md) |  | [optional] [default to undefined]
 **deliveryAddress** | [**DeliveryAddress**](DeliveryAddress.md) |  | [optional] [default to undefined]
 **shopper** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
 **deliverer** | [**User**](User.md) |  | [optional] [default to undefined]

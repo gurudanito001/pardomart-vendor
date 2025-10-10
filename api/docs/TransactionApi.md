@@ -1,36 +1,36 @@
-# PaymentApi
+# TransactionApi
 
 All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiV1PaymentsCreatePaymentIntentPost**](#apiv1paymentscreatepaymentintentpost) | **POST** /api/v1/payments/create-payment-intent | Create a Payment Intent for an order|
-|[**apiV1PaymentsMeGet**](#apiv1paymentsmeget) | **GET** /api/v1/payments/me | Get my payment history|
-|[**apiV1PaymentsMePaymentMethodsGet**](#apiv1paymentsmepaymentmethodsget) | **GET** /api/v1/payments/me/payment-methods | Get my saved payment methods|
-|[**apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete**](#apiv1paymentsmepaymentmethodspaymentmethodiddelete) | **DELETE** /api/v1/payments/me/payment-methods/{paymentMethodId} | Delete a saved payment method|
-|[**apiV1PaymentsSetupIntentPost**](#apiv1paymentssetupintentpost) | **POST** /api/v1/payments/setup-intent | Create a Setup Intent to save a new payment method|
-|[**apiV1PaymentsVendorGet**](#apiv1paymentsvendorget) | **GET** /api/v1/payments/vendor | Get payment transactions for a vendor user|
+|[**transactionsCreatePaymentIntentPost**](#transactionscreatepaymentintentpost) | **POST** /transactions/create-payment-intent | Create a Payment Intent for an order|
+|[**transactionsMeGet**](#transactionsmeget) | **GET** /transactions/me | Get my transaction history|
+|[**transactionsMePaymentMethodsGet**](#transactionsmepaymentmethodsget) | **GET** /transactions/me/payment-methods | Get my saved payment methods|
+|[**transactionsMePaymentMethodsPaymentMethodIdDelete**](#transactionsmepaymentmethodspaymentmethodiddelete) | **DELETE** /transactions/me/payment-methods/{paymentMethodId} | Delete a saved payment method|
+|[**transactionsSetupIntentPost**](#transactionssetupintentpost) | **POST** /transactions/setup-intent | Create a Setup Intent to save a new payment method|
+|[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
 
-# **apiV1PaymentsCreatePaymentIntentPost**
-> ApiV1PaymentsCreatePaymentIntentPost200Response apiV1PaymentsCreatePaymentIntentPost(apiV1PaymentsCreatePaymentIntentPostRequest)
+# **transactionsCreatePaymentIntentPost**
+> TransactionsCreatePaymentIntentPost200Response transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest)
 
 
 ### Example
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration,
-    ApiV1PaymentsCreatePaymentIntentPostRequest
+    TransactionsCreatePaymentIntentPostRequest
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
-let apiV1PaymentsCreatePaymentIntentPostRequest: ApiV1PaymentsCreatePaymentIntentPostRequest; //
+let transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest; //
 
-const { status, data } = await apiInstance.apiV1PaymentsCreatePaymentIntentPost(
-    apiV1PaymentsCreatePaymentIntentPostRequest
+const { status, data } = await apiInstance.transactionsCreatePaymentIntentPost(
+    transactionsCreatePaymentIntentPostRequest
 );
 ```
 
@@ -38,12 +38,12 @@ const { status, data } = await apiInstance.apiV1PaymentsCreatePaymentIntentPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **apiV1PaymentsCreatePaymentIntentPostRequest** | **ApiV1PaymentsCreatePaymentIntentPostRequest**|  | |
+| **transactionsCreatePaymentIntentPostRequest** | **TransactionsCreatePaymentIntentPostRequest**|  | |
 
 
 ### Return type
 
-**ApiV1PaymentsCreatePaymentIntentPost200Response**
+**TransactionsCreatePaymentIntentPost200Response**
 
 ### Authorization
 
@@ -65,22 +65,22 @@ const { status, data } = await apiInstance.apiV1PaymentsCreatePaymentIntentPost(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1PaymentsMeGet**
-> Array<Payment> apiV1PaymentsMeGet()
+# **transactionsMeGet**
+> Array<TransactionWithRelations> transactionsMeGet()
 
 
 ### Example
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
-const { status, data } = await apiInstance.apiV1PaymentsMeGet();
+const { status, data } = await apiInstance.transactionsMeGet();
 ```
 
 ### Parameters
@@ -89,7 +89,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<Payment>**
+**Array<TransactionWithRelations>**
 
 ### Authorization
 
@@ -104,26 +104,26 @@ This endpoint does not have any parameters.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | A list of the user\&#39;s payments. |  -  |
+|**200** | A list of the user\&#39;s transactions. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1PaymentsMePaymentMethodsGet**
-> Array<SavedPaymentMethod> apiV1PaymentsMePaymentMethodsGet()
+# **transactionsMePaymentMethodsGet**
+> Array<SavedPaymentMethod> transactionsMePaymentMethodsGet()
 
 
 ### Example
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
-const { status, data } = await apiInstance.apiV1PaymentsMePaymentMethodsGet();
+const { status, data } = await apiInstance.transactionsMePaymentMethodsGet();
 ```
 
 ### Parameters
@@ -151,24 +151,24 @@ This endpoint does not have any parameters.
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete**
-> apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete()
+# **transactionsMePaymentMethodsPaymentMethodIdDelete**
+> transactionsMePaymentMethodsPaymentMethodIdDelete()
 
 
 ### Example
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
 let paymentMethodId: string; //The Stripe PaymentMethod ID (pm_...). (default to undefined)
 
-const { status, data } = await apiInstance.apiV1PaymentsMePaymentMethodsPaymentMethodIdDelete(
+const { status, data } = await apiInstance.transactionsMePaymentMethodsPaymentMethodIdDelete(
     paymentMethodId
 );
 ```
@@ -203,8 +203,8 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1PaymentsSetupIntentPost**
-> ApiV1PaymentsCreatePaymentIntentPost200Response apiV1PaymentsSetupIntentPost()
+# **transactionsSetupIntentPost**
+> TransactionsCreatePaymentIntentPost200Response transactionsSetupIntentPost()
 
 Creates a Setup Intent to be used on the client-side for saving a new card for future use.
 
@@ -212,14 +212,14 @@ Creates a Setup Intent to be used on the client-side for saving a new card for f
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
-const { status, data } = await apiInstance.apiV1PaymentsSetupIntentPost();
+const { status, data } = await apiInstance.transactionsSetupIntentPost();
 ```
 
 ### Parameters
@@ -228,7 +228,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**ApiV1PaymentsCreatePaymentIntentPost200Response**
+**TransactionsCreatePaymentIntentPost200Response**
 
 ### Authorization
 
@@ -249,25 +249,25 @@ This endpoint does not have any parameters.
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **apiV1PaymentsVendorGet**
-> Array<Payment> apiV1PaymentsVendorGet()
+# **transactionsVendorGet**
+> Array<TransactionWithRelations> transactionsVendorGet()
 
-Retrieves a list of all payments made to stores owned by the authenticated vendor user. Can be filtered by a specific store.
+Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
 
 ### Example
 
 ```typescript
 import {
-    PaymentApi,
+    TransactionApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new PaymentApi(configuration);
+const apiInstance = new TransactionApi(configuration);
 
 let vendorId: string; //Optional. The ID of a specific store (vendor) to filter payments for. (optional) (default to undefined)
 
-const { status, data } = await apiInstance.apiV1PaymentsVendorGet(
+const { status, data } = await apiInstance.transactionsVendorGet(
     vendorId
 );
 ```
@@ -281,7 +281,7 @@ const { status, data } = await apiInstance.apiV1PaymentsVendorGet(
 
 ### Return type
 
-**Array<Payment>**
+**Array<TransactionWithRelations>**
 
 ### Authorization
 

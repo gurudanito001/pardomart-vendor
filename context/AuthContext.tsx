@@ -5,6 +5,7 @@ import {
   AuthRegisterPostRequest,
   User
 } from '../api/models';
+import { AuthInitiateLoginPostRequestRoleEnum } from '../api/models/auth-initiate-login-post-request';
 import { STORAGE_KEYS } from '../constants';
 import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage';
 
@@ -126,10 +127,10 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 // Context interface
 interface AuthContextType {
   state: AuthState;
-  initiateLogin: (mobileNumber: string, role: 'vendor' | 'shopper') => Promise<any>;
+  initiateLogin: (mobileNumber: string, role: AuthInitiateLoginPostRequestRoleEnum) => Promise<any>;
   register: (data: any) => Promise<any>;
-  verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => Promise<any>;
-  resendOTP: (data: { identifier: string; role: 'vendor' | 'shopper' }) => Promise<any>;
+  verifyOTP: (data: { mobileNumber: string; verificationCode: string; role: AuthInitiateLoginPostRequestRoleEnum }) => Promise<any>;
+  resendOTP: (data: { identifier: string; role: AuthInitiateLoginPostRequestRoleEnum }) => Promise<any>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
   initializeAuth: () => Promise<void>;
@@ -198,19 +199,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           type: 'SET_AUTHENTICATED',
           payload: { user, token },
         });
-
-        // Then, verify the token with the server in the background
-        /* try {
-          const response = await authService.getCurrentUser();
-          if (JSON.stringify(response.data) !== JSON.stringify(user)) {
-            dispatch({ type: 'UPDATE_USER', payload: response.data });
-            await setStorageItem(STORAGE_KEYS.USER_DATA, response.data);
-          }
-        } catch (error) {
-          console.warn('Session token validation failed, logging out.', error);
-          await clearAuthStorage();
-          dispatch({ type: 'LOGOUT' });
-        } */
       } else {
         // No token found, user is not authenticated.
         // isLoading will be set to false in the failure case.
@@ -249,6 +237,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await authApi.authInitiateLoginPost({ mobileNumber, role });
+      console.log('Initiate Login Response:', response.data);
       // This action completes, but doesn't log the user in. Just finish loading.
       dispatch({ type: 'AUTH_FINISH' });
       return response.data;
@@ -271,11 +260,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const verifyOTP = async (data: { mobileNumber: string; verificationCode: string; role: 'vendor' | 'shopper' }) => {
+  const verifyOTP = async (data: { mobileNumber: string; verificationCode: string; role: AuthInitiateLoginPostRequestRoleEnum }) => {
     try {
       dispatch({ type: 'AUTH_START' });
       const response = await authApi.authVerifyLoginPost(data);
-      const payload = response.data;
+      console.log('Verify OTP Response:', response.data);
+      const payload = response.data as unknown as { user: User; token: string };
 
       await saveAuthData(payload?.user, payload.token);
 
@@ -292,7 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const resendOTP = async (data: { identifier: string; role: AuthRegisterPostRequest['role'] }) => {
+  const resendOTP = async (data: { identifier: string; role: AuthInitiateLoginPostRequestRoleEnum }) => {
     try {
       // This action doesn't need a loading spinner in the context,
       // as it's usually a small action on the verify screen.

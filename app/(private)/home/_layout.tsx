@@ -5,7 +5,6 @@ export default function HomeLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="setting-up-store" />
 
       <Stack.Screen name="earnings-wallet" />
       <Stack.Screen name="transactions" />

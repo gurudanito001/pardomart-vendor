@@ -24,9 +24,6 @@ import type { OrderStatus } from './order-status';
 import type { PaymentMethods } from './payment-methods';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { PaymentStatus } from './payment-status';
-// May contain unused imports in some cases
-// @ts-ignore
 import type { ShoppingMethod } from './shopping-method';
 
 export interface UpdateOrderPayload {
@@ -35,7 +32,7 @@ export interface UpdateOrderPayload {
     'serviceFee'?: number;
     'shoppingFee'?: number;
     'paymentMethod'?: PaymentMethods;
-    'paymentStatus'?: PaymentStatus;
+    'paymentStatus'?: UpdateOrderPayloadPaymentStatusEnum;
     'orderStatus'?: OrderStatus;
     'deliveryAddressId'?: string;
     'deliveryInstructions'?: string;
@@ -44,14 +41,14 @@ export interface UpdateOrderPayload {
     'shoppingMethod'?: ShoppingMethod;
     'deliveryMethod'?: DeliveryMethod;
     'scheduledShoppingStartTime'?: string;
-    'subtotal'?: number;
-    'shopperTip'?: number;
-    'deliveryPersonTip'?: number;
-    'shopperId'?: string;
-    'shoppingStartTime'?: string;
-    'scheduledDeliveryTime'?: string;
-    'actualDeliveryTime'?: string;
 }
 
+export const UpdateOrderPayloadPaymentStatusEnum = {
+    Pending: 'pending',
+    Paid: 'paid',
+    Failed: 'failed'
+} as const;
+
+export type UpdateOrderPayloadPaymentStatusEnum = typeof UpdateOrderPayloadPaymentStatusEnum[keyof typeof UpdateOrderPayloadPaymentStatusEnum];
 
 

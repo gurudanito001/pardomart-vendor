@@ -1,19 +1,21 @@
-# ApiV1PaymentsCreatePaymentIntentPostRequest
+# VendorWithDetailsAllOfRating
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**orderId** | **string** |  | [default to undefined]
+**average** | **number** |  | [optional] [default to undefined]
+**count** | **number** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ApiV1PaymentsCreatePaymentIntentPostRequest } from './api';
+import { VendorWithDetailsAllOfRating } from './api';
 
-const instance: ApiV1PaymentsCreatePaymentIntentPostRequest = {
-    orderId,
+const instance: VendorWithDetailsAllOfRating = {
+    average,
+    count,
 };
 ```
 

@@ -9,7 +9,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**authVerifyLoginPost**](#authverifyloginpost) | **POST** /auth/verify-login | Verify code and log in|
 
 # **authInitiateLoginPost**
-> authInitiateLoginPost(authInitiateLoginPostRequest)
+> AuthInitiateLoginPost200Response authInitiateLoginPost(authInitiateLoginPostRequest)
 
 Checks if a user exists with the given mobile number and role. If they exist, a verification code is sent to their mobile number.
 
@@ -41,7 +41,7 @@ const { status, data } = await apiInstance.authInitiateLoginPost(
 
 ### Return type
 
-void (empty response body)
+**AuthInitiateLoginPost200Response**
 
 ### Authorization
 
@@ -50,13 +50,13 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Verification code sent successfully. |  -  |
+|**200** | Verification code sent successfully. The actual role of the user is returned. |  -  |
 |**404** | User not found. |  -  |
 |**500** | Internal server error. |  -  |
 

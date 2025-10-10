@@ -37,12 +37,16 @@ export default function SignInScreen() {
       return;
     }
     try {
-      await initiateLogin(trimmedPhone, 'vendor');
+      const response = await initiateLogin(trimmedPhone, 'vendor');
       toast.success('Verification code sent!');
-      router.push({ pathname: '/auth/verify', params: { identifier: trimmedPhone } });
+      router.push({
+        pathname: '/auth/verify',
+        // Pass both identifier and the role from the API response
+        params: { identifier: trimmedPhone, role: response.role },
+      });
     } catch (err: any) {
       // Correctly access the nested error message from our custom ApiError
-      const errorMessage = err?.error?.message || 'An unexpected error occurred.';
+      const errorMessage = err?.response?.data?.message || 'An unexpected error occurred during sign in.';
       toast.error(errorMessage);
     }
   };

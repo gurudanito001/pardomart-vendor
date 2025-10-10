@@ -1,4 +1,4 @@
-# ApiV1PaymentsCreatePaymentIntentPost200Response
+# TransactionsCreatePaymentIntentPost200Response
 
 
 ## Properties
@@ -10,9 +10,9 @@ Name | Type | Description | Notes
 ## Example
 
 ```typescript
-import { ApiV1PaymentsCreatePaymentIntentPost200Response } from './api';
+import { TransactionsCreatePaymentIntentPost200Response } from './api';
 
-const instance: ApiV1PaymentsCreatePaymentIntentPost200Response = {
+const instance: TransactionsCreatePaymentIntentPost200Response = {
     clientSecret,
 };
 ```

@@ -14,8 +14,9 @@
 
 
 
-export interface VendorWithRatingAndDistanceAllOfRating {
-    'average'?: number;
-    'count'?: number;
+export interface TransactionWithRelationsAllOfOrder {
+    'id'?: string;
+    'orderCode'?: string;
+    'totalAmount'?: number;
 }
 

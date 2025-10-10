@@ -14,6 +14,8 @@ export default function StoreLayout() {
       <Stack.Screen name="add-product" />
       <Stack.Screen name="add-shopper" />
       <Stack.Screen name="fully-set-up-store" />
+      <Stack.Screen name="setting-up-store" />
+
     </Stack>
   );
 }

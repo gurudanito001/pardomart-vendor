@@ -28,6 +28,7 @@ const fetchDashboardData = async () => {
 
 export default function HomeScreen() {
   const { data, isLoading, error } = useQuery({ queryKey: ['dashboardData'], queryFn: fetchDashboardData });
+
   const handleSetupStore = () => {
     router.push("/(private)/home/setting-up-store" as any);
   };
@@ -344,27 +345,19 @@ export default function HomeScreen() {
 
           <View style={styles.gridRow}>
             <DashboardCard
-              title="Resources"
-              subtitle="Checkout your store informations now"
+              title="Products"
+              subtitle="Checkout your store products now"
               iconComponent={<ResourcesIcon />}
               onPress={() => handleCardPress("resources")}
             />
             <DashboardCard
               title="My Settings"
-              subtitle="Checkout your store informations now"
+              subtitle="Checkout your store settings now"
               iconComponent={<SettingsIcon />}
               onPress={() => handleCardPress("settings")}
             />
           </View>
 
-          <View style={styles.gridRow}>
-            <DashboardCard
-              title="Completed Orders"
-              subtitle="View all completed Orders and Verify Orders"
-              iconComponent={<CompletedOrdersIcon />}
-              onPress={() => handleCardPress("completed-orders")}
-            />
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

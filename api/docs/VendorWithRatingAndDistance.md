@@ -5,24 +5,25 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **string** |  | [optional] [default to undefined]
-**name** | **string** |  | [optional] [default to undefined]
-**description** | **string** |  | [optional] [default to undefined]
-**latitude** | **number** |  | [optional] [default to undefined]
-**longitude** | **number** |  | [optional] [default to undefined]
-**distance** | **number** | Distance to the vendor from the order\&#39;s delivery address in kilometers. | [optional] [default to undefined]
-**rating** | [**VendorWithRatingAndDistanceAllOfRating**](VendorWithRatingAndDistanceAllOfRating.md) |  | [optional] [default to undefined]
-**image** | **string** |  | [optional] [default to undefined]
-**address** | **string** |  | [optional] [default to undefined]
-**userId** | **string** |  | [optional] [default to undefined]
-**email** | **string** |  | [optional] [default to undefined]
-**tagline** | **string** |  | [optional] [default to undefined]
-**details** | **string** |  | [optional] [default to undefined]
-**timezone** | **string** |  | [optional] [default to undefined]
-**isVerified** | **boolean** |  | [optional] [default to undefined]
-**meta** | **object** |  | [optional] [default to undefined]
-**createdAt** | **string** |  | [optional] [default to undefined]
-**updatedAt** | **string** |  | [optional] [default to undefined]
+**subtotal** | **number** |  | [optional] [default to undefined]
+**totalAmount** | **number** |  | [optional] [default to undefined]
+**deliveryFee** | **number** |  | [optional] [default to undefined]
+**serviceFee** | **number** |  | [optional] [default to undefined]
+**shoppingFee** | **number** |  | [optional] [default to undefined]
+**shopperTip** | **number** |  | [optional] [default to undefined]
+**deliveryPersonTip** | **number** |  | [optional] [default to undefined]
+**paymentMethod** | [**PaymentMethods**](PaymentMethods.md) |  | [optional] [default to undefined]
+**paymentStatus** | [**PaymentStatus**](PaymentStatus.md) |  | [optional] [default to undefined]
+**orderStatus** | [**OrderStatus**](OrderStatus.md) |  | [optional] [default to undefined]
+**deliveryAddressId** | **string** |  | [optional] [default to undefined]
+**deliveryInstructions** | **string** |  | [optional] [default to undefined]
+**shopperId** | **string** |  | [optional] [default to undefined]
+**deliveryPersonId** | **string** |  | [optional] [default to undefined]
+**shoppingMethod** | [**ShoppingMethod**](ShoppingMethod.md) |  | [optional] [default to undefined]
+**deliveryMethod** | [**DeliveryMethod**](DeliveryMethod.md) |  | [optional] [default to undefined]
+**shoppingStartTime** | **string** |  | [optional] [default to undefined]
+**scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
+**actualDeliveryTime** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -30,24 +31,25 @@ Name | Type | Description | Notes
 import { VendorWithRatingAndDistance } from './api';
 
 const instance: VendorWithRatingAndDistance = {
-    id,
-    name,
-    description,
-    latitude,
-    longitude,
-    distance,
-    rating,
-    image,
-    address,
-    userId,
-    email,
-    tagline,
-    details,
-    timezone,
-    isVerified,
-    meta,
-    createdAt,
-    updatedAt,
+    subtotal,
+    totalAmount,
+    deliveryFee,
+    serviceFee,
+    shoppingFee,
+    shopperTip,
+    deliveryPersonTip,
+    paymentMethod,
+    paymentStatus,
+    orderStatus,
+    deliveryAddressId,
+    deliveryInstructions,
+    shopperId,
+    deliveryPersonId,
+    shoppingMethod,
+    deliveryMethod,
+    shoppingStartTime,
+    scheduledDeliveryTime,
+    actualDeliveryTime,
 };
 ```
 

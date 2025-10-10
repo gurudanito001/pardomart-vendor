@@ -11,10 +11,10 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#fff',
-          paddingTop: 10,
-          paddingBottom: 20,
+          display: 'flex',
+          alignItems: 'center',
           paddingHorizontal: 17,
-          height: 85,
+          height: 70,
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,

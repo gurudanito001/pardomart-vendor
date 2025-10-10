@@ -13,8 +13,12 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { Media } from './media';
 
-export interface ApiV1PaymentsCreatePaymentIntentPostRequest {
-    'orderId': string;
+export interface MediaUploadPost201Response {
+    'message'?: string;
+    'data'?: Media;
 }
 

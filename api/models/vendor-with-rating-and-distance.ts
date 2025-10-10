@@ -15,14 +15,41 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { Vendor } from './vendor';
+import type { DeliveryMethod } from './delivery-method';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorWithRatingAndDistanceAllOfRating } from './vendor-with-rating-and-distance-all-of-rating';
+import type { OrderStatus } from './order-status';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { PaymentMethods } from './payment-methods';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { PaymentStatus } from './payment-status';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { ShoppingMethod } from './shopping-method';
 
-/**
- * @type VendorWithRatingAndDistance
- */
-export type VendorWithRatingAndDistance = Vendor;
+export interface VendorWithRatingAndDistance {
+    'subtotal'?: number;
+    'totalAmount'?: number;
+    'deliveryFee'?: number;
+    'serviceFee'?: number;
+    'shoppingFee'?: number;
+    'shopperTip'?: number;
+    'deliveryPersonTip'?: number;
+    'paymentMethod'?: PaymentMethods;
+    'paymentStatus'?: PaymentStatus;
+    'orderStatus'?: OrderStatus;
+    'deliveryAddressId'?: string;
+    'deliveryInstructions'?: string;
+    'shopperId'?: string;
+    'deliveryPersonId'?: string;
+    'shoppingMethod'?: ShoppingMethod;
+    'deliveryMethod'?: DeliveryMethod;
+    'shoppingStartTime'?: string;
+    'scheduledDeliveryTime'?: string;
+    'actualDeliveryTime'?: string;
+}
+
 
 

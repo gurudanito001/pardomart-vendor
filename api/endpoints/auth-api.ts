@@ -22,6 +22,8 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { AuthInitiateLoginPost200Response } from '../models';
+// @ts-ignore
 import type { AuthInitiateLoginPostRequest } from '../models';
 // @ts-ignore
 import type { AuthRegisterPostRequest } from '../models';
@@ -156,7 +158,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthInitiateLoginPost200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authInitiateLoginPost(authInitiateLoginPostRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authInitiateLoginPost']?.[localVarOperationServerIndex]?.url;
@@ -204,7 +206,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        authInitiateLoginPost(authInitiateLoginPostRequest: AuthInitiateLoginPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthInitiateLoginPost200Response> {
             return localVarFp.authInitiateLoginPost(authInitiateLoginPostRequest, options).then((request) => request(axios, basePath));
         },
         /**

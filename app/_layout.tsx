@@ -9,7 +9,7 @@ import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Toaster as Sonner } from 'sonner-native';
+import { Toaster } from 'sonner-native';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -82,9 +82,9 @@ export default function AppLayout() {
               <ThemeProvider
                 value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
               >
-                <StatusBar style="auto" />
-                <Sonner position="bottom-center" theme={colorScheme === 'dark' ? 'dark' : 'light'} />
                 <RootLayout />
+                <StatusBar style="auto" />
+                <Toaster position="bottom-center" theme={colorScheme === 'dark' ? 'dark' : 'dark'} />
               </ThemeProvider>
             </AppProvider>
           </QueryClientProvider>

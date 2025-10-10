@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **serviceFee** | **number** |  | [optional] [default to undefined]
 **shoppingFee** | **number** |  | [optional] [default to undefined]
 **paymentMethod** | [**PaymentMethods**](PaymentMethods.md) |  | [optional] [default to undefined]
-**paymentStatus** | [**PaymentStatus**](PaymentStatus.md) |  | [optional] [default to undefined]
+**paymentStatus** | **string** |  | [optional] [default to undefined]
 **orderStatus** | [**OrderStatus**](OrderStatus.md) |  | [optional] [default to undefined]
 **deliveryAddressId** | **string** |  | [optional] [default to undefined]
 **deliveryInstructions** | **string** |  | [optional] [default to undefined]
@@ -19,13 +19,6 @@ Name | Type | Description | Notes
 **shoppingMethod** | [**ShoppingMethod**](ShoppingMethod.md) |  | [optional] [default to undefined]
 **deliveryMethod** | [**DeliveryMethod**](DeliveryMethod.md) |  | [optional] [default to undefined]
 **scheduledShoppingStartTime** | **string** |  | [optional] [default to undefined]
-**subtotal** | **number** |  | [optional] [default to undefined]
-**shopperTip** | **number** |  | [optional] [default to undefined]
-**deliveryPersonTip** | **number** |  | [optional] [default to undefined]
-**shopperId** | **string** |  | [optional] [default to undefined]
-**shoppingStartTime** | **string** |  | [optional] [default to undefined]
-**scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
-**actualDeliveryTime** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -47,13 +40,6 @@ const instance: UpdateOrderPayload = {
     shoppingMethod,
     deliveryMethod,
     scheduledShoppingStartTime,
-    subtotal,
-    shopperTip,
-    deliveryPersonTip,
-    shopperId,
-    shoppingStartTime,
-    scheduledDeliveryTime,
-    actualDeliveryTime,
 };
 ```
 

@@ -3,16 +3,16 @@
 
 ## Enum
 
-* `Admin` (value: `'admin'`)
+* `Customer` (value: `'customer'`)
 
 * `Vendor` (value: `'vendor'`)
 
-* `VendorStaff` (value: `'vendor_staff'`)
+* `StoreAdmin` (value: `'store_admin'`)
 
-* `Delivery` (value: `'delivery'`)
+* `StoreShopper` (value: `'store_shopper'`)
 
-* `Customer` (value: `'customer'`)
+* `DeliveryPerson` (value: `'delivery_person'`)
 
-* `Shopper` (value: `'shopper'`)
+* `Admin` (value: `'admin'`)
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

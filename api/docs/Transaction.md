@@ -1,4 +1,4 @@
-# WalletTransaction
+# Transaction
 
 
 ## Properties
@@ -6,27 +6,33 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **string** |  | [optional] [default to undefined]
-**walletId** | **string** |  | [optional] [default to undefined]
-**amount** | **number** | Positive for credit, negative for debit. | [optional] [default to undefined]
+**userId** | **string** |  | [optional] [default to undefined]
+**amount** | **number** |  | [optional] [default to undefined]
 **type** | [**TransactionType**](TransactionType.md) |  | [optional] [default to undefined]
+**source** | [**TransactionSource**](TransactionSource.md) |  | [optional] [default to undefined]
 **status** | [**TransactionStatus**](TransactionStatus.md) |  | [optional] [default to undefined]
 **description** | **string** |  | [optional] [default to undefined]
-**meta** | **object** | Extra metadata, like an order ID. | [optional] [default to undefined]
+**orderId** | **string** |  | [optional] [default to undefined]
+**externalId** | **string** | ID from the external payment provider (e.g., Stripe Payment Intent ID). | [optional] [default to undefined]
+**meta** | **object** | Additional metadata, such as payment details from Stripe. | [optional] [default to undefined]
 **createdAt** | **string** |  | [optional] [default to undefined]
 **updatedAt** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { WalletTransaction } from './api';
+import { Transaction } from './api';
 
-const instance: WalletTransaction = {
+const instance: Transaction = {
     id,
-    walletId,
+    userId,
     amount,
     type,
+    source,
     status,
     description,
+    orderId,
+    externalId,
     meta,
     createdAt,
     updatedAt,

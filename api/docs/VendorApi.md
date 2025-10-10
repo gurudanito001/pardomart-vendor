@@ -9,12 +9,17 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**orderOrderIdItemsItemIdUpdateShoppingStatusPatch**](#orderorderiditemsitemidupdateshoppingstatuspatch) | **PATCH** /order/{orderId}/items/{itemId}/update-shopping-status | Update the shopping status of an order item|
 |[**orderOrderIdStartShoppingPatch**](#orderorderidstartshoppingpatch) | **PATCH** /order/{orderId}/start-shopping | Mark an order as \&#39;currently shopping\&#39;|
 |[**orderVendorOrdersGet**](#ordervendorordersget) | **GET** /order/vendorOrders | Get orders for a vendor\&#39;s dashboard|
+|[**ordersVendorGet**](#ordersvendorget) | **GET** /orders/vendor | Get all orders for a vendor user\&#39;s stores|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
+|[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
 |[**vendorsGet**](#vendorsget) | **GET** /vendors | Get a paginated list of vendors|
 |[**vendorsGetvendorsbyUserIdGet**](#vendorsgetvendorsbyuseridget) | **GET** /vendors/getvendorsby/userId | Get all vendors for the authenticated user|
+|[**vendorsIdApprovePatch**](#vendorsidapprovepatch) | **PATCH** /vendors/{id}/approve | Approve a vendor\&#39;s store (Admin)|
 |[**vendorsIdDelete**](#vendorsiddelete) | **DELETE** /vendors/{id} | Delete a vendor|
 |[**vendorsIdGet**](#vendorsidget) | **GET** /vendors/{id} | Get a vendor by its ID|
 |[**vendorsIdPatch**](#vendorsidpatch) | **PATCH** /vendors/{id} | Update a vendor\&#39;s details|
+|[**vendorsIdPublishPatch**](#vendorsidpublishpatch) | **PATCH** /vendors/{id}/publish | Publish a vendor\&#39;s store|
+|[**vendorsIncompleteSetupsGet**](#vendorsincompletesetupsget) | **GET** /vendors/incomplete-setups | Find vendors with incomplete setup|
 |[**vendorsPost**](#vendorspost) | **POST** /vendors | Create a new vendor|
 
 # **orderOrderIdAcceptPatch**
@@ -285,6 +290,62 @@ const { status, data } = await apiInstance.orderVendorOrdersGet(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **ordersVendorGet**
+> Array<Order> ordersVendorGet()
+
+Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorId: string; //Optional. Filter orders by a specific store ID owned by the user. (optional) (default to undefined)
+let status: OrderStatus; //Optional. Filter orders by a specific status. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.ordersVendorGet(
+    vendorId,
+    status
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter orders by a specific store ID owned by the user. | (optional) defaults to undefined|
+| **status** | **OrderStatus** | Optional. Filter orders by a specific status. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Order>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of orders matching the criteria. |  -  |
+|**403** | Forbidden if the user tries to access a vendor they do not own. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **productVendorTrendingGet**
 > PaginatedTrendingVendorProducts productVendorTrendingGet()
 
@@ -339,6 +400,58 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | A paginated list of trending vendor products. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsVendorGet**
+> Array<TransactionWithRelations> transactionsVendorGet()
+
+Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorId: string; //Optional. The ID of a specific store (vendor) to filter payments for. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.transactionsVendorGet(
+    vendorId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. The ID of a specific store (vendor) to filter payments for. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<TransactionWithRelations>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of payment transactions. |  -  |
+|**403** | Forbidden. User is not a vendor. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -410,7 +523,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **vendorsGetvendorsbyUserIdGet**
-> Array<VendorWithRelations> vendorsGetvendorsbyUserIdGet()
+> Array<VendorListItem> vendorsGetvendorsbyUserIdGet()
 
 Retrieves a list of all vendors associated with the currently authenticated user.
 
@@ -434,7 +547,59 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**Array<VendorWithRelations>**
+**Array<VendorListItem>**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of the user\&#39;s vendors. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vendorsIdApprovePatch**
+> Vendor vendorsIdApprovePatch()
+
+Marks a vendor\'s store as verified by setting `isVerified` to true. This is intended to be an admin-only action. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let id: string; //The ID of the vendor to approve. (default to undefined)
+
+const { status, data } = await apiInstance.vendorsIdApprovePatch(
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **id** | [**string**] | The ID of the vendor to approve. | defaults to undefined|
+
+
+### Return type
+
+**Vendor**
 
 ### Authorization
 
@@ -449,7 +614,8 @@ This endpoint does not have any parameters.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | A list of the user\&#39;s vendors. |  -  |
+|**200** | The successfully approved vendor. |  -  |
+|**404** | Vendor not found. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -558,7 +724,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | The requested vendor with its associated user and opening hours. |  -  |
+|**200** | The requested vendor with detailed information including user, opening hours, rating, product/document counts, and distance. |  -  |
 |**404** | Vendor not found. |  -  |
 |**500** | Internal server error. |  -  |
 
@@ -616,6 +782,105 @@ const { status, data } = await apiInstance.vendorsIdPatch(
 |-------------|-------------|------------------|
 |**200** | The updated vendor. |  -  |
 |**404** | Vendor not found. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vendorsIdPublishPatch**
+> Vendor vendorsIdPublishPatch()
+
+Marks a vendor\'s store as published by setting `isPublished` to true, making it visible to customers. Only the user who owns the vendor can perform this action. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let id: string; //The ID of the vendor to publish. (default to undefined)
+
+const { status, data } = await apiInstance.vendorsIdPublishPatch(
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **id** | [**string**] | The ID of the vendor to publish. | defaults to undefined|
+
+
+### Return type
+
+**Vendor**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The successfully published vendor. |  -  |
+|**403** | Forbidden. User does not own this vendor. |  -  |
+|**404** | Vendor not found. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vendorsIncompleteSetupsGet**
+> VendorsIncompleteSetupsGet200Response vendorsIncompleteSetupsGet()
+
+Retrieves a list of vendors for the authenticated user that have not completed their setup. A setup is considered incomplete if the vendor has either not added any products OR has uploaded fewer than two documents. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+const { status, data } = await apiInstance.vendorsIncompleteSetupsGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**VendorsIncompleteSetupsGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of vendors with incomplete setups. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

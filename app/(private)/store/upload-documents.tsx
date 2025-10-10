@@ -4,7 +4,6 @@ import React, { useMemo, useState } from 'react';
 import {
   Image,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import { apiConfig } from '../../../api/config';
 import { MediaApi } from '../../../api/endpoints/media-api';

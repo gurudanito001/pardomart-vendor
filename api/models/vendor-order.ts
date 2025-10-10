@@ -42,7 +42,7 @@ import type { User } from './user';
 import type { UserSummary } from './user-summary';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorWithRatingAndDistance } from './vendor-with-rating-and-distance';
+import type { VendorWithDetails } from './vendor-with-details';
 
 /**
  * @type VendorOrder

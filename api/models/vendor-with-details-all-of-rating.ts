@@ -14,15 +14,8 @@
 
 
 
-
-export const TransactionStatus = {
-    Pending: 'PENDING',
-    Completed: 'COMPLETED',
-    Failed: 'FAILED',
-    Cancelled: 'CANCELLED'
-} as const;
-
-export type TransactionStatus = typeof TransactionStatus[keyof typeof TransactionStatus];
-
-
+export interface VendorWithDetailsAllOfRating {
+    'average'?: number;
+    'count'?: number;
+}
 

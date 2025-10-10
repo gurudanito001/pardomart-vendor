@@ -15,20 +15,23 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { User } from './user';
+import type { Transaction } from './transaction';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorOpeningHours } from './vendor-opening-hours';
+import type { TransactionSource } from './transaction-source';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorWithDetailsAllOfRating } from './vendor-with-details-all-of-rating';
+import type { TransactionStatus } from './transaction-status';
 // May contain unused imports in some cases
 // @ts-ignore
-import type { VendorWithRelations } from './vendor-with-relations';
+import type { TransactionType } from './transaction-type';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { TransactionWithRelationsAllOfOrder } from './transaction-with-relations-all-of-order';
 
 /**
- * @type VendorWithDetails
+ * @type TransactionWithRelations
  */
-export type VendorWithDetails = VendorWithRelations;
+export type TransactionWithRelations = Transaction;
 
 

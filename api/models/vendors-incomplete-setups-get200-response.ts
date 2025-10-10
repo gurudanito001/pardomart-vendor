@@ -15,15 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { TrendingVendorProduct } from './trending-vendor-product';
+import type { Vendor } from './vendor';
 
-export interface PaginatedTrendingVendorProducts {
-    'page'?: number;
-    /**
-     * Total number of unique trending products.
-     */
-    'total'?: number;
-    'size'?: number;
-    'data'?: Array<TrendingVendorProduct>;
+export interface VendorsIncompleteSetupsGet200Response {
+    'incompleteVendors'?: Array<Vendor>;
 }
 

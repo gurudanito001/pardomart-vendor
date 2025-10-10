@@ -128,7 +128,7 @@ export default function AddProductScreen() {
       sku: sku.trim() || undefined,
       stock: stock ? parseInt(stock, 10) : undefined,
       isAvailable,
-      tags: tagIds,
+      tagIds: tagIds,
       images: selectedImages.map(img => img.base64).filter((b64): b64 is string => !!b64),
     };
 

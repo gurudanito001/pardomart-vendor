@@ -20,12 +20,12 @@ export interface AuthInitiateLoginPostRequest {
 }
 
 export const AuthInitiateLoginPostRequestRoleEnum = {
-    Admin: 'admin',
-    Vendor: 'vendor',
-    VendorStaff: 'vendor_staff',
-    Delivery: 'delivery',
     Customer: 'customer',
-    Shopper: 'shopper'
+    Vendor: 'vendor',
+    StoreAdmin: 'store_admin',
+    StoreShopper: 'store_shopper',
+    DeliveryPerson: 'delivery_person',
+    Admin: 'admin'
 } as const;
 
 export type AuthInitiateLoginPostRequestRoleEnum = typeof AuthInitiateLoginPostRequestRoleEnum[keyof typeof AuthInitiateLoginPostRequestRoleEnum];

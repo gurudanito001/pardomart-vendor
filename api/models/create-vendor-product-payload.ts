@@ -21,7 +21,7 @@ export interface CreateVendorProductPayload {
     'discountedPrice'?: number | null;
     'sku'?: string | null;
     /**
-     * Array of base64 encoded image strings.
+     * Array of image URLs or base64 encoded strings.
      */
     'images'?: Array<string>;
     'stock'?: number | null;

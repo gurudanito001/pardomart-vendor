@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **latitude** | **number** |  | [optional] [default to undefined]
 **longitude** | **number** |  | [optional] [default to undefined]
 **distance** | **number** | Distance to the vendor from the user\&#39;s location in kilometers. | [optional] [default to undefined]
-**rating** | [**VendorWithRatingAndDistanceAllOfRating**](VendorWithRatingAndDistanceAllOfRating.md) |  | [optional] [default to undefined]
+**rating** | [**VendorWithDetailsAllOfRating**](VendorWithDetailsAllOfRating.md) |  | [optional] [default to undefined]
 **image** | **string** |  | [optional] [default to undefined]
 **address** | **string** |  | [optional] [default to undefined]
 **userId** | **string** |  | [optional] [default to undefined]
@@ -25,6 +25,8 @@ Name | Type | Description | Notes
 **updatedAt** | **string** |  | [optional] [default to undefined]
 **user** | [**User**](User.md) |  | [optional] [default to undefined]
 **openingHours** | [**Array&lt;VendorOpeningHours&gt;**](VendorOpeningHours.md) |  | [optional] [default to undefined]
+**productCount** | **number** | The total number of products this vendor has. | [optional] [default to undefined]
+**documentCount** | **number** | The total number of documents this vendor has uploaded. | [optional] [default to undefined]
 
 ## Example
 
@@ -52,6 +54,8 @@ const instance: VendorWithDetails = {
     updatedAt,
     user,
     openingHours,
+    productCount,
+    documentCount,
 };
 ```
 

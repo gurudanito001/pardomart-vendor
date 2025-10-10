@@ -23,10 +23,13 @@ export interface CreateVendorProductWithBarcodePayload {
     'categoryIds': Array<string>;
     'discountedPrice'?: number | null;
     'sku'?: string | null;
+    /**
+     * Array of image URLs or base64 encoded strings.
+     */
     'images'?: Array<string>;
     'stock'?: number | null;
     'isAvailable'?: boolean;
     'attributes'?: { [key: string]: any; };
-    'tags'?: Array<string> | null;
+    'tagIds'?: Array<string> | null;
 }
 

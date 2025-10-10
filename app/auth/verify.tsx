@@ -1,3 +1,4 @@
+import { AuthInitiateLoginPostRequestRoleEnum } from '@/api/models';
 import { OTPInput } from '@/components/ui/OTPInput';
 import { useAuth } from '@/context/AppProvider';
 import { AntDesign } from '@expo/vector-icons';
@@ -16,7 +17,11 @@ import { toast } from 'sonner-native';
 
 export default function VerifyScreen() {
   const { verifyOTP, resendOTP, state } = useAuth();
-  const { identifier, fromScreen } = useLocalSearchParams<{ identifier: string; fromScreen?: string }>();
+  const { identifier, fromScreen, role } = useLocalSearchParams<{
+    identifier: string;
+    fromScreen?: string;
+    role: AuthInitiateLoginPostRequestRoleEnum;
+  }>();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   // Key to force re-mount of OTPInput on resend for a better UX
   const [otpKey, setOtpKey] = useState(0);
@@ -46,7 +51,7 @@ export default function VerifyScreen() {
       await verifyOTP({
         mobileNumber: identifier,
         verificationCode: code,
-        role: 'vendor',
+        role: role || 'vendor', // Use the role from params, with a fallback
       });
       toast.success('Verification successful!');
 
@@ -58,7 +63,7 @@ export default function VerifyScreen() {
         // to the main app stack automatically.
       }
     } catch (err: any) {
-      const errorMessage = err?.error?.message || 'Invalid or expired OTP.';
+      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during verification.';
       toast.error(errorMessage);
     }
   };
@@ -71,7 +76,7 @@ export default function VerifyScreen() {
     if (resendCooldown > 0 || !identifier) return;
 
     try {
-      await resendOTP({ identifier, role: 'vendor' });
+      await resendOTP({ identifier, role: role || 'vendor' });
       toast.success('A new verification code has been sent.');
       setResendCooldown(60); // Start 60-second cooldown
       setOtp(['', '', '', '', '', '']);

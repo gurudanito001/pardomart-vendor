@@ -58,10 +58,10 @@ export default function RegisterScreen() {
       toast.success('Registration successful! Please verify your account.');
       router.push({
         pathname: '/auth/verify',
-        params: { identifier: phone, fromScreen: 'register' },
+        params: { identifier: phone, fromScreen: 'register', role: 'vendor' },
       });
     } catch (err: any) {
-      const errorMessage = err?.error?.message || 'An unexpected error occurred during registration.';
+      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during registration.';
       toast.error(errorMessage);
     }
   };
@@ -89,7 +89,7 @@ export default function RegisterScreen() {
         <View style={styles.formContainer}>
           {/* Name Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Business Name</Text>
+            <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.textInput}
               placeholder="Name"
