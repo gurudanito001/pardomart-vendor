@@ -1,6 +1,10 @@
-import { router } from 'expo-router';
-import React from 'react';
+import type { CartItem, OrderItem } from '@/api/models';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useStartShopping } from '@/hooks/api/useOrderMutations';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -10,56 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ellipse, Line, Path, Rect, Svg } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { ArrowBackButtonSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG } from '../../../components/icons';
-
-interface OrderItem {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  quantity: number;
-  image: string;
-  isPerishable: boolean;
-}
-
-const MOCK_ORDER_ITEMS: OrderItem[] = [
-  {
-    id: '1',
-    name: 'Tyson All natural chicken freshwings, family pack, 4.25-3.5lb Tray',
-    category: 'Meat',
-    price: 3.34,
-    quantity: 2,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/63f1ba43866c14d9b7ec4aeb2941bb00c04b7d4c?width=104',
-    isPerishable: true,
-  },
-  {
-    id: '2',
-    name: 'Tyson All natural chicken freshwings, family pack, 4.25-3.5lb Tray',
-    category: 'Meat',
-    price: 3.34,
-    quantity: 2,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/63f1ba43866c14d9b7ec4aeb2941bb00c04b7d4c?width=104',
-    isPerishable: true,
-  },
-  {
-    id: '3',
-    name: 'Tyson All natural chicken freshwings, family pack, 4.25-3.5lb Tray',
-    category: 'Wal Deli',
-    price: 3.34,
-    quantity: 2,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/d8e31a39f95ad8a07cdcfb9245798e545b674e5b?width=96',
-    isPerishable: true,
-  },
-  {
-    id: '4',
-    name: 'Tyson All natural chicken freshwings, family pack, 4.25-3.5lb Tray',
-    category: 'Wal Deli',
-    price: 3.34,
-    quantity: 2,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/9163f624e8c0af4229d79bbd17692fd7d6ea4de5?width=86',
-    isPerishable: true,
-  },
-];
 
 const MAP_HEIGHT = 257;
 const OVERLAY_OVERLAP = 77;
@@ -86,6 +42,16 @@ const DateIcon = () => (
 );
 
 export default function OrderDetailsScreen() {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const { mutate: startShopping, isPending: isStartingShopping } = useStartShopping();
+
+  useEffect(() =>{
+    console.log("Vendor Product",order)
+  }, [order])
+
+  const orderItems = order?.orderItems ?? [];
+
   const handleGoBack = () => {
     router.back();
   };
@@ -95,7 +61,29 @@ export default function OrderDetailsScreen() {
   };
 
   const handleStartShopping = () => {
-    console.log('Start shopping');
+    if (!orderId) {
+      toast.error('Cannot start shopping without an order ID.');
+      return;
+    }
+
+    // If shopping is already in progress, just navigate to the screen.
+    if (order?.orderStatus === 'currently_shopping') {
+      router.push({
+        pathname: '/(private)/orders/finding-items',
+        params: { orderId },
+      });
+      return;
+    }
+
+    // Otherwise, call the API to update the status and then navigate.
+    startShopping(orderId, {
+      onSuccess: () => {
+        router.push({
+          pathname: '/(private)/orders/finding-items',
+          params: { orderId },
+        });
+      },
+    });
   };
 
   const handleGoBackToOrders = () => {
@@ -111,33 +99,39 @@ export default function OrderDetailsScreen() {
   };
 
   const handleCopyOrderCode = () => {
-    console.log('Copy order code');
+    if (order?.id) {
+      // In a real app, you'd use Clipboard API
+      // Clipboard.setString(order.id);
+      toast.success(`Order code ${order.id} copied!`);
+    }
   };
 
-  const groupedItems = MOCK_ORDER_ITEMS.reduce((groups, item) => {
-    if (!groups[item.category]) {
-      groups[item.category] = [];
+  const groupedItems = orderItems.reduce((groups, item) => {
+    const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
+    if (!groups[categoryName]) {
+      groups[categoryName] = [];
     }
-    groups[item.category].push(item);
+    groups[categoryName].push(item);
     return groups;
-  }, {} as Record<string, OrderItem[]>);
+  }, {} as Record<string, (OrderItem | CartItem)[]>);
 
-  const renderOrderItem = (item: OrderItem) => (
+  const renderOrderItem = (item: OrderItem | CartItem) => (
     <View key={item.id} style={styles.orderItem}>
       <View style={styles.itemImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
+        <Image source={{ uri: item?.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} style={styles.itemImage} />
       </View>
       <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemName}>{item.vendorProduct?.name}</Text>
         <View style={styles.itemFooter}>
-          {item.isPerishable && (
+          {/* Assuming perishable is a property on the product */}
+          {(item.vendorProduct as any)?.isPerishable && (
             <View style={styles.perishableBadge}>
               <Text style={styles.perishableText}>Perishable</Text>
             </View>
           )}
           <View style={styles.itemPricing}>
-            <Text style={styles.itemQuantity}>qty {item.quantity}</Text>
-            <Text style={styles.itemPrice}>${item.price}</Text>
+            <Text style={styles.itemQuantity}>qty {item.quantity ?? 1}</Text>
+            <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
           </View>
         </View>
       </View>
@@ -145,7 +139,20 @@ export default function OrderDetailsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#06888C" />
+        </View>
+      )}
+      {isError && !isLoading && (
+         <View style={styles.loadingOverlay}>
+          <Text style={styles.errorText}>Error: {error.message}</Text>
+          <TouchableOpacity style={styles.goBackButton} onPress={handleGoBack}><Text style={styles.goBackText}>Go Back</Text></TouchableOpacity>
+        </View>
+      )}
+      {order && !isLoading && (
+      <>
       {/* Static (non-scrolling) Map + Header */}
       <View style={styles.mapSection}>
         <Image 
@@ -193,16 +200,16 @@ export default function OrderDetailsScreen() {
           <View style={styles.summaryHeader}>
             <View style={styles.totalRow}>
               <Text style={styles.estimatedTotalLabel}>Estimated Total</Text>
-              <Text style={styles.estimatedTotalAmount}>$120.60</Text>
+              <Text style={styles.estimatedTotalAmount}>${order.totalAmount?.toFixed(2) ?? '0.00'}</Text>
             </View>
             <View style={styles.costBreakdown}>
               <View style={styles.costRow}>
                 <Text style={styles.costLabel}>Item Cost</Text>
-                <Text style={styles.costAmount}>$100.00</Text>
+                <Text style={styles.costAmount}>${(order.totalAmount ?? 0 - (order.shoppingFee ?? 0)).toFixed(2)}</Text>
               </View>
               <View style={styles.costRow}>
                 <Text style={styles.costLabel}>Shopping Fee</Text>
-                <Text style={styles.costAmount}>$20.32</Text>
+                <Text style={styles.costAmount}>${order.shoppingFee?.toFixed(2) ?? '0.00'}</Text>
               </View>
             </View>
           </View>
@@ -211,7 +218,7 @@ export default function OrderDetailsScreen() {
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
-            <Text style={styles.progressDistance}>4.5 Miles - 20 Items</Text>
+            <Text style={styles.progressDistance}>4.5 Miles - {order.orderItems?.length ?? 0} Items</Text>
             <Svg width={245} height={17} viewBox="0 0 245 17" fill="none">
               <Ellipse cx={8.167} cy={8} rx={8.167} ry={8} fill="#2CAF0B" />
               <Rect x={17} y={7.0125} width={211} height={2} fill="#D9D9D9" />
@@ -220,28 +227,28 @@ export default function OrderDetailsScreen() {
 
             <View style={styles.progressDetails}>
               <View style={styles.progressLeft}>
-                <Text style={styles.customerNameProgress}>Mr Damilare Adebanjo</Text>
+                <Text style={styles.customerNameProgress}>{order.user?.name ?? 'Customer'}</Text>
                 <View style={styles.timeDetails}>
                   <View style={styles.timeItem}>
                     <TimeIcon />
-                    <Text style={styles.timeDetailText}>12:00pm</Text>
+                    <Text style={styles.timeDetailText}>{new Date(order.createdAt ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                   </View>
                   <View style={styles.timeItem}>
                     <DateIcon />
-                    <Text style={styles.timeDetailText}>03/2025</Text>
+                    <Text style={styles.timeDetailText}>{new Date(order.createdAt ?? '').toLocaleDateString()}</Text>
                   </View>
                 </View>
               </View>
               <View style={styles.progressRight}>
-                <Text style={styles.deliveryAddress}>47 North Union Avenue</Text>
-                <Text style={styles.deliveryLocation}>Chicago Illiniou, 60612, US</Text>
+                <Text style={styles.deliveryAddress}>{order.deliveryAddress?.addressLine1}</Text>
+                <Text style={styles.deliveryLocation}>{order.deliveryAddress?.city}, {order.deliveryAddress?.state}, {order.deliveryAddress?.city}</Text>
               </View>
             </View>
           </View>
 
           {/* Order Code */}
           <View style={styles.orderCodeSection}>
-            <Text style={styles.orderCodeText}>Order code - 987BNTT43</Text>
+            <Text style={styles.orderCodeText}>Order code - {order.orderCode}</Text>
             <TouchableOpacity onPress={handleCopyOrderCode}>
               <CopyIcon />
             </TouchableOpacity>
@@ -252,10 +259,10 @@ export default function OrderDetailsScreen() {
         <View style={styles.customerCard}>
           <View style={styles.customerInfo}>
             <Image 
-              source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/c91bce15e2114688cb19d13e673d86c47c9917ca?width=60' }}
+              source={{ uri: order.user?.image || 'https://via.placeholder.com/60' }}
               style={styles.customerAvatar}
             />
-            <Text style={styles.customerName}>Mr Damilare Adebanjo</Text>
+            <Text style={styles.customerName}>{order.user?.name ?? 'Customer'}</Text>
           </View>
           <View style={styles.customerActions}>
             <TouchableOpacity onPress={handleMessageCustomer}>
@@ -271,7 +278,7 @@ export default function OrderDetailsScreen() {
         <View style={styles.shoppingItemsCard}>
           <View style={styles.shoppingItemsHeader}>
             <Text style={styles.shoppingItemsTitle}>SHOPPING ITEMS</Text>
-            <Text style={styles.itemCount}>20 ITEMS</Text>
+            <Text style={styles.itemCount}>{order.orderItems?.length ?? 0} ITEMS</Text>
           </View>
 
           {Object.entries(groupedItems).map(([category, items]) => (
@@ -300,12 +307,20 @@ export default function OrderDetailsScreen() {
           <TouchableOpacity style={styles.goBackButton} onPress={handleGoBackToOrders}>
             <Text style={styles.goBackText}>Go back</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.startShoppingButton} onPress={handleStartShopping}>
-            <Text style={styles.startShoppingText}>Start Shopping</Text>
+          <TouchableOpacity 
+            style={[styles.startShoppingButton, isStartingShopping && styles.disabledButton]} 
+            onPress={handleStartShopping} 
+            disabled={isStartingShopping}
+          >
+            {isStartingShopping 
+              ? <ActivityIndicator color="#FFF" /> 
+              : <Text style={styles.startShoppingText}>Start Shopping</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+      </>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -313,6 +328,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    gap: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   mapSection: {
     height: MAP_HEIGHT,
@@ -707,5 +736,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 25,
     textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
+    borderColor: '#A9A9A9',
   },
 });

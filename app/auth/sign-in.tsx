@@ -46,7 +46,7 @@ export default function SignInScreen() {
       });
     } catch (err: any) {
       // Correctly access the nested error message from our custom ApiError
-      const errorMessage = err?.response?.data?.message || 'An unexpected error occurred during sign in.';
+      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during sign in.';
       toast.error(errorMessage);
     }
   };

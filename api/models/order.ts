@@ -15,13 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { CartItem } from './cart-item';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { DeliveryAddress } from './delivery-address';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { DeliveryMethod } from './delivery-method';
+import { OrderItem } from './order-item';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { OrderStatus } from './order-status';
@@ -40,6 +40,7 @@ import type { Vendor } from './vendor';
 
 export interface Order {
     'id'?: string;
+    'orderCode'?: string;
     'userId'?: string;
     'vendorId'?: string;
     'totalAmount'?: number;
@@ -54,12 +55,13 @@ export interface Order {
     'shoppingMethod'?: ShoppingMethod;
     'deliveryMethod'?: DeliveryMethod;
     'scheduledShoppingStartTime'?: string | null;
+    'scheduledDeliveryTime'?: string | null;
     'shoppingHandlerId'?: string | null;
     'deliveryPersonId'?: string | null;
     'reasonForDecline'?: string | null;
     'createdAt'?: string;
     'updatedAt'?: string;
-    'orderItems'?: Array<CartItem>;
+    'orderItems'?: Array<OrderItem>;
     'user'?: User;
     'vendor'?: Vendor;
     'deliveryAddress'?: DeliveryAddress;

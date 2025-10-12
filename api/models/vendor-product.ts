@@ -12,6 +12,8 @@
  * Do not edit the class manually.
  */
 
+import { Category } from "./category";
+
 
 
 export interface VendorProduct {
@@ -32,5 +34,6 @@ export interface VendorProduct {
     'isAgeRestricted'?: boolean;
     'attributes'?: object | null;
     'categoryIds'?: Array<string>;
+    'categories'?: Category[];
 }
 

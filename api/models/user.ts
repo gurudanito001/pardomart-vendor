@@ -1,5 +1,5 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 /**
  * PardoMart Node API
  * API documentation for the PardoMart Node.js application.
@@ -30,6 +30,7 @@ export interface User {
     'referralCode'?: string | null;
     'createdAt'?: string;
     'updatedAt'?: string;
+    'image'?: string | null;
     'dynamicMediaUrls'?: object | null;
     'rememberToken'?: string | null;
     'stripeCustomerId'?: string | null;

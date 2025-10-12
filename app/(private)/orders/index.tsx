@@ -1,62 +1,37 @@
+import type { Order } from '@/api/models';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
+import { useAcceptOrder } from '../../../hooks/api/useOrderMutations';
+import { useVendorOrders } from '../../../hooks/api/useVendorOrders';
 
-interface Order {
-  id: string;
-  type: 'shop-deliver' | 'delivery-person';
-  total: number;
+// This defines the shape of the data after it's been transformed by the `useVendorOrders` hook's `select` function.
+type DisplayOrder = Order & {
   customerName: string;
+  total: number | undefined;
   time: string;
   date: string;
-  orderDate: string;
   units: number;
-}
-
-const MOCK_ORDERS: Order[] = [
-  {
-    id: '1',
-    type: 'shop-deliver',
-    total: 30.22,
-    customerName: 'Mr Damilare Adebanjo',
-    time: '12:00pm',
-    date: '03/2025',
-    orderDate: '03/2025',
-    units: 20,
-  },
-  {
-    id: '2',
-    type: 'shop-deliver',
-    total: 30.22,
-    customerName: 'Mr Damilare Adebanjo',
-    time: '12:00pm',
-    date: '03/2025',
-    orderDate: '03/2025',
-    units: 20,
-  },
-  {
-    id: '3',
-    type: 'delivery-person',
-    total: 30.22,
-    customerName: 'Mr Damilare Adebanjo',
-    time: '12:00pm',
-    date: '03/2025',
-    orderDate: '03/2025',
-    units: 20,
-  },
-];
+};
 
 export default function OrdersScreen() {
+  const { data: orders, isLoading, isError, error } = useVendorOrders();
+  const { mutate: acceptOrder, isPending: isAcceptingOrder, data: acceptedOrderId } = useAcceptOrder();
+  const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+
+
   const handleGoBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -70,18 +45,56 @@ export default function OrdersScreen() {
   };
 
 
-  const handlePreviewOrder = (orderId: string) => {
-    console.log('Preview order:', orderId);
-    // Navigate to order details
-    router.push('/(private)/orders/order-details');
+  const handlePreviewOrder = (orderId?: string | undefined) => {
+    if (!orderId) {
+      toast.error('Order ID is missing, cannot preview details.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/order-details',
+      params: { orderId },
+    });
   };
 
-  const renderOrderCard = (order: Order) => (
+  const handleAcceptOrder = (order: DisplayOrder) => {
+    if (!order.id) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+
+    setProcessingOrderId(order.id);
+
+    // If the order is not pending, it means it's already been accepted or is in a later stage.
+    // In this case, navigate to the shopping list screen.
+    if (order.orderStatus !== 'pending') {
+      router.push({
+        pathname: '/(private)/orders/shopping-list',
+        params: { orderId: order.id },
+      });
+      setProcessingOrderId(null); // Clear loading state as we are just navigating
+      return;
+    }
+
+    // Otherwise, call the API to accept the order.
+    acceptOrder(order.id, {
+      onSuccess: (data) => {
+        router.push({
+          pathname: '/(private)/orders/order-details',
+          params: { orderId: data.id },
+        });
+      },
+      onSettled: () => {
+        setProcessingOrderId(null); // Clear processing state when mutation is done
+      },
+    });
+  };
+
+  const renderOrderCard = (order: DisplayOrder) => (
     <View key={order.id} style={styles.orderCard}>
       {/* Order Type Header */}
-      <View style={styles.orderHeader}>
+      <TouchableOpacity style={styles.orderHeader} onPress={() => handlePreviewOrder(order.id)}>
         <View style={styles.orderTypeContainer}>
-          {order.type === 'shop-deliver' ? (
+          {order.shoppingMethod === 'vendor' ? (
             <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
               <Path fillRule="evenodd" clipRule="evenodd" d="M8.08443 4.6875H16.9157C17.4907 4.68754 18.0457 4.89898 18.475 5.28158C18.9042 5.66419 19.1779 6.19126 19.2438 6.7625L20.5063 17.7C20.5442 18.0283 20.5122 18.3608 20.4125 18.6759C20.3128 18.9909 20.1476 19.2814 19.9278 19.5281C19.7079 19.7748 19.4384 19.9722 19.1369 20.1074C18.8353 20.2426 18.5086 20.3125 18.1782 20.3125H6.82193C6.49148 20.3125 6.16477 20.2426 5.86324 20.1074C5.56171 19.9722 5.29218 19.7748 5.07232 19.5281C4.85247 19.2814 4.68728 18.9909 4.58757 18.6759C4.48787 18.3608 4.45592 18.0283 4.49381 17.7L5.75631 6.7625C5.82225 6.19126 6.09589 5.66419 6.52517 5.28158C6.95444 4.89898 7.5094 4.68754 8.08443 4.6875ZM3.42818 6.49375C3.56006 5.35126 4.10734 4.29713 4.9659 3.53192C5.82445 2.76671 6.93436 2.34383 8.08443 2.34375H16.9157C18.0658 2.34383 19.1757 2.76671 20.0342 3.53192C20.8928 4.29713 21.4401 5.35126 21.5719 6.49375L22.8344 17.4313C22.9102 18.0878 22.8463 18.7529 22.6469 19.383C22.4475 20.0131 22.1171 20.594 21.6774 21.0874C21.2377 21.5808 20.6986 21.9756 20.0956 22.246C19.4925 22.5164 18.8391 22.6562 18.1782 22.6562H6.82193C6.16103 22.6562 5.50761 22.5164 4.90455 22.246C4.30149 21.9756 3.76242 21.5808 3.32271 21.0874C2.88301 20.594 2.55262 20.0131 2.35321 19.383C2.15381 18.7529 2.0899 18.0878 2.16568 17.4313L3.42818 6.49375ZM7.81256 8.20312C7.81256 7.89232 7.93602 7.59425 8.15579 7.37448C8.37556 7.15472 8.67363 7.03125 8.98443 7.03125C9.29523 7.03125 9.59331 7.15472 9.81308 7.37448C10.0328 7.59425 10.1563 7.89232 10.1563 8.20312V8.59375C10.1563 9.21535 10.4032 9.81149 10.8428 10.251C11.2823 10.6906 11.8785 10.9375 12.5001 10.9375C13.1217 10.9375 13.7178 10.6906 14.1573 10.251C14.5969 9.81149 14.8438 9.21535 14.8438 8.59375V8.20312C14.8438 7.89232 14.9673 7.59425 15.187 7.37448C15.4068 7.15472 15.7049 7.03125 16.0157 7.03125C16.3265 7.03125 16.6246 7.15472 16.8443 7.37448C17.0641 7.59425 17.1876 7.89232 17.1876 8.20312V8.59375C17.1876 9.83695 16.6937 11.0292 15.8146 11.9083C14.9355 12.7874 13.7433 13.2812 12.5001 13.2812C11.2569 13.2812 10.0646 12.7874 9.1855 11.9083C8.30642 11.0292 7.81256 9.83695 7.81256 8.59375V8.20312Z" fill="#06888C"/>
             </Svg>
@@ -101,13 +114,13 @@ export default function OrdersScreen() {
             </Svg>
           )}
           <Text style={styles.orderTypeText}>
-            {order.type === 'shop-deliver' ? 'Shop and Deliver' : 'Delivery Person'}
+            {order.shoppingMethod === 'vendor' ? 'Shop and Deliver' : 'Delivery Person'}
           </Text>
         </View>
         <Svg width="7" height="12" viewBox="0 0 7 12" fill="none">
           <Path d="M0.866949 11.9985C0.66474 11.9988 0.468777 11.9292 0.313076 11.8017C0.225444 11.7299 0.153007 11.6418 0.0999113 11.5423C0.0468157 11.4428 0.0141058 11.3339 0.00365506 11.2219C-0.0067957 11.1098 0.00521815 10.9969 0.0390082 10.8895C0.0727983 10.7821 0.1277 10.6823 0.200571 10.5958L4.07768 6.01173L0.339039 1.41906C0.267152 1.33158 0.213468 1.23092 0.181074 1.12286C0.148679 1.01481 0.138213 0.901501 0.150276 0.789439C0.16234 0.677378 0.196694 0.568777 0.251367 0.469879C0.306039 0.370982 0.379951 0.283737 0.468853 0.213159C0.558395 0.135301 0.663255 0.0765731 0.776853 0.0406621C0.89045 0.00475112 1.01033 -0.00756759 1.12898 0.00447846C1.24762 0.0165245 1.36246 0.0526755 1.4663 0.110663C1.57014 0.16865 1.66072 0.247221 1.73237 0.341446L5.91238 5.47292C6.03967 5.62596 6.10925 5.81791 6.10925 6.01601C6.10925 6.2141 6.03967 6.40606 5.91238 6.55909L1.58525 11.6906C1.49843 11.7941 1.38815 11.8759 1.26335 11.9294C1.13854 11.9829 1.00274 12.0065 0.866949 11.9985Z" fill="#333333"/>
         </Svg>
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.divider} />
 
@@ -144,7 +157,7 @@ export default function OrdersScreen() {
               <Path d="M5.25 10.5C5.66421 10.5 6 10.1642 6 9.75C6 9.33579 5.66421 9 5.25 9C4.83579 9 4.5 9.33579 4.5 9.75C4.5 10.1642 4.83579 10.5 5.25 10.5Z" fill="#7C7B7B"/>
               <Path d="M8.75 10.5C9.16421 10.5 9.5 10.1642 9.5 9.75C9.5 9.33579 9.16421 9 8.75 9C8.33579 9 8 9.33579 8 9.75C8 10.1642 8.33579 10.5 8.75 10.5Z" fill="#7C7B7B"/>
             </Svg>
-            <Text style={styles.infoText}>{order.orderDate}</Text>
+            <Text style={styles.infoText}>{order.date}</Text>
           </View>
           
           <View style={styles.infoItem}>
@@ -158,15 +171,36 @@ export default function OrdersScreen() {
       {/* Bottom Section */}
       <View style={styles.bottomSection}>
         <Text style={styles.trackText}>Track your Order request here</Text>
-        <TouchableOpacity 
-          style={styles.previewButton} 
-          onPress={() => handlePreviewOrder(order.id)}
+        <TouchableOpacity
+          style={[styles.previewButton, isAcceptingOrder && processingOrderId === order.id && styles.disabledButton]}
+          onPress={() => handleAcceptOrder(order)}
+          disabled={isAcceptingOrder && processingOrderId === order.id}
         >
-          <Text style={styles.previewText}>Preview Order</Text>
+          {isAcceptingOrder && processingOrderId === order.id ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
+            <Text style={styles.previewText}>Accept Order</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
+
+  const renderContent = () => {
+    if (isLoading) {
+      return <ActivityIndicator size="large" color="#06888C" style={styles.centered} />;
+    }
+
+    if (isError) {
+      return <Text style={[styles.centered, styles.errorText]}>Error: {error.message}</Text>;
+    }
+
+    if (!orders || orders.length === 0) {
+      return <Text style={[styles.centered, styles.emptyText]}>You have no orders yet.</Text>;
+    }
+
+    return orders.map((order) => renderOrderCard(order as DisplayOrder));
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -211,7 +245,7 @@ export default function OrdersScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            {MOCK_ORDERS.map(renderOrderCard)}
+            {renderContent()}
           </View>
         </ScrollView>
       </View>
@@ -326,6 +360,21 @@ const styles = StyleSheet.create({
     zIndex: 300,
     position: 'relative',
   },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -417,5 +466,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
+    borderColor: '#A9A9A9',
   },
 });

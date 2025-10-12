@@ -8,8 +8,8 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**orderOrderIdDeclinePatch**](#orderorderiddeclinepatch) | **PATCH** /order/{orderId}/decline | Decline a pending order|
 |[**orderOrderIdItemsItemIdUpdateShoppingStatusPatch**](#orderorderiditemsitemidupdateshoppingstatuspatch) | **PATCH** /order/{orderId}/items/{itemId}/update-shopping-status | Update the shopping status of an order item|
 |[**orderOrderIdStartShoppingPatch**](#orderorderidstartshoppingpatch) | **PATCH** /order/{orderId}/start-shopping | Mark an order as \&#39;currently shopping\&#39;|
+|[**orderVendorGet**](#ordervendorget) | **GET** /order/vendor | Get all orders for a vendor user\&#39;s stores|
 |[**orderVendorOrdersGet**](#ordervendorordersget) | **GET** /order/vendorOrders | Get orders for a vendor\&#39;s dashboard|
-|[**ordersVendorGet**](#ordersvendorget) | **GET** /orders/vendor | Get all orders for a vendor user\&#39;s stores|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
 |[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
 |[**vendorsGet**](#vendorsget) | **GET** /vendors | Get a paginated list of vendors|
@@ -240,6 +240,62 @@ const { status, data } = await apiInstance.orderOrderIdStartShoppingPatch(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **orderVendorGet**
+> Array<Order> orderVendorGet()
+
+Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorId: string; //Optional. Filter orders by a specific store ID owned by the user. (optional) (default to undefined)
+let status: OrderStatus; //Optional. Filter orders by a specific status. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.orderVendorGet(
+    vendorId,
+    status
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter orders by a specific store ID owned by the user. | (optional) defaults to undefined|
+| **status** | **OrderStatus** | Optional. Filter orders by a specific status. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Order>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of orders matching the criteria. |  -  |
+|**403** | Forbidden if the user tries to access a vendor they do not own. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **orderVendorOrdersGet**
 > Array<VendorOrder> orderVendorOrdersGet()
 
@@ -287,62 +343,6 @@ const { status, data } = await apiInstance.orderVendorOrdersGet(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | A list of orders for the vendor. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **ordersVendorGet**
-> Array<Order> ordersVendorGet()
-
-Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
-
-### Example
-
-```typescript
-import {
-    VendorApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new VendorApi(configuration);
-
-let vendorId: string; //Optional. Filter orders by a specific store ID owned by the user. (optional) (default to undefined)
-let status: OrderStatus; //Optional. Filter orders by a specific status. (optional) (default to undefined)
-
-const { status, data } = await apiInstance.ordersVendorGet(
-    vendorId,
-    status
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **vendorId** | [**string**] | Optional. Filter orders by a specific store ID owned by the user. | (optional) defaults to undefined|
-| **status** | **OrderStatus** | Optional. Filter orders by a specific status. | (optional) defaults to undefined|
-
-
-### Return type
-
-**Array<Order>**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | A list of orders matching the criteria. |  -  |
-|**403** | Forbidden if the user tries to access a vendor they do not own. |  -  |
-|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -92,10 +92,6 @@ export default function FindingItemsScreen() {
     setFoundQuantity(currentItem?.quantity?.toString() ?? '1');
   }, [showQuantityInput, currentItem]);
 
-  useEffect(() => {
-    console.log('Current order item:', order?.orderItems?.[currentItemIndex]);
-  }, [currentItemIndex]);
-
   const handleGoBack = () => {
     router.back();
   };
@@ -171,7 +167,6 @@ export default function FindingItemsScreen() {
     setScanned(true);
     setIsScannerVisible(false);
     setManualBarcode(''); // Clear manual input
-
     const replacements = currentItem?.replacements || [];
     const isReplacementBarcode = replacements.some(
       // The replacement object might be nested differently, adjust path if needed
@@ -350,7 +345,7 @@ export default function FindingItemsScreen() {
 
           {currentItem && !allItemsFound ? (
             <>
-              <Text style={styles.itemCategoryTitle}> {currentItem.vendorProduct?.categories?.[0]?.name}</Text>
+              <Text style={styles.itemCategoryTitle}>{/* currentItem.vendorProduct?.category?.name || */ 'Uncategorized'}</Text>
 
               <View style={styles.itemContainer}>
                 <View style={styles.itemImageWrapper}>
@@ -492,7 +487,7 @@ export default function FindingItemsScreen() {
                     currentItem.replacements.map((rep: any, index: number) => (
                       <View key={index} style={styles.scannerItemDetails}>
                         <Image 
-                          source={{ uri: rep?.images?.[0] || 'https://via.placeholder.com/100' }} 
+                          source={{ uri: rep.product?.images?.[0] || 'https://via.placeholder.com/100' }} 
                           style={styles.scannerItemImage}
                         />
                         <View style={styles.scannerItemText}>
@@ -711,28 +706,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     flex: 1,
   },
-  instructionCard: {
-    marginHorizontal: 0,
-    marginVertical: 12,
-    padding: 16,
-    borderRadius: 10,
-    backgroundColor: '#FFF8E1', // Light yellow background
-    borderWidth: 1,
-    borderColor: '#FFECB3',
-  },
-  instructionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#E65100', // Amber text
-    marginBottom: 8,
-  },
-  instructionText: {
-    fontSize: 12,
-    fontFamily: 'Open Sans',
-    color: '#616161',
-    lineHeight: 18,
-  },
   distance: {
     fontSize: 10,
     fontWeight: '400',
@@ -834,6 +807,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Open Sans',
     color: '#484C52',
+    lineHeight: 18,
+  },
+  instructionCard: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#FFF8E1', // Light yellow background
+    borderWidth: 1,
+    borderColor: '#FFECB3',
+  },
+  instructionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#E65100', // Amber text
+    marginBottom: 4,
+  },
+  instructionText: {
+    fontSize: 12,
+    fontFamily: 'Open Sans',
+    color: '#616161',
     lineHeight: 18,
   },
   itemMetaRow: {
@@ -1103,4 +1097,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingVertical: 20,
   },
+
 });

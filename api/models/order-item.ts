@@ -1,5 +1,5 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 /**
  * PardoMart Node API
  * API documentation for the PardoMart Node.js application.
@@ -16,17 +16,24 @@
 // May contain unused imports in some cases
 // @ts-ignore
 import type { OrderItemStatus } from './order-item-status';
+import { Product } from './product';
+import { VendorProduct } from './vendor-product';
+
+interface VendorProductWithDetails extends VendorProduct { 
+    product: Product 
+}
 
 export interface OrderItem {
     'id'?: string;
     'orderId'?: string;
-    'vendorProductId'?: string;
+    'vendorProduct'?: VendorProductWithDetails;
     'quantity'?: number;
     'instructions'?: string | null;
     'status'?: OrderItemStatus;
     'quantityFound'?: number | null;
     'chosenReplacementId'?: string | null;
     'isReplacementApproved'?: boolean | null;
+    'replacements': VendorProductWithDetails[];
     'createdAt'?: string;
     'updatedAt'?: string;
 }

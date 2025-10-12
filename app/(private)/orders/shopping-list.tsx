@@ -1,6 +1,10 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import type { OrderItem } from '@/api/models';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -9,16 +13,49 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Path, Svg } from 'react-native-svg';
-import CompletedTabContent from '../../../components/shopping-list/CompletedTabContent';
-import PendingTabContent from '../../../components/shopping-list/PendingTabContent';
-import RemainingTabContent from '../../../components/shopping-list/RemainingTabContent';
-import { colors, shadows, spacing, typography } from '../../../styles/theme';
+import Svg, { Path } from 'react-native-svg';
+import { toast } from 'sonner-native';
+import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
-export type TabType = 'remaining' | 'pending' | 'completed';
+type GroupedItems = Record<string, OrderItem[]>;
+
+const OrderIcon = () => (
+  <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <Path d="M17 4H7C5.89543 4 5 4.89543 5 6V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V6C19 4.89543 18.1046 4 17 4Z" stroke="black" strokeWidth="2"/>
+    <Path d="M9 9H15M9 13H15M9 17H13" stroke="black" strokeWidth="2" strokeLinecap="round"/>
+  </Svg>
+);
 
 export default function ShoppingListScreen() {
-  const [selectedTab, setSelectedTab] = useState<TabType>('remaining');
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>('pending');
+
+  const { not_found_Items, pendingItems, completedItems, itemsLeft, notFoundCount } = useMemo(() => {
+    const items = order?.orderItems ?? [];
+
+    const groupByCategory = (filteredItems: OrderItem[]): GroupedItems =>
+      filteredItems.reduce((acc, item) => {
+        const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+        acc[categoryName].push(item);
+        return acc;
+      }, {} as GroupedItems);
+
+    const pending = items.filter(item => !item.status || item.status === 'PENDING');
+    const not_found = items.filter(item => item.status === 'NOT_FOUND');
+    const completed = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
+
+    return {
+      not_found_Items: groupByCategory(not_found),
+      pendingItems: groupByCategory(pending),
+      completedItems: groupByCategory(completed),
+      itemsLeft: pending.length + not_found.length,
+      notFoundCount: not_found.length,
+    };
+  }, [order]);
 
   const handleGoBack = () => {
     router.back();
@@ -28,129 +65,214 @@ export default function ShoppingListScreen() {
     console.log('Open notifications');
   };
 
-  const handleResumeClick = () => {
-    console.log('Resume shopping');
-  };
-
-  const handleProceedToReview = () => {
-    console.log('Proceed to review');
-  };
-
-
-  const renderTabContent = () => {
-    switch (selectedTab) {
-      case 'remaining':
-        return <RemainingTabContent onResumeClick={handleResumeClick} />;
-      case 'pending':
-        return <PendingTabContent />;
-      case 'completed':
-        return <CompletedTabContent onProceedToReview={handleProceedToReview} />;
-      default:
-        return null;
+  const handleContinueShopping = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
     }
+    router.push({
+      pathname: '/(private)/orders/finding-items',
+      params: { orderId },
+    });
   };
+
+  const renderOrderItem = (item: OrderItem) => (
+    <View key={item.id} style={styles.itemCard}>
+      <Image 
+        source={{ uri: item.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} 
+        style={styles.itemImage} 
+      />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemName} numberOfLines={2}>
+          {item.vendorProduct?.product?.name}
+        </Text>
+        <View style={styles.itemMeta}>
+          <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+          <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderCategoryGroup = (title: string, items: OrderItem[]) => (
+    <View key={title}>
+      <Text style={styles.categoryTitle}>{title}</Text>
+      <View style={styles.itemsGrid}>
+        {items.map(item => renderOrderItem(item))}
+      </View>
+    </View>
+  );
+
+  const renderSection = (title: string, groupedItems: GroupedItems) => {
+    const categories = Object.keys(groupedItems);
+
+    return (
+      <View style={styles.section}>
+        {categories.length > 0 ? (
+          categories.map(category => renderCategoryGroup(category, groupedItems[category]))
+        ) : (
+          <Text style={styles.emptySectionText}>No items in this section.</Text>
+        )}
+      </View>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#06888C" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <Text style={styles.errorText}>Error: {error?.message}</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
-      
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <Svg width="30" height="30" viewBox="0 0 31 30" fill="none">
-            <Path 
-              d="M20.1278 21.993C20.3661 22.2135 20.5 22.5125 20.5 22.8243C20.5 23.1361 20.3661 23.4352 20.1278 23.6556C19.8895 23.8761 19.5662 24 19.2292 24C18.8921 24 18.5689 23.8761 18.3306 23.6556L9.87313 15.8313C9.75486 15.7223 9.66102 15.5927 9.59699 15.4501C9.53296 15.3074 9.5 15.1545 9.5 15C9.5 14.8455 9.53296 14.6926 9.59699 14.5499C9.66102 14.4073 9.75486 14.2777 9.87313 14.1687L18.3306 6.34435C18.5689 6.12387 18.8921 6 19.2292 6C19.5662 6 19.8895 6.12387 20.1278 6.34435C20.3661 6.56483 20.5 6.86387 20.5 7.17568C20.5 7.48749 20.3661 7.78653 20.1278 8.00702L12.57 14.999L20.1278 21.993Z" 
-              fill="white"
-            />
-          </Svg>
-        </TouchableOpacity>
-        
-        <Text style={styles.headerTitle}>Shopping List</Text>
-        
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-            <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-              <Path 
-                d="M9.145 20.5C9.36103 21.2219 9.80417 21.8549 10.4086 22.3049C11.013 22.755 11.7464 22.998 12.5 22.998C13.2536 22.998 13.987 22.755 14.5914 22.3049C15.1958 21.8549 15.639 21.2219 15.855 20.5H9.145ZM3.5 19.5H21.5V16.5L19.5 13.5V8.5C19.5 7.58075 19.3189 6.6705 18.9672 5.82122C18.6154 4.97194 18.0998 4.20026 17.4497 3.55025C16.7997 2.90024 16.0281 2.38463 15.1788 2.03284C14.3295 1.68106 13.4193 1.5 12.5 1.5C11.5807 1.5 10.6705 1.68106 9.82122 2.03284C8.97194 2.38463 8.20026 2.90024 7.55025 3.55025C6.90024 4.20026 6.38463 4.97194 6.03284 5.82122C5.68106 6.6705 5.5 7.58075 5.5 8.5V13.5L3.5 16.5V19.5Z" 
-                fill="white"
-              />
-            </Svg>
-          </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+              <ArrowBackSVG />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Shopping List</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
+              <NotificationSVG />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        <ScrollView 
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabContentContainer}
-        >
-          <TouchableOpacity 
-            style={[styles.tab, selectedTab === 'remaining' && styles.activeTab]}
-            onPress={() => setSelectedTab('remaining')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'remaining' && styles.activeTabText]}>
-              Remaining
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.tab, selectedTab === 'pending' && styles.activeTab]}
-            onPress={() => setSelectedTab('pending')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'pending' && styles.activeTabText]}>
-              Pending
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.tab, selectedTab === 'completed' && styles.activeTab]}
-            onPress={() => setSelectedTab('completed')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'completed' && styles.activeTabText]}>
-              Completed
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tabItem, activeTab === 'pending' && styles.activeTabItem]}
+          onPress={() => setActiveTab('pending')}>
+          <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabItem, activeTab === 'not_found' && styles.activeTabItem]}
+          onPress={() => setActiveTab('not_found')}>
+          <Text style={[styles.tabText, activeTab === 'not_found' && styles.activeTabText]}>Not Found</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.tabItem, activeTab === 'completed' && styles.activeTabItem]}
+          onPress={() => setActiveTab('completed')}>
+          <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>Completed</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Tab Content */}
-      <View style={styles.content}>
-        {renderTabContent()}
+      <View style={styles.itemsLeftContainer}>
+        <View style={styles.itemsLeftCard}>
+          <OrderIcon />
+          <Text style={styles.itemsLeftText}>
+            {itemsLeft} Items left
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {activeTab === 'pending' && renderSection('Pending Approval', pendingItems)}
+        {activeTab === 'not_found' && renderSection('Not Found', not_found_Items)}
+        {activeTab === 'completed' && renderSection('Completed', completedItems)}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.continueButton} onPress={handleContinueShopping}>
+          <Text style={styles.continueButtonText}>Continue Shopping</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#FFF',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+  },
+  emptySectionText: {
+    color: '#888',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 5,
+    backgroundColor: '#F9F9F9',
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderRadius: 12,
+    backgroundColor: '#EFEFEF',
+  },
+  activeTabItem: {
+    backgroundColor: '#06888C',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#333',
+  },
+  activeTabText: {
+    color: '#fff',
   },
   header: {
+    backgroundColor: '#06888C',
+    paddingBottom: 19,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 19,
-    paddingBottom: 16,
-    backgroundColor: colors.primary,
+    paddingHorizontal: 21,
+    paddingTop: 20,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   backButton: {
     width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: -10,
   },
   headerTitle: {
-    flex: 1,
-    marginLeft: 12,
-    color: colors.background,
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.families.accent,
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#FFF',
     lineHeight: 22,
   },
   headerActions: {
@@ -164,41 +286,127 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tabContainer: {
-    paddingHorizontal: 25,
-    paddingTop: 19,
-    backgroundColor: colors.background,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 100, // Space for the footer
   },
-  tabContentContainer: {
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    fontFamily: 'Raleway',
+    color: '#333',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    paddingBottom: 8,
+  },
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#555',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  itemsGrid: {
+    gap: 12,
+  },
+  itemCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    resizeMode: 'contain',
+    backgroundColor: '#FFF',
+  },
+  itemDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#484C52',
+    marginBottom: 8,
+  },
+  itemMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemQuantity: {
+    fontSize: 12,
+    fontFamily: 'Open Sans',
+    color: '#7C7B7B',
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'Open Sans',
+    color: '#000',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    paddingBottom: 30, // Extra padding for home bar
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  continueButton: {
+    backgroundColor: '#06888C',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: 'rgba(0, 0, 0, 0.1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#FFF',
+  },
+  itemsLeftContainer: {
+    paddingHorizontal: 23,
+    marginTop: 7,
+  },
+  itemsLeftCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-  tab: {
-    paddingHorizontal: 23,
-    paddingVertical: 12,
+    gap: 11,
+    paddingVertical: 9,
+    paddingHorizontal: 22,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  activeTab: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-    ...shadows.md,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: typography.weights.medium,
-    fontFamily: typography.families.accent,
-    color: colors.textPrimary,
-    lineHeight: 14,
-  },
-  activeTabText: {
-    color: colors.background,
-    fontWeight: typography.weights.bold,
-  },
-  content: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  itemsLeftText: {
+    fontSize: 16,
+    fontWeight: '400',
+    fontFamily: 'Open Sans',
+    color: '#000000',
+    lineHeight: 22,
+  }
 });

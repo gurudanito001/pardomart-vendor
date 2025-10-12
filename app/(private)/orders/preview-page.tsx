@@ -1,6 +1,9 @@
-import { router } from 'expo-router';
-import React from 'react';
+import type { OrderItem } from '@/api/models';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StatusBar,
@@ -13,55 +16,32 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import { borderRadius, colors, shadows, spacing, typography } from '../../../styles/theme';
 
-interface PreviewItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  foundQuantity: number;
-  totalQuantity: number;
-  isPerishable?: boolean;
-}
+type GroupedItems = Record<string, OrderItem[]>;
 
-// Mock data based on Figma design
-const PREVIEW_ITEMS: PreviewItem[] = [
-  {
-    id: '1',
-    name: 'Valbest fully cooked chicken Nugget- frozen, 9g protein per 4 nugget serving, 24 0z (1.5lb)',
-    price: 3.88,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/b15e90ad66573202e16cb0681e9db93877e30680?width=114',
-    foundQuantity: 2,
-    totalQuantity: 2,
-  },
-  {
-    id: '2',
-    name: 'Valbest fully cooked chicken Nugget- frozen, 9g protein per 4 nugget serving, 24 0z (1.5lb)',
-    price: 3.88,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/b15e90ad66573202e16cb0681e9db93877e30680?width=114',
-    foundQuantity: 2,
-    totalQuantity: 2,
-  },
-  {
-    id: '3',
-    name: 'Valbest fully cooked chicken Nugget- frozen, 9g protein per 4 nugget serving, 24 0z (1.5lb)',
-    price: 3.88,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/f01bb60245c119c55bf9106107aa831fc02d8d93?width=128',
-    foundQuantity: 3,
-    totalQuantity: 3,
-    isPerishable: true,
-  },
-  {
-    id: '4',
-    name: 'Valbest fully cooked chicken Nugget- frozen, 9g protein per 4 nugget serving, 24 0z (1.5lb)',
-    price: 3.88,
-    image: 'https://api.builder.io/api/v1/image/assets/TEMP/f01bb60245c119c55bf9106107aa831fc02d8d93?width=128',
-    foundQuantity: 3,
-    totalQuantity: 3,
-    isPerishable: true,
-  },
-];
+const InfoIcon = () => (
+  <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <Path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z" fill="#06888C"/>
+  </Svg>
+);
 
 export default function PreviewPage() {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+
+  const groupedItems = useMemo(() => {
+    const items = order?.orderItems ?? [];
+    const foundItems = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
+
+    return foundItems.reduce((acc, item) => {
+      const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(item);
+      return acc;
+    }, {} as GroupedItems);
+  }, [order]);
+
   const handleGoBack = () => {
     router.back();
   };
@@ -73,10 +53,6 @@ export default function PreviewPage() {
   const handleProceedToBagging = () => {
     console.log('Proceed to bagging');
     // Navigate to bagging page
-  };
-
-  const handleNext = () => {
-    console.log('Load next items');
   };
 
   return (
@@ -108,50 +84,41 @@ export default function PreviewPage() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Tip Card */}
-          <View style={styles.tipCard}>
-            <View style={styles.tipContent}>
-              <View style={styles.tipIconContainer}>
-                <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <Path 
-                    d="M7 20H11C11 21.1 10.1 22 9 22C7.9 22 7 21.1 7 20ZM5 19H13V17H5V19ZM16.5 9.5C16.5 13.32 13.84 15.36 12.73 16H5.27C4.16 15.36 1.5 13.32 1.5 9.5C1.5 5.36 4.86 2 9 2C13.14 2 16.5 5.36 16.5 9.5ZM14.5 9.5C14.5 6.47 12.03 4 9 4C5.97 4 3.5 6.47 3.5 9.5C3.5 11.97 4.99 13.39 5.85 14H12.15C13.01 13.39 14.5 11.97 14.5 9.5ZM21.37 7.37L20 8L21.37 8.63L22 10L22.63 8.63L24 8L22.63 7.37L22 6L21.37 7.37ZM19 6L19.94 3.94L22 3L19.94 2.06L19 0L18.06 2.06L16 3L18.06 3.94L19 6Z" 
-                    fill="#FFAC06"
-                  />
-                </Svg>
-              </View>
-              <Text style={styles.tipText}>
-                Cross check all shopping items and make sure the list is complete
-              </Text>
-            </View>
-          </View>
-
-          {/* Items List */}
-          <View style={styles.itemsList}>
-            {PREVIEW_ITEMS.map((item) => (
-              <PreviewItemCard key={item.id} item={item} />
-            ))}
-          </View>
-
-          {/* Pagination */}
-          <View style={styles.pagination}>
-            <Text style={styles.paginationText}>Showing 1-10 of 20</Text>
-            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-              <Text style={styles.nextText}>Next</Text>
-              <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <Path 
-                  d="M12.8333 16.375L17 12M17 12L12.8333 7.625M17 12H7" 
-                  stroke="black" 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </TouchableOpacity>
-          </View>
+      {isLoading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </ScrollView>
+      ) : isError ? (
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Error: {error?.message || 'Failed to load order.'}</Text>
+        </View>
+      ) : (
+        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            {/* Tip Card */}
+            <View style={styles.tipCard}>
+              <View style={styles.tipContent}>
+                <InfoIcon />
+                <Text style={styles.tipText}>
+                  Cross-check all shopping items and make sure the list is complete.
+                </Text>
+              </View>
+            </View>
+
+            {/* Items List */}
+            {Object.keys(groupedItems).length > 0 ? (
+              Object.entries(groupedItems).map(([category, items]) => (
+                <View key={category} style={styles.categorySection}>
+                  <Text style={styles.categoryTitle}>{category}</Text>
+                  {items.map((item) => <PreviewItemCard key={item.id} item={item} />)}
+                </View>
+              ))
+            ) : (
+              <Text style={styles.emptyText}>No items have been found for this order yet.</Text>
+            )}
+          </View>
+        </ScrollView>
+      )}
 
       {/* Proceed to Bagging Button */}
       <View style={styles.buttonContainer}>
@@ -170,7 +137,7 @@ export default function PreviewPage() {
 }
 
 interface PreviewItemCardProps {
-  item: PreviewItem;
+  item: OrderItem;
 }
 
 const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
@@ -178,7 +145,7 @@ const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
     <View style={styles.itemCard}>
       <View style={styles.itemContent}>
         <View style={styles.itemImageContainer}>
-          <Image source={{ uri: item.image }} style={styles.itemImage} />
+          <Image source={{ uri: item.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} style={styles.itemImage} />
         </View>
         
         <View style={styles.itemDetails}>
@@ -196,15 +163,15 @@ const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
             </View>
             
             <Text style={styles.foundText}>
-              {item.foundQuantity} of {item.totalQuantity} found
+              {item.quantityFound ?? item.quantity} of {item.quantity} found
             </Text>
           </View>
           
-          <Text style={styles.itemName}>{item.name}</Text>
+          <Text style={styles.itemName} numberOfLines={2}>{item.vendorProduct?.name}</Text>
           
           <View style={styles.itemFooter}>
-            <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-            {item.isPerishable && (
+            <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
+            {(item.vendorProduct as any)?.isPerishable && (
               <View style={styles.perishableBadge}>
                 <Text style={styles.perishableText}>Perishable</Text>
               </View>
@@ -220,6 +187,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#666',
+    fontFamily: 'Open Sans',
+    fontSize: 14,
   },
   header: {
     flexDirection: 'row',
@@ -266,32 +249,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   tipCard: {
-    padding: spacing.md,
-    paddingHorizontal: 22,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#B4BED4',
-    ...shadows.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: '#E6F3F3', // A light teal background
   },
   tipContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-  },
-  tipIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 32,
-    backgroundColor: colors.textPrimary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: spacing.md,
   },
   tipText: {
     flex: 1,
     fontSize: 12,
     fontFamily: typography.families.secondary,
     fontWeight: typography.weights.normal,
-    color: '#898A8D',
+    color: '#045D60', // Darker teal text
     lineHeight: 16,
   },
   itemsList: {
@@ -299,6 +272,7 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     padding: spacing.md,
+    marginBottom: 14,
     paddingHorizontal: 18,
     borderRadius: borderRadius.md,
     borderWidth: 1,
@@ -352,9 +326,9 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   itemName: {
-    fontSize: 12,
-    fontFamily: typography.families.secondary,
-    fontWeight: typography.weights.normal,
+    fontSize: 14,
+    fontFamily: "Open Sans",
+    fontWeight: '700',
     color: '#484C52',
     lineHeight: 16,
   },
@@ -384,32 +358,18 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: spacing.md,
+  categorySection: {
+    marginBottom: spacing.lg,
   },
-  paginationText: {
-    fontSize: 14,
-    fontFamily: typography.families.secondary,
+  categoryTitle: {
+    fontSize: 16,
+    fontFamily: typography.families.accent,
     fontWeight: typography.weights.bold,
     color: colors.textPrimary,
-    opacity: 0.8,
-    lineHeight: 19,
-  },
-  nextButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    opacity: 0.8,
-  },
-  nextText: {
-    fontSize: 15,
-    fontFamily: 'Nunito Sans',
-    fontWeight: typography.weights.medium,
-    color: colors.textPrimary,
-    lineHeight: 20,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   buttonContainer: {
     padding: spacing.lg,
