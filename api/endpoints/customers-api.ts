@@ -29,9 +29,9 @@ import type { UserSummary } from '../models';
 export const CustomersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
-         * @summary List customers for a vendor account or a specific store
-         * @param {string} [vendorId] Optional. The ID of a specific store to filter customers for. If omitted, returns customers from all stores.
+         * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
+         * @summary List customers for a vendor, admin, or shopper
+         * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -77,9 +77,9 @@ export const CustomersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CustomersApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
-         * @summary List customers for a vendor account or a specific store
-         * @param {string} [vendorId] Optional. The ID of a specific store to filter customers for. If omitted, returns customers from all stores.
+         * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
+         * @summary List customers for a vendor, admin, or shopper
+         * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -99,9 +99,9 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
     const localVarFp = CustomersApiFp(configuration)
     return {
         /**
-         * 
-         * @summary List customers for a vendor account or a specific store
-         * @param {string} [vendorId] Optional. The ID of a specific store to filter customers for. If omitted, returns customers from all stores.
+         * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
+         * @summary List customers for a vendor, admin, or shopper
+         * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -116,9 +116,9 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
  */
 export class CustomersApi extends BaseAPI {
     /**
-     * 
-     * @summary List customers for a vendor account or a specific store
-     * @param {string} [vendorId] Optional. The ID of a specific store to filter customers for. If omitted, returns customers from all stores.
+     * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
+     * @summary List customers for a vendor, admin, or shopper
+     * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */

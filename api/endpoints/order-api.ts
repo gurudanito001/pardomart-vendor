@@ -733,9 +733,9 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
-         * @summary Get all orders for a vendor user\'s stores
-         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * Retrieves a list of orders with role-based access: - **Vendor**: Can see all orders from all their stores. Can filter by `vendorId` and/or `status`. - **Store Admin**: Can only see orders from their assigned store. - **Store Shopper**: Can only see orders assigned to them (`shopperId` matches their user ID) within their store. 
+         * @summary Get orders based on user role (Vendor, Store Admin, or Store Shopper)
+         * @param {string} [vendorId] Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles.
          * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1124,9 +1124,9 @@ export const OrderApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
-         * @summary Get all orders for a vendor user\'s stores
-         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * Retrieves a list of orders with role-based access: - **Vendor**: Can see all orders from all their stores. Can filter by `vendorId` and/or `status`. - **Store Admin**: Can only see orders from their assigned store. - **Store Shopper**: Can only see orders assigned to them (`shopperId` matches their user ID) within their store. 
+         * @summary Get orders based on user role (Vendor, Store Admin, or Store Shopper)
+         * @param {string} [vendorId] Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles.
          * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1356,9 +1356,9 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.orderUserMeGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
-         * @summary Get all orders for a vendor user\'s stores
-         * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+         * Retrieves a list of orders with role-based access: - **Vendor**: Can see all orders from all their stores. Can filter by `vendorId` and/or `status`. - **Store Admin**: Can only see orders from their assigned store. - **Store Shopper**: Can only see orders assigned to them (`shopperId` matches their user ID) within their store. 
+         * @summary Get orders based on user role (Vendor, Store Admin, or Store Shopper)
+         * @param {string} [vendorId] Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles.
          * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1590,9 +1590,9 @@ export class OrderApi extends BaseAPI {
     }
 
     /**
-     * Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
-     * @summary Get all orders for a vendor user\'s stores
-     * @param {string} [vendorId] Optional. Filter orders by a specific store ID owned by the user.
+     * Retrieves a list of orders with role-based access: - **Vendor**: Can see all orders from all their stores. Can filter by `vendorId` and/or `status`. - **Store Admin**: Can only see orders from their assigned store. - **Store Shopper**: Can only see orders assigned to them (`shopperId` matches their user ID) within their store. 
+     * @summary Get orders based on user role (Vendor, Store Admin, or Store Shopper)
+     * @param {string} [vendorId] Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles.
      * @param {OrderStatus} [status] Optional. Filter orders by a specific status.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

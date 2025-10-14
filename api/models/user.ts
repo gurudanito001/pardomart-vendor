@@ -21,6 +21,7 @@ export interface User {
     'id'?: string;
     'name'?: string | null;
     'email'?: string | null;
+    'image'?: string | null;
     'mobileNumber'?: string;
     'role'?: Role;
     'mobileVerified'?: boolean;
@@ -30,7 +31,6 @@ export interface User {
     'referralCode'?: string | null;
     'createdAt'?: string;
     'updatedAt'?: string;
-    'image'?: string | null;
     'dynamicMediaUrls'?: object | null;
     'rememberToken'?: string | null;
     'stripeCustomerId'?: string | null;

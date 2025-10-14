@@ -31,6 +31,7 @@ Name | Type | Description | Notes
 **deliveryAddress** | [**DeliveryAddress**](DeliveryAddress.md) |  | [optional] [default to undefined]
 **shopper** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
 **deliverer** | [**User**](User.md) |  | [optional] [default to undefined]
+**orderCode** | **string** | A unique, human-readable code for the order. | [optional] [default to undefined]
 **deliveryPerson** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
 
 ## Example
@@ -65,6 +66,7 @@ const instance: VendorOrder = {
     deliveryAddress,
     shopper,
     deliverer,
+    orderCode,
     deliveryPerson,
 };
 ```

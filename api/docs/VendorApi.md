@@ -8,7 +8,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**orderOrderIdDeclinePatch**](#orderorderiddeclinepatch) | **PATCH** /order/{orderId}/decline | Decline a pending order|
 |[**orderOrderIdItemsItemIdUpdateShoppingStatusPatch**](#orderorderiditemsitemidupdateshoppingstatuspatch) | **PATCH** /order/{orderId}/items/{itemId}/update-shopping-status | Update the shopping status of an order item|
 |[**orderOrderIdStartShoppingPatch**](#orderorderidstartshoppingpatch) | **PATCH** /order/{orderId}/start-shopping | Mark an order as \&#39;currently shopping\&#39;|
-|[**orderVendorGet**](#ordervendorget) | **GET** /order/vendor | Get all orders for a vendor user\&#39;s stores|
+|[**orderVendorGet**](#ordervendorget) | **GET** /order/vendor | Get orders based on user role (Vendor, Store Admin, or Store Shopper)|
 |[**orderVendorOrdersGet**](#ordervendorordersget) | **GET** /order/vendorOrders | Get orders for a vendor\&#39;s dashboard|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
 |[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
@@ -243,7 +243,7 @@ const { status, data } = await apiInstance.orderOrderIdStartShoppingPatch(
 # **orderVendorGet**
 > Array<Order> orderVendorGet()
 
-Retrieves a list of all orders for the stores owned by the authenticated vendor user. Can be filtered by a specific `vendorId` (store ID) and/or `orderStatus`. If no `vendorId` is provided, it fetches orders from all stores owned by the user. 
+Retrieves a list of orders with role-based access: - **Vendor**: Can see all orders from all their stores. Can filter by `vendorId` and/or `status`. - **Store Admin**: Can only see orders from their assigned store. - **Store Shopper**: Can only see orders assigned to them (`shopperId` matches their user ID) within their store. 
 
 ### Example
 
@@ -256,7 +256,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new VendorApi(configuration);
 
-let vendorId: string; //Optional. Filter orders by a specific store ID owned by the user. (optional) (default to undefined)
+let vendorId: string; //Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles. (optional) (default to undefined)
 let status: OrderStatus; //Optional. Filter orders by a specific status. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.orderVendorGet(
@@ -269,7 +269,7 @@ const { status, data } = await apiInstance.orderVendorGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **vendorId** | [**string**] | Optional. Filter orders by a specific store ID owned by the user. | (optional) defaults to undefined|
+| **vendorId** | [**string**] | Optional. For Vendors, filters orders by a specific store ID. Ignored for staff roles. | (optional) defaults to undefined|
 | **status** | **OrderStatus** | Optional. Filter orders by a specific status. | (optional) defaults to undefined|
 
 

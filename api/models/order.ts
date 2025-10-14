@@ -55,7 +55,6 @@ export interface Order {
     'shoppingMethod'?: ShoppingMethod;
     'deliveryMethod'?: DeliveryMethod;
     'scheduledShoppingStartTime'?: string | null;
-    'scheduledDeliveryTime'?: string | null;
     'shoppingHandlerId'?: string | null;
     'deliveryPersonId'?: string | null;
     'reasonForDecline'?: string | null;

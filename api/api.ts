@@ -37,6 +37,7 @@ export * from './endpoints/staff-api';
 export * from './endpoints/support-api';
 export * from './endpoints/tag-api';
 export * from './endpoints/transaction-api';
+export * from './endpoints/transactions-api';
 export * from './endpoints/user-api';
 export * from './endpoints/vendor-api';
 export * from './endpoints/vendor-opening-hours-api';

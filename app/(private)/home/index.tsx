@@ -1,4 +1,3 @@
-import { AntDesign } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React from "react";
@@ -27,6 +26,17 @@ import type { Vendor } from "../../../api/models";
 import DashboardCard from "../../../components/ui/DashboardCard";
 import { useAuth } from "../../../context/AuthContext";
 import { useVendors } from "../../../hooks/api/useVendors";
+
+const getGreeting = (): string => {
+  const currentHour = new Date().getHours();
+  if (currentHour < 12) {
+    return "morning";
+  } else if (currentHour < 18) {
+    return "afternoon";
+  } else {
+    return "evening";
+  }
+};
 
 export default function HomeScreen() {
   const { state: authState } = useAuth();
@@ -68,35 +78,6 @@ export default function HomeScreen() {
     return "Vendor";
   }, [user]);
 
-  const userAvatarUri = React.useMemo(() => {
-    if (!user) {
-      return null;
-    }
-
-    const dynamicMedia = ((user as any)?.dynamicMediaUrls ?? {}) as any;
-    const avatarSources: unknown[] = [
-      (user as any)?.image,
-      (user as any)?.profileImage,
-      (user as any)?.avatar,
-      (user as any)?.avatarUrl,
-      dynamicMedia?.avatar?.small,
-      dynamicMedia?.avatar?.medium,
-      dynamicMedia?.avatar?.large,
-      dynamicMedia?.profile?.small,
-      dynamicMedia?.profile?.medium,
-      dynamicMedia?.profile?.large,
-    ];
-
-    const resolved = avatarSources.find((value) => {
-      if (typeof value !== "string") {
-        return false;
-      }
-
-      return value.trim().length > 0;
-    });
-
-    return typeof resolved === "string" ? resolved.trim() : null;
-  }, [user]);
 
   const isAuthLoading = authState.isLoading;
 
@@ -329,33 +310,20 @@ export default function HomeScreen() {
           <View style={styles.leftSection}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                {userAvatarUri ? (
-                  <Image
-                    source={{ uri: userAvatarUri }}
-                    style={styles.avatarImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <DefaultAvatarIcon />
-                )}
+                <Image
+                  source={require("../../../assets/images/user profile.png")}
+                  style={styles.profileImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
-                Good morning, {isAuthLoading ? "..." : userDisplayName}
+                Good {getGreeting()}, 
               </Text>
               <View style={styles.storeInfoContainer}>
-                <Text style={styles.storeInfo}>Set up Store info</Text>
-                <View>
-                  <Svg width="18" height="13" viewBox="0 0 18 13" fill="none">
-                    <Path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M8.28935 11.1361L2.63235 5.47906L4.04635 4.06506L8.99635 9.01506L13.9464 4.06506L15.3604 5.47906L9.70335 11.1361C9.51582 11.3235 9.26152 11.4288 8.99635 11.4288C8.73119 11.4288 8.47688 11.3235 8.28935 11.1361Z"
-                      fill="white"
-                    />
-                  </Svg>
-                </View>
+                <Text style={styles.storeInfo}>{isAuthLoading ? "..." : userDisplayName}</Text>
+                
               </View>
             </View>
           </View>
@@ -378,7 +346,7 @@ export default function HomeScreen() {
       >
         {/* Setup Banner */}
         {showSetupBanner ? (
-          <View style={styles.setupBanner}>
+          <TouchableOpacity onPress={handleSetupStore} style={styles.setupBanner}>
             <View style={styles.setupContent}>
               <View style={styles.setupIcon}>
                 <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -394,10 +362,7 @@ export default function HomeScreen() {
                   : "Finish setting up your store"}
               </Text>
             </View>
-            <TouchableOpacity onPress={handleSetupStore}>
-              <AntDesign name="right" size={24} color="rgba(0,0,0,0.4)" />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         ) : null}
 
         {/* Dashboard Grid */}
@@ -631,5 +596,14 @@ const styles = StyleSheet.create({
   arrowIcon: {
     width: 12,
     height: 24,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E5E5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
 });

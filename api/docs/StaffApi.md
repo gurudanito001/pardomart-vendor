@@ -4,16 +4,18 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**staffGet**](#staffget) | **GET** /staff | List all staff members for the authenticated vendor owner|
+|[**staffGet**](#staffget) | **GET** /staff | List staff members based on user role|
 |[**staffPost**](#staffpost) | **POST** /staff | Create a new staff member (shopper) for a vendor|
 |[**staffStaffIdDelete**](#staffstaffiddelete) | **DELETE** /staff/{staffId} | Delete a staff member\&#39;s account|
 |[**staffStaffIdGet**](#staffstaffidget) | **GET** /staff/{staffId} | Get a single staff member by ID|
 |[**staffStaffIdPatch**](#staffstaffidpatch) | **PATCH** /staff/{staffId} | Update a staff member\&#39;s details|
 |[**staffStoreVendorIdGet**](#staffstorevendoridget) | **GET** /staff/store/{vendorId} | List all staff members for a specific store|
+|[**staffTransactionsGet**](#stafftransactionsget) | **GET** /staff/transactions | List all transactions for a vendor\&#39;s staff|
 
 # **staffGet**
 > staffGet()
 
+Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
 
 ### Example
 
@@ -50,7 +52,7 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | A list of all staff members across all stores. |  -  |
+|**200** | A list of staff members. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -311,6 +313,63 @@ void (empty response body)
 |-------------|-------------|------------------|
 |**200** | A list of staff members for the specified store. |  -  |
 |**403** | Forbidden. The authenticated user does not own the vendor. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **staffTransactionsGet**
+> staffTransactionsGet()
+
+Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+
+### Example
+
+```typescript
+import {
+    StaffApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new StaffApi(configuration);
+
+let staffUserId: string; //Optional. Filter transactions for a specific staff member. (optional) (default to undefined)
+let vendorId: string; //Optional. Filter transactions for staff at a specific store. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.staffTransactionsGet(
+    staffUserId,
+    vendorId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **staffUserId** | [**string**] | Optional. Filter transactions for a specific staff member. | (optional) defaults to undefined|
+| **vendorId** | [**string**] | Optional. Filter transactions for staff at a specific store. | (optional) defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of staff transactions. |  -  |
+|**403** | Forbidden if the user tries to access a vendor or staff they do not own. |  -  |
+|**404** | Not Found if the specified &#x60;staffUserId&#x60; or &#x60;vendorId&#x60; does not exist. |  -  |
+|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -126,6 +126,7 @@ docs/Transaction.md
 docs/TransactionApi.md
 docs/TransactionWithRelations.md
 docs/TransactionWithRelationsAllOfOrder.md
+docs/TransactionsApi.md
 docs/TransactionsCreatePaymentIntentPost200Response.md
 docs/TransactionsCreatePaymentIntentPostRequest.md
 docs/UpdateCartItemPayload.md
@@ -194,6 +195,7 @@ endpoints/staff-api.ts
 endpoints/support-api.ts
 endpoints/tag-api.ts
 endpoints/transaction-api.ts
+endpoints/transactions-api.ts
 endpoints/user-api.ts
 endpoints/vendor-api.ts
 endpoints/vendor-opening-hours-api.ts
