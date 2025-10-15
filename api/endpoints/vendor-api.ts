@@ -26,6 +26,8 @@ import type { CreateVendorPayload } from '../models';
 // @ts-ignore
 import type { DeclineOrderPayload } from '../models';
 // @ts-ignore
+import type { EarningsTotalGet200Response } from '../models';
+// @ts-ignore
 import type { Order } from '../models';
 // @ts-ignore
 import type { OrderItemWithRelations } from '../models';
@@ -35,6 +37,14 @@ import type { OrderStatus } from '../models';
 import type { PaginatedTrendingVendorProducts } from '../models';
 // @ts-ignore
 import type { PaginatedVendors } from '../models';
+// @ts-ignore
+import type { ProductVendorMyProductsGet200Response } from '../models';
+// @ts-ignore
+import type { ProductVendorTransferPost200Response } from '../models';
+// @ts-ignore
+import type { ProductVendorTransferPostRequest } from '../models';
+// @ts-ignore
+import type { Transaction } from '../models';
 // @ts-ignore
 import type { TransactionWithRelations } from '../models';
 // @ts-ignore
@@ -58,6 +68,84 @@ import type { VendorsIncompleteSetupsGet200Response } from '../models';
  */
 export const VendorApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves a list of all earnings (vendor payouts) for the authenticated vendor owner. Can be filtered by a specific `vendorId` (store ID) to see earnings for just one store. 
+         * @summary List earnings for a vendor
+         * @param {string} [vendorId] Optional. Filter earnings for a specific store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        earningsGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/earnings`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Calculates and returns the total earnings for the authenticated vendor owner. The total can be filtered by a specific time period. 
+         * @summary Get total earnings for a vendor
+         * @param {EarningsTotalGetPeriodEnum} [period] Optional. The time period to calculate earnings for. - &#x60;today&#x60;: From the beginning of the current day. - &#x60;7days&#x60;: For the last 7 days. - &#x60;1month&#x60;: For the last 1 month. - &#x60;1year&#x60;: For the last 1 year. If omitted, total earnings of all time are returned. 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        earningsTotalGet: async (period?: EarningsTotalGetPeriodEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/earnings/total`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (period !== undefined) {
+                localVarQueryParameter['period'] = period;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Accept a pending order
@@ -301,6 +389,95 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorMyProductsGet: async (vendorId?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/product/vendor/my-products`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorTransferPost: async (productVendorTransferPostRequest: ProductVendorTransferPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'productVendorTransferPostRequest' is not null or undefined
+            assertParamExists('productVendorTransferPost', 'productVendorTransferPostRequest', productVendorTransferPostRequest)
+            const localVarPath = `/product/vendor/transfer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(productVendorTransferPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -767,6 +944,32 @@ export const VendorApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = VendorApiAxiosParamCreator(configuration)
     return {
         /**
+         * Retrieves a list of all earnings (vendor payouts) for the authenticated vendor owner. Can be filtered by a specific `vendorId` (store ID) to see earnings for just one store. 
+         * @summary List earnings for a vendor
+         * @param {string} [vendorId] Optional. Filter earnings for a specific store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async earningsGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Transaction>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.earningsGet(vendorId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.earningsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Calculates and returns the total earnings for the authenticated vendor owner. The total can be filtered by a specific time period. 
+         * @summary Get total earnings for a vendor
+         * @param {EarningsTotalGetPeriodEnum} [period] Optional. The time period to calculate earnings for. - &#x60;today&#x60;: From the beginning of the current day. - &#x60;7days&#x60;: For the last 7 days. - &#x60;1month&#x60;: For the last 1 month. - &#x60;1year&#x60;: For the last 1 year. If omitted, total earnings of all time are returned. 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async earningsTotalGet(period?: EarningsTotalGetPeriodEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EarningsTotalGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.earningsTotalGet(period, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.earningsTotalGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Accept a pending order
          * @param {string} orderId The ID of the order to accept.
@@ -846,6 +1049,34 @@ export const VendorApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.orderVendorOrdersGet(status, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['VendorApi.orderVendorOrdersGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductVendorMyProductsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorMyProductsGet(vendorId, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.productVendorMyProductsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductVendorTransferPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorTransferPost(productVendorTransferPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.productVendorTransferPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1009,6 +1240,26 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = VendorApiFp(configuration)
     return {
         /**
+         * Retrieves a list of all earnings (vendor payouts) for the authenticated vendor owner. Can be filtered by a specific `vendorId` (store ID) to see earnings for just one store. 
+         * @summary List earnings for a vendor
+         * @param {string} [vendorId] Optional. Filter earnings for a specific store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        earningsGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<Transaction>> {
+            return localVarFp.earningsGet(vendorId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Calculates and returns the total earnings for the authenticated vendor owner. The total can be filtered by a specific time period. 
+         * @summary Get total earnings for a vendor
+         * @param {EarningsTotalGetPeriodEnum} [period] Optional. The time period to calculate earnings for. - &#x60;today&#x60;: From the beginning of the current day. - &#x60;7days&#x60;: For the last 7 days. - &#x60;1month&#x60;: For the last 1 month. - &#x60;1year&#x60;: For the last 1 year. If omitted, total earnings of all time are returned. 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        earningsTotalGet(period?: EarningsTotalGetPeriodEnum, options?: RawAxiosRequestConfig): AxiosPromise<EarningsTotalGet200Response> {
+            return localVarFp.earningsTotalGet(period, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Accept a pending order
          * @param {string} orderId The ID of the order to accept.
@@ -1071,6 +1322,28 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
          */
         orderVendorOrdersGet(status?: OrderStatus, options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorOrder>> {
             return localVarFp.orderVendorOrdersGet(status, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ProductVendorMyProductsGet200Response> {
+            return localVarFp.productVendorMyProductsGet(vendorId, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductVendorTransferPost200Response> {
+            return localVarFp.productVendorTransferPost(productVendorTransferPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
@@ -1198,6 +1471,28 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
  */
 export class VendorApi extends BaseAPI {
     /**
+     * Retrieves a list of all earnings (vendor payouts) for the authenticated vendor owner. Can be filtered by a specific `vendorId` (store ID) to see earnings for just one store. 
+     * @summary List earnings for a vendor
+     * @param {string} [vendorId] Optional. Filter earnings for a specific store.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public earningsGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).earningsGet(vendorId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Calculates and returns the total earnings for the authenticated vendor owner. The total can be filtered by a specific time period. 
+     * @summary Get total earnings for a vendor
+     * @param {EarningsTotalGetPeriodEnum} [period] Optional. The time period to calculate earnings for. - &#x60;today&#x60;: From the beginning of the current day. - &#x60;7days&#x60;: For the last 7 days. - &#x60;1month&#x60;: For the last 1 month. - &#x60;1year&#x60;: For the last 1 year. If omitted, total earnings of all time are returned. 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public earningsTotalGet(period?: EarningsTotalGetPeriodEnum, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).earningsTotalGet(period, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Accept a pending order
      * @param {string} orderId The ID of the order to accept.
@@ -1265,6 +1560,30 @@ export class VendorApi extends BaseAPI {
      */
     public orderVendorOrdersGet(status?: OrderStatus, options?: RawAxiosRequestConfig) {
         return VendorApiFp(this.configuration).orderVendorOrdersGet(status, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+     * @summary Get all products from all stores owned by the authenticated vendor
+     * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).productVendorMyProductsGet(vendorId, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+     * @summary Transfer a product listing from one store to others
+     * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).productVendorTransferPost(productVendorTransferPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1397,3 +1716,10 @@ export class VendorApi extends BaseAPI {
     }
 }
 
+export const EarningsTotalGetPeriodEnum = {
+    Today: 'today',
+    _7days: '7days',
+    _1month: '1month',
+    _1year: '1year'
+} as const;
+export type EarningsTotalGetPeriodEnum = typeof EarningsTotalGetPeriodEnum[keyof typeof EarningsTotalGetPeriodEnum];

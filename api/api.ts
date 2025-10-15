@@ -23,6 +23,7 @@ export * from './endpoints/category-api';
 export * from './endpoints/customers-api';
 export * from './endpoints/delivery-api';
 export * from './endpoints/delivery-address-api';
+export * from './endpoints/earnings-api';
 export * from './endpoints/fee-api';
 export * from './endpoints/general-api';
 export * from './endpoints/general-search-api';

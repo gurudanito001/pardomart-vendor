@@ -16,9 +16,9 @@ Name | Type | Description | Notes
 **isReplacementApproved** | **boolean** |  | [optional] [default to undefined]
 **createdAt** | **string** |  | [optional] [default to undefined]
 **updatedAt** | **string** |  | [optional] [default to undefined]
-**vendorProduct** | [**VendorProduct**](VendorProduct.md) |  | [optional] [default to undefined]
-**chosenReplacement** | [**VendorProduct**](VendorProduct.md) |  | [optional] [default to undefined]
-**replacements** | [**Array&lt;VendorProduct&gt;**](VendorProduct.md) |  | [optional] [default to undefined]
+**vendorProduct** | [**VendorProductWithProduct**](VendorProductWithProduct.md) |  | [optional] [default to undefined]
+**chosenReplacement** | [**VendorProductWithProduct**](VendorProductWithProduct.md) |  | [optional] [default to undefined]
+**replacements** | [**Array&lt;VendorProductWithProduct&gt;**](VendorProductWithProduct.md) |  | [optional] [default to undefined]
 
 ## Example
 

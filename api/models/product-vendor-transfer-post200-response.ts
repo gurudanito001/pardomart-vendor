@@ -15,17 +15,11 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { OrderItem } from './order-item';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { OrderItemStatus } from './order-item-status';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { VendorProductWithProduct } from './vendor-product-with-product';
+import type { ProductVendorTransferPost200ResponseDetailsInner } from './product-vendor-transfer-post200-response-details-inner';
 
-/**
- * @type OrderItemWithRelations
- */
-export type OrderItemWithRelations = OrderItem;
-
+export interface ProductVendorTransferPost200Response {
+    'successfulTransfers'?: number;
+    'skippedTransfers'?: number;
+    'details'?: Array<ProductVendorTransferPost200ResponseDetailsInner>;
+}
 

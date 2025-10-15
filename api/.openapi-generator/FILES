@@ -60,6 +60,8 @@ docs/DeliveryPersonLocation.md
 docs/DeliverySlot.md
 docs/Device.md
 docs/DevicesPostRequest.md
+docs/EarningsApi.md
+docs/EarningsTotalGet200Response.md
 docs/Faq.md
 docs/Fee.md
 docs/FeeApi.md
@@ -99,6 +101,10 @@ docs/PaymentMethods.md
 docs/PaymentStatus.md
 docs/Product.md
 docs/ProductApi.md
+docs/ProductVendorMyProductsGet200Response.md
+docs/ProductVendorTransferPost200Response.md
+docs/ProductVendorTransferPost200ResponseDetailsInner.md
+docs/ProductVendorTransferPostRequest.md
 docs/ProductWithRelations.md
 docs/Rating.md
 docs/RatingApi.md
@@ -157,6 +163,7 @@ docs/VendorOpeningHours.md
 docs/VendorOpeningHoursApi.md
 docs/VendorOrder.md
 docs/VendorProduct.md
+docs/VendorProductWithProduct.md
 docs/VendorProductWithRelations.md
 docs/VendorRating.md
 docs/VendorSummary.md
@@ -181,6 +188,7 @@ endpoints/category-api.ts
 endpoints/customers-api.ts
 endpoints/delivery-address-api.ts
 endpoints/delivery-api.ts
+endpoints/earnings-api.ts
 endpoints/fee-api.ts
 endpoints/general-api.ts
 endpoints/general-search-api.ts
@@ -249,6 +257,7 @@ models/delivery-person-location.ts
 models/delivery-slot.ts
 models/device.ts
 models/devices-post-request.ts
+models/earnings-total-get200-response.ts
 models/faq.ts
 models/fee-calculation-method.ts
 models/fee-type.ts
@@ -279,6 +288,10 @@ models/paginated-vendor-products.ts
 models/paginated-vendors.ts
 models/payment-methods.ts
 models/payment-status.ts
+models/product-vendor-my-products-get200-response.ts
+models/product-vendor-transfer-post-request.ts
+models/product-vendor-transfer-post200-response-details-inner.ts
+models/product-vendor-transfer-post200-response.ts
 models/product-with-relations.ts
 models/product.ts
 models/rating-type.ts
@@ -327,6 +340,7 @@ models/vendor-category-with-products.ts
 models/vendor-list-item.ts
 models/vendor-opening-hours.ts
 models/vendor-order.ts
+models/vendor-product-with-product.ts
 models/vendor-product-with-relations.ts
 models/vendor-product.ts
 models/vendor-rating.ts

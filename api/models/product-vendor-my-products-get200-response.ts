@@ -15,17 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
-import type { OrderItem } from './order-item';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { OrderItemStatus } from './order-item-status';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { VendorProductWithProduct } from './vendor-product-with-product';
+import type { VendorProductWithRelations } from './vendor-product-with-relations';
 
-/**
- * @type OrderItemWithRelations
- */
-export type OrderItemWithRelations = OrderItem;
-
+export interface ProductVendorMyProductsGet200Response {
+    'page'?: number;
+    'totalPages'?: number;
+    'pageSize'?: number;
+    'totalCount'?: number;
+    'data'?: Array<VendorProductWithRelations>;
+}
 

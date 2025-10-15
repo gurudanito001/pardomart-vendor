@@ -34,6 +34,12 @@ import type { PaginatedVendorProducts } from '../models';
 // @ts-ignore
 import type { Product } from '../models';
 // @ts-ignore
+import type { ProductVendorMyProductsGet200Response } from '../models';
+// @ts-ignore
+import type { ProductVendorTransferPost200Response } from '../models';
+// @ts-ignore
+import type { ProductVendorTransferPostRequest } from '../models';
+// @ts-ignore
 import type { ProductWithRelations } from '../models';
 // @ts-ignore
 import type { UpdateProductBasePayload } from '../models';
@@ -622,6 +628,55 @@ export const ProductApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorMyProductsGet: async (vendorId?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/product/vendor/my-products`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Creates a product listing for a specific vendor.
          * @summary Create a vendor-specific product
          * @param {CreateVendorProductPayload} createVendorProductPayload 
@@ -692,6 +747,46 @@ export const ProductApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorTransferPost: async (productVendorTransferPostRequest: ProductVendorTransferPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'productVendorTransferPostRequest' is not null or undefined
+            assertParamExists('productVendorTransferPost', 'productVendorTransferPostRequest', productVendorTransferPostRequest)
+            const localVarPath = `/product/vendor/transfer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(productVendorTransferPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -944,6 +1039,21 @@ export const ProductApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductVendorMyProductsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorMyProductsGet(vendorId, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productVendorMyProductsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Creates a product listing for a specific vendor.
          * @summary Create a vendor-specific product
          * @param {CreateVendorProductPayload} createVendorProductPayload 
@@ -967,6 +1077,19 @@ export const ProductApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorTagsIdsGet(tagIds, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductApi.productVendorTagsIdsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductVendorTransferPost200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorTransferPost(productVendorTransferPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productVendorTransferPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1143,6 +1266,18 @@ export const ProductApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.productVendorIdPatch(updateVendorProductPayload, id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+         * @summary Get all products from all stores owned by the authenticated vendor
+         * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<ProductVendorMyProductsGet200Response> {
+            return localVarFp.productVendorMyProductsGet(vendorId, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Creates a product listing for a specific vendor.
          * @summary Create a vendor-specific product
          * @param {CreateVendorProductPayload} createVendorProductPayload 
@@ -1161,6 +1296,16 @@ export const ProductApiFactory = function (configuration?: Configuration, basePa
          */
         productVendorTagsIdsGet(tagIds: Array<string>, options?: RawAxiosRequestConfig): AxiosPromise<Array<VendorProductWithRelations>> {
             return localVarFp.productVendorTagsIdsGet(tagIds, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+         * @summary Transfer a product listing from one store to others
+         * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProductVendorTransferPost200Response> {
+            return localVarFp.productVendorTransferPost(productVendorTransferPostRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves a list of vendor products that are trending, based on the number of times they have been ordered.
@@ -1345,6 +1490,19 @@ export class ProductApi extends BaseAPI {
     }
 
     /**
+     * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+     * @summary Get all products from all stores owned by the authenticated vendor
+     * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productVendorMyProductsGet(vendorId?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productVendorMyProductsGet(vendorId, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Creates a product listing for a specific vendor.
      * @summary Create a vendor-specific product
      * @param {CreateVendorProductPayload} createVendorProductPayload 
@@ -1364,6 +1522,17 @@ export class ProductApi extends BaseAPI {
      */
     public productVendorTagsIdsGet(tagIds: Array<string>, options?: RawAxiosRequestConfig) {
         return ProductApiFp(this.configuration).productVendorTagsIdsGet(tagIds, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+     * @summary Transfer a product listing from one store to others
+     * @param {ProductVendorTransferPostRequest} productVendorTransferPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productVendorTransferPost(productVendorTransferPostRequest: ProductVendorTransferPostRequest, options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productVendorTransferPost(productVendorTransferPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

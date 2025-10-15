@@ -19,9 +19,9 @@ import type { Role } from './role';
 
 export interface User {
     'id'?: string;
+    'image'?: string;
     'name'?: string | null;
     'email'?: string | null;
-    'image'?: string | null;
     'mobileNumber'?: string;
     'role'?: Role;
     'mobileVerified'?: boolean;

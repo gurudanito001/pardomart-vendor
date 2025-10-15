@@ -263,10 +263,10 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+         * Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
          * @summary List all transactions for a vendor\'s staff
-         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member.
-         * @param {string} [vendorId] Optional. Filter transactions for staff at a specific store.
+         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member (shopper or admin).
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -394,10 +394,10 @@ export const StaffApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+         * Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
          * @summary List all transactions for a vendor\'s staff
-         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member.
-         * @param {string} [vendorId] Optional. Filter transactions for staff at a specific store.
+         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member (shopper or admin).
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -477,10 +477,10 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.staffStoreVendorIdGet(vendorId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+         * Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
          * @summary List all transactions for a vendor\'s staff
-         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member.
-         * @param {string} [vendorId] Optional. Filter transactions for staff at a specific store.
+         * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member (shopper or admin).
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -561,10 +561,10 @@ export class StaffApi extends BaseAPI {
     }
 
     /**
-     * Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+     * Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
      * @summary List all transactions for a vendor\'s staff
-     * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member.
-     * @param {string} [vendorId] Optional. Filter transactions for staff at a specific store.
+     * @param {string} [staffUserId] Optional. Filter transactions for a specific staff member (shopper or admin).
+     * @param {string} [vendorId] Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */

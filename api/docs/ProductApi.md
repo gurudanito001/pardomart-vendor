@@ -18,8 +18,10 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**productVendorIdDelete**](#productvendoriddelete) | **DELETE** /product/vendor/{id} | Delete a vendor-specific product|
 |[**productVendorIdGet**](#productvendoridget) | **GET** /product/vendor/{id} | Get a vendor-specific product by its ID|
 |[**productVendorIdPatch**](#productvendoridpatch) | **PATCH** /product/vendor/{id} | Update a vendor-specific product|
+|[**productVendorMyProductsGet**](#productvendormyproductsget) | **GET** /product/vendor/my-products | Get all products from all stores owned by the authenticated vendor|
 |[**productVendorPost**](#productvendorpost) | **POST** /product/vendor | Create a vendor-specific product|
 |[**productVendorTagsIdsGet**](#productvendortagsidsget) | **GET** /product/vendor/tags/ids | Get vendor products by tag IDs|
+|[**productVendorTransferPost**](#productvendortransferpost) | **POST** /product/vendor/transfer | Transfer a product listing from one store to others|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
 
 # **productBarcodeGet**
@@ -764,6 +766,65 @@ const { status, data } = await apiInstance.productVendorIdPatch(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **productVendorMyProductsGet**
+> ProductVendorMyProductsGet200Response productVendorMyProductsGet()
+
+Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let vendorId: string; //Optional. Filter products by a specific store ID owned by the vendor. (optional) (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.productVendorMyProductsGet(
+    vendorId,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter products by a specific store ID owned by the vendor. | (optional) defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+**ProductVendorMyProductsGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of all vendor products. |  -  |
+|**403** | Forbidden. User is not a vendor. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **productVendorPost**
 > VendorProductWithRelations productVendorPost(createVendorProductPayload)
 
@@ -864,6 +925,60 @@ No authorization required
 |-------------|-------------|------------------|
 |**200** | A list of vendor products matching the tag IDs. |  -  |
 |**400** | tagIds query parameter is required. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productVendorTransferPost**
+> ProductVendorTransferPost200Response productVendorTransferPost(productVendorTransferPostRequest)
+
+Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration,
+    ProductVendorTransferPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let productVendorTransferPostRequest: ProductVendorTransferPostRequest; //
+
+const { status, data } = await apiInstance.productVendorTransferPost(
+    productVendorTransferPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **productVendorTransferPostRequest** | **ProductVendorTransferPostRequest**|  | |
+
+
+### Return type
+
+**ProductVendorTransferPost200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The result of the transfer operation. |  -  |
+|**403** | Forbidden. User does not own the source or target stores. |  -  |
+|**404** | Source product not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

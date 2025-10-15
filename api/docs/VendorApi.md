@@ -4,12 +4,16 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**earningsGet**](#earningsget) | **GET** /earnings | List earnings for a vendor|
+|[**earningsTotalGet**](#earningstotalget) | **GET** /earnings/total | Get total earnings for a vendor|
 |[**orderOrderIdAcceptPatch**](#orderorderidacceptpatch) | **PATCH** /order/{orderId}/accept | Accept a pending order|
 |[**orderOrderIdDeclinePatch**](#orderorderiddeclinepatch) | **PATCH** /order/{orderId}/decline | Decline a pending order|
 |[**orderOrderIdItemsItemIdUpdateShoppingStatusPatch**](#orderorderiditemsitemidupdateshoppingstatuspatch) | **PATCH** /order/{orderId}/items/{itemId}/update-shopping-status | Update the shopping status of an order item|
 |[**orderOrderIdStartShoppingPatch**](#orderorderidstartshoppingpatch) | **PATCH** /order/{orderId}/start-shopping | Mark an order as \&#39;currently shopping\&#39;|
 |[**orderVendorGet**](#ordervendorget) | **GET** /order/vendor | Get orders based on user role (Vendor, Store Admin, or Store Shopper)|
 |[**orderVendorOrdersGet**](#ordervendorordersget) | **GET** /order/vendorOrders | Get orders for a vendor\&#39;s dashboard|
+|[**productVendorMyProductsGet**](#productvendormyproductsget) | **GET** /product/vendor/my-products | Get all products from all stores owned by the authenticated vendor|
+|[**productVendorTransferPost**](#productvendortransferpost) | **POST** /product/vendor/transfer | Transfer a product listing from one store to others|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
 |[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
 |[**vendorsGet**](#vendorsget) | **GET** /vendors | Get a paginated list of vendors|
@@ -21,6 +25,112 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**vendorsIdPublishPatch**](#vendorsidpublishpatch) | **PATCH** /vendors/{id}/publish | Publish a vendor\&#39;s store|
 |[**vendorsIncompleteSetupsGet**](#vendorsincompletesetupsget) | **GET** /vendors/incomplete-setups | Find vendors with incomplete setup|
 |[**vendorsPost**](#vendorspost) | **POST** /vendors | Create a new vendor|
+
+# **earningsGet**
+> Array<Transaction> earningsGet()
+
+Retrieves a list of all earnings (vendor payouts) for the authenticated vendor owner. Can be filtered by a specific `vendorId` (store ID) to see earnings for just one store. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorId: string; //Optional. Filter earnings for a specific store. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.earningsGet(
+    vendorId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter earnings for a specific store. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Transaction>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of earnings transactions. |  -  |
+|**403** | Forbidden. The user is not a vendor or does not own the specified store. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **earningsTotalGet**
+> EarningsTotalGet200Response earningsTotalGet()
+
+Calculates and returns the total earnings for the authenticated vendor owner. The total can be filtered by a specific time period. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let period: 'today' | '7days' | '1month' | '1year'; //Optional. The time period to calculate earnings for. - `today`: From the beginning of the current day. - `7days`: For the last 7 days. - `1month`: For the last 1 month. - `1year`: For the last 1 year. If omitted, total earnings of all time are returned.  (optional) (default to undefined)
+
+const { status, data } = await apiInstance.earningsTotalGet(
+    period
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **period** | [**&#39;today&#39; | &#39;7days&#39; | &#39;1month&#39; | &#39;1year&#39;**]**Array<&#39;today&#39; &#124; &#39;7days&#39; &#124; &#39;1month&#39; &#124; &#39;1year&#39;>** | Optional. The time period to calculate earnings for. - &#x60;today&#x60;: From the beginning of the current day. - &#x60;7days&#x60;: For the last 7 days. - &#x60;1month&#x60;: For the last 1 month. - &#x60;1year&#x60;: For the last 1 year. If omitted, total earnings of all time are returned.  | (optional) defaults to undefined|
+
+
+### Return type
+
+**EarningsTotalGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The total earnings amount. |  -  |
+|**403** | Forbidden. The user is not a vendor. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **orderOrderIdAcceptPatch**
 > Order orderOrderIdAcceptPatch()
@@ -343,6 +453,119 @@ const { status, data } = await apiInstance.orderVendorOrdersGet(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | A list of orders for the vendor. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productVendorMyProductsGet**
+> ProductVendorMyProductsGet200Response productVendorMyProductsGet()
+
+Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorId: string; //Optional. Filter products by a specific store ID owned by the vendor. (optional) (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.productVendorMyProductsGet(
+    vendorId,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. Filter products by a specific store ID owned by the vendor. | (optional) defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+**ProductVendorMyProductsGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of all vendor products. |  -  |
+|**403** | Forbidden. User is not a vendor. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productVendorTransferPost**
+> ProductVendorTransferPost200Response productVendorTransferPost(productVendorTransferPostRequest)
+
+Copies a vendor product listing from a source store to one or more target stores owned by the same vendor. The product will not be transferred to stores where it already exists. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration,
+    ProductVendorTransferPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let productVendorTransferPostRequest: ProductVendorTransferPostRequest; //
+
+const { status, data } = await apiInstance.productVendorTransferPost(
+    productVendorTransferPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **productVendorTransferPostRequest** | **ProductVendorTransferPostRequest**|  | |
+
+
+### Return type
+
+**ProductVendorTransferPost200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The result of the transfer operation. |  -  |
+|**403** | Forbidden. User does not own the source or target stores. |  -  |
+|**404** | Source product not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

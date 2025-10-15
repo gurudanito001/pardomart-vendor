@@ -22,12 +22,57 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { Transaction } from '../models';
+// @ts-ignore
 import type { UserSummary } from '../models';
 /**
  * CustomersApi - axios parameter creator
  */
 export const CustomersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
+         * @summary List all transactions for a specific customer
+         * @param {string} customerId The ID of the customer.
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersCustomerIdTransactionsGet: async (customerId: string, vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'customerId' is not null or undefined
+            assertParamExists('customersCustomerIdTransactionsGet', 'customerId', customerId)
+            const localVarPath = `/customers/{customerId}/transactions`
+                .replace(`{${"customerId"}}`, encodeURIComponent(String(customerId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
          * @summary List customers for a vendor, admin, or shopper
@@ -77,6 +122,20 @@ export const CustomersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CustomersApiAxiosParamCreator(configuration)
     return {
         /**
+         * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
+         * @summary List all transactions for a specific customer
+         * @param {string} customerId The ID of the customer.
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersCustomerIdTransactionsGet(customerId: string, vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Transaction>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersCustomerIdTransactionsGet(customerId, vendorId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersCustomerIdTransactionsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
          * @summary List customers for a vendor, admin, or shopper
          * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
@@ -99,6 +158,17 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
     const localVarFp = CustomersApiFp(configuration)
     return {
         /**
+         * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
+         * @summary List all transactions for a specific customer
+         * @param {string} customerId The ID of the customer.
+         * @param {string} [vendorId] Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersCustomerIdTransactionsGet(customerId: string, vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<Transaction>> {
+            return localVarFp.customersCustomerIdTransactionsGet(customerId, vendorId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
          * @summary List customers for a vendor, admin, or shopper
          * @param {string} [vendorId] Optional. For vendors, filters customers by a specific store ID. For staff, this parameter is ignored.
@@ -115,6 +185,18 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
  * CustomersApi - object-oriented interface
  */
 export class CustomersApi extends BaseAPI {
+    /**
+     * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
+     * @summary List all transactions for a specific customer
+     * @param {string} customerId The ID of the customer.
+     * @param {string} [vendorId] Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersCustomerIdTransactionsGet(customerId: string, vendorId?: string, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersCustomerIdTransactionsGet(customerId, vendorId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Retrieves a list of unique customers who have patronized a store. - **Vendor**: Can see customers from all their stores. Can filter by a specific `vendorId`. - **Store Admin/Shopper**: Can only see customers from their assigned store. The `vendorId` filter is ignored. 
      * @summary List customers for a vendor, admin, or shopper

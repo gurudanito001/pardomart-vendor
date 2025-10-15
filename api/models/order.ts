@@ -39,34 +39,35 @@ import type { User } from './user';
 import type { Vendor } from './vendor';
 
 export interface Order {
-    'id'?: string;
-    'orderCode'?: string;
-    'userId'?: string;
-    'vendorId'?: string;
-    'totalAmount'?: number;
-    'deliveryFee'?: number | null;
-    'serviceFee'?: number | null;
-    'shoppingFee'?: number | null;
-    'paymentMethod'?: PaymentMethods;
-    'paymentStatus'?: OrderPaymentStatusEnum;
-    'orderStatus'?: OrderStatus;
-    'deliveryAddressId'?: string | null;
-    'deliveryInstructions'?: string | null;
-    'shoppingMethod'?: ShoppingMethod;
-    'deliveryMethod'?: DeliveryMethod;
-    'scheduledShoppingStartTime'?: string | null;
-    'shoppingHandlerId'?: string | null;
-    'deliveryPersonId'?: string | null;
-    'reasonForDecline'?: string | null;
-    'createdAt'?: string;
-    'updatedAt'?: string;
-    'orderItems'?: Array<OrderItem>;
-    'user'?: User;
-    'vendor'?: Vendor;
-    'deliveryAddress'?: DeliveryAddress;
-    'shopper'?: User;
-    'deliverer'?: User;
-}
+      'id'?: string;
+      'orderCode'?: string;
+      'userId'?: string;
+      'vendorId'?: string;
+      'totalAmount'?: number;
+      'deliveryFee'?: number | null;
+      'serviceFee'?: number | null;
+      'shoppingFee'?: number | null;
+      'paymentMethod'?: PaymentMethods;
+      'paymentStatus'?: OrderPaymentStatusEnum;
+      'orderStatus'?: OrderStatus;
+      'deliveryAddressId'?: string | null;
+      'deliveryInstructions'?: string | null;
+      'shoppingMethod'?: ShoppingMethod;
+      'deliveryMethod'?: DeliveryMethod;
+      'scheduledShoppingStartTime'?: string | null;
+      'shoppingHandlerId'?: string | null;
+      'deliveryPersonId'?: string | null;
+      'reasonForDecline'?: string | null;
+      'createdAt'?: string;
+      'updatedAt'?: string;
+      'orderItems'?: Array<OrderItem>;
+      'user'?: User;
+      'vendor'?: Vendor;
+      'deliveryAddress'?: DeliveryAddress;
+      'shopper'?: User;
+      'deliverer'?: User;
+};
+
 
 export const OrderPaymentStatusEnum = {
     Pending: 'pending',

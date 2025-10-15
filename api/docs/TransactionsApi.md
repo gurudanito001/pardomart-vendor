@@ -4,13 +4,14 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**customersCustomerIdTransactionsGet**](#customerscustomeridtransactionsget) | **GET** /customers/{customerId}/transactions | List all transactions for a specific customer|
 |[**staffTransactionsGet**](#stafftransactionsget) | **GET** /staff/transactions | List all transactions for a vendor\&#39;s staff|
 |[**transactionsGet**](#transactionsget) | **GET** /transactions | List transactions based on user role|
 
-# **staffTransactionsGet**
-> staffTransactionsGet()
+# **customersCustomerIdTransactionsGet**
+> Array<Transaction> customersCustomerIdTransactionsGet()
 
-Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
 
 ### Example
 
@@ -23,8 +24,65 @@ import {
 const configuration = new Configuration();
 const apiInstance = new TransactionsApi(configuration);
 
-let staffUserId: string; //Optional. Filter transactions for a specific staff member. (optional) (default to undefined)
-let vendorId: string; //Optional. Filter transactions for staff at a specific store. (optional) (default to undefined)
+let customerId: string; //The ID of the customer. (default to undefined)
+let vendorId: string; //Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.customersCustomerIdTransactionsGet(
+    customerId,
+    vendorId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **customerId** | [**string**] | The ID of the customer. | defaults to undefined|
+| **vendorId** | [**string**] | Optional. For Vendors, filters transactions by a specific store ID. Ignored for other roles. | (optional) defaults to undefined|
+
+
+### Return type
+
+**Array<Transaction>**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A list of the customer\&#39;s transactions. |  -  |
+|**403** | Forbidden. The authenticated user does not have permission. |  -  |
+|**404** | Not Found. The customer has no history with the specified vendor(s). |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **staffTransactionsGet**
+> staffTransactionsGet()
+
+Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
+
+### Example
+
+```typescript
+import {
+    TransactionsApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionsApi(configuration);
+
+let staffUserId: string; //Optional. Filter transactions for a specific staff member (shopper or admin). (optional) (default to undefined)
+let vendorId: string; //Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.staffTransactionsGet(
     staffUserId,
@@ -36,8 +94,8 @@ const { status, data } = await apiInstance.staffTransactionsGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **staffUserId** | [**string**] | Optional. Filter transactions for a specific staff member. | (optional) defaults to undefined|
-| **vendorId** | [**string**] | Optional. Filter transactions for staff at a specific store. | (optional) defaults to undefined|
+| **staffUserId** | [**string**] | Optional. Filter transactions for a specific staff member (shopper or admin). | (optional) defaults to undefined|
+| **vendorId** | [**string**] | Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored. | (optional) defaults to undefined|
 
 
 ### Return type
@@ -60,7 +118,6 @@ void (empty response body)
 |**200** | A list of staff transactions. |  -  |
 |**403** | Forbidden if the user tries to access a vendor or staff they do not own. |  -  |
 |**404** | Not Found if the specified &#x60;staffUserId&#x60; or &#x60;vendorId&#x60; does not exist. |  -  |
-|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

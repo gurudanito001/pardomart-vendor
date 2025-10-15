@@ -319,7 +319,7 @@ void (empty response body)
 # **staffTransactionsGet**
 > staffTransactionsGet()
 
-Retrieves a list of all transactions for staff members belonging to the authenticated vendor. Can be filtered by a specific `staffUserId` and/or `vendorId` (store ID). If no filters are provided, it fetches transactions for all staff across all stores owned by the vendor. 
+Retrieves a list of transactions performed by staff members, with role-based access: - **Vendor**: Can see transactions from all staff across all their stores. Can filter by `staffUserId` and/or `vendorId`. - **Store Admin**: Can only see transactions from staff in their assigned store. The `vendorId` filter is ignored if provided. 
 
 ### Example
 
@@ -332,8 +332,8 @@ import {
 const configuration = new Configuration();
 const apiInstance = new StaffApi(configuration);
 
-let staffUserId: string; //Optional. Filter transactions for a specific staff member. (optional) (default to undefined)
-let vendorId: string; //Optional. Filter transactions for staff at a specific store. (optional) (default to undefined)
+let staffUserId: string; //Optional. Filter transactions for a specific staff member (shopper or admin). (optional) (default to undefined)
+let vendorId: string; //Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.staffTransactionsGet(
     staffUserId,
@@ -345,8 +345,8 @@ const { status, data } = await apiInstance.staffTransactionsGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **staffUserId** | [**string**] | Optional. Filter transactions for a specific staff member. | (optional) defaults to undefined|
-| **vendorId** | [**string**] | Optional. Filter transactions for staff at a specific store. | (optional) defaults to undefined|
+| **staffUserId** | [**string**] | Optional. Filter transactions for a specific staff member (shopper or admin). | (optional) defaults to undefined|
+| **vendorId** | [**string**] | Optional. For Vendors, filters transactions for staff at a specific store. For Store Admins, this is ignored. | (optional) defaults to undefined|
 
 
 ### Return type
@@ -369,7 +369,6 @@ void (empty response body)
 |**200** | A list of staff transactions. |  -  |
 |**403** | Forbidden if the user tries to access a vendor or staff they do not own. |  -  |
 |**404** | Not Found if the specified &#x60;staffUserId&#x60; or &#x60;vendorId&#x60; does not exist. |  -  |
-|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
