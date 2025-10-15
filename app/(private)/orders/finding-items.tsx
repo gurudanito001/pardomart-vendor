@@ -4,20 +4,21 @@ import { Camera, CameraView } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Image,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Rect, Svg } from 'react-native-svg';
 import { toast } from 'sonner-native';
-import { ArrowBackButtonSVG, NotificationSVG, PhoneOutlineSVG } from '../../../components/icons';
+import { ArrowBackButtonSVG, PhoneOutlineSVG } from '../../../components/icons';
+import NotificationBell from '../../../components/NotificationBell';
 
 const TimeIcon = () => (
   <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -100,9 +101,7 @@ export default function FindingItemsScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
+  const handleNotifications = () => {};
 
   const handleMessageCustomer = () => {
     console.log('Message customer');
@@ -282,7 +281,7 @@ export default function FindingItemsScreen() {
             </View>
             <View style={styles.headerActions}>
                 <TouchableOpacity onPress={handleNotifications}>
-                  <NotificationSVG width={24} height={24} color="white" />
+                  <NotificationBell from="/(private)/orders/finding-items" />
                 </TouchableOpacity>
             </View>
           </View>

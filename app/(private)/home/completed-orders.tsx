@@ -1,15 +1,16 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
+import NotificationBell from '../../../components/NotificationBell';
 
 interface CompletedOrder {
   id: string;
@@ -154,9 +155,7 @@ export default function CompletedOrdersScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
+  const handleNotifications = () => {};
 
   const handlePreviewOrder = (orderId: string) => {
     console.log('Preview order:', orderId);
@@ -235,7 +234,7 @@ export default function CompletedOrdersScreen() {
 
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={handleNotifications}>
-              <NotificationIcon />
+              <NotificationBell from="/(private)/home/completed-orders" />
             </TouchableOpacity>
           </View>
         </View>

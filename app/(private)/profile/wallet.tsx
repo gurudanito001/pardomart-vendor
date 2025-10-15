@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/AppProvider';
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -14,17 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
+import { apiConfig } from '../../../api/config';
 import { WalletApi } from '../../../api/endpoints/wallet-api';
-import { Wallet, WalletTransaction } from '../../../api/models';
+import { TransactionWithRelations, Wallet } from '../../../api/models';
 
 export default function WalletScreen() {
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [showBalance, setShowBalance] = useState<boolean>(true);
 
-  const walletApi = useMemo(() => new WalletApi(), []);
+  const walletApi = useMemo(() => new WalletApi(apiConfig), []);
   const showError = useCallback((m: string) => toast.error(m), []);
   const { state: { isAuthenticated } } = useAuth();
 
@@ -95,43 +94,54 @@ export default function WalletScreen() {
     }
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      if (!isAuthenticated) {
-        setWallet(prev => prev || { balance: 0 });
-        setTransactions([]);
-        return;
-      }
-      const [wRes, tRes] = await Promise.all([
-        walletApi.walletMeGet(),
-        walletApi.walletMeTransactionsGet(), // Assuming default pagination
-      ]);
-      setWallet((wRes.data as any) || null);
-      setTransactions(Array.isArray((tRes.data as any)?.items) ? (tRes.data as any).items : []);
-    } catch (err: any) {
-      showError(err?.error?.message || 'Failed to load wallet data');
-      setWallet(prev => prev || { balance: 0 });
-      setTransactions([]);
-    }
-  }, [walletApi, showError, isAuthenticated]);
+  const walletQuery = useQuery({
+    queryKey: ['wallet', 'me'],
+    queryFn: async () => {
+      const res = await walletApi.walletMeGet();
+      return (res.data as any) as Wallet;
+    },
+    enabled: isAuthenticated,
+    staleTime: 30000,
+  });
+
+  const transactionsQuery = useQuery({
+    queryKey: ['wallet', 'transactions'],
+    queryFn: async () => {
+      const res = await walletApi.walletMeTransactionsGet();
+      const txData = res.data as any;
+      return Array.isArray(txData) ? txData : Array.isArray(txData?.items) ? txData.items : [];
+    },
+    enabled: isAuthenticated,
+    staleTime: 30000,
+  });
 
   useEffect(() => {
-    setLoading(true);
-    fetchData().finally(() => setLoading(false));
-  }, [fetchData, isAuthenticated]);
+    if (walletQuery.error) {
+      showError('Failed to load wallet data');
+    }
+  }, [walletQuery.error, showError]);
+
+  useEffect(() => {
+    if (transactionsQuery.error) {
+      showError('Failed to load transactions');
+    }
+  }, [transactionsQuery.error, showError]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await fetchData();
+      await Promise.all([walletQuery.refetch(), transactionsQuery.refetch()]);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchData]);
+  }, [walletQuery, transactionsQuery]);
 
+  const wallet = (walletQuery.data as Wallet | null) ?? null;
+  const transactions = (transactionsQuery.data as TransactionWithRelations[] | undefined) ?? [];
+  const loading = walletQuery.isLoading || transactionsQuery.isLoading;
   const sanitizedBalance = typeof wallet?.balance === 'number' && !isNaN(wallet.balance!) ? wallet.balance! : 0;
 
-  const renderTransactionItem = (tx: WalletTransaction, idx: number) => {
+  const renderTransactionItem = (tx: TransactionWithRelations, idx: number) => {
     const amount = typeof tx.amount === 'number' ? tx.amount : 0;
     const isPositive = amount >= 0;
     const displayAmount = `${isPositive ? '+' : '-'}${formatCurrency(Math.abs(amount))}`;

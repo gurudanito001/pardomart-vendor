@@ -44,10 +44,6 @@ export default function TransactionsScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
-
   const handleRefresh = () => {
     refetch();
   };

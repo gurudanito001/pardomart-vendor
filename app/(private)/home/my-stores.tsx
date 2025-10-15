@@ -1,20 +1,20 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ArrowBackButtonSVG,
-  ArrowBackSVG,
-  NotificationSVG,
+    ArrowBackButtonSVG,
+    ArrowBackSVG
 } from '../../../components/icons';
+import NotificationBell from '../../../components/NotificationBell';
 // Removed legacy types import
 
 type StoreItem = { id: string; name: string; address: string; logo: string };
@@ -24,9 +24,7 @@ export default function MyStoresScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
+  const handleNotifications = () => {};
 
   const handleStoreSelect = (storeId: string) => {
     router.push(`/(private)/store/select-category?storeId=${storeId}`);
@@ -62,11 +60,7 @@ export default function MyStoresScreen() {
         <Text style={styles.headerTitle}>My Stores</Text>
         
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-            <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-          
-          {/* Support icon removed from header (kept only on Help page) */}
+          <NotificationBell from="/(private)/home/my-stores" />
         </View>
       </View>
 

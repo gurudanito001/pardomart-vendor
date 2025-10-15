@@ -1,4 +1,5 @@
 import type { Transaction } from '@/api';
+import NotificationBell from '@/components/NotificationBell';
 import { useCustomers, useCustomerTransactions } from '@/hooks/api/useCustomerQueries';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -15,7 +16,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ArrowBackSVG,
-  NotificationSVG,
   OrderSVG
 } from '../../../components/icons';
 
@@ -66,21 +66,34 @@ export default function CustomerDetailsScreen() {
     </View>
   );
 
+  if (!customer) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centeredMessage}>
+          <Text>Customer data not found.</Text>
+          <TouchableOpacity onPress={handleGoBack}>
+            <Text style={styles.viewAllText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-      
+
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerTitle}>Customer details</Text>
-        
+
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-            <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
+          <View style={styles.headerAction}>
+            <NotificationBell from="/(private)/shared/customer-details" />
+          </View>
         </View>
       </View>
 
@@ -140,42 +153,48 @@ export default function CustomerDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
+  },
+  centeredMessage: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 21,
     paddingTop: 19,
     paddingBottom: 19,
-    backgroundColor: '#06888C',
+    backgroundColor: "#06888C",
   },
   backButton: {
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     flex: 1,
     marginLeft: 12,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
+    fontWeight: "700",
+    fontFamily: "Raleway",
     lineHeight: 22,
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
   },
   headerAction: {
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     flex: 1,
@@ -185,16 +204,16 @@ const styles = StyleSheet.create({
     paddingTop: 17,
   },
   sectionTitle: {
-    color: '#000',
+    color: "#000",
     fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
+    fontWeight: "700",
+    fontFamily: "Raleway",
     lineHeight: 25,
     marginBottom: 19,
   },
   customerInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
     marginBottom: 19,
   },
@@ -208,22 +227,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   customerNameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   customerName: {
     fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#000',
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    color: "#000",
     lineHeight: 16,
   },
   customerEmail: {
     fontSize: 12,
-    fontWeight: '400',
-    fontFamily: 'Open Sans',
-    color: '#333',
+    fontWeight: "400",
+    fontFamily: "Open Sans",
+    color: "#333",
     lineHeight: 14,
   },
   fieldsContainer: {
@@ -235,9 +254,9 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#000',
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    color: "#000",
     lineHeight: 16,
   },
   fieldInput: {
@@ -245,64 +264,68 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#B4BED4',
-    backgroundColor: '#F0F8F8',
+    borderColor: "#B4BED4",
+    backgroundColor: "#F0F8F8",
   },
   fieldValue: {
     fontSize: 12,
-    fontWeight: '600',
-    fontFamily: 'Open Sans',
-    color: '#000',
+    fontWeight: "600",
+    fontFamily: "Open Sans",
+    color: "#000",
     lineHeight: 20,
   },
   transactionSection: {
     marginBottom: 50,
   },
   transactionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 19,
   },
   viewAllText: {
     fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#06888C',
+    fontWeight: "700",
+    fontFamily: "Raleway",
+    color: "#06888C",
     lineHeight: 25,
   },
   transactionsList: {
-    gap: 8,
+    gap: 12,
   },
   transactionItem: {
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
-    backgroundColor: '#FFF',
+    borderColor: "#D9D9D9",
+    backgroundColor: "#FFF",
   },
   transactionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 15,
   },
   orderIconContainer: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#BFE3C6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#BFE3C6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   transactionDetails: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  transactionInfo: {
-    gap: 4,
+  transactionDescription: {
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    color: "#000",
+    lineHeight: 16,
   },
   orderId: {
     fontSize: 12,

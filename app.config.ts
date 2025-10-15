@@ -39,8 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
-    "expo-web-browser",
-    "expo-barcode-scanner",
+    'expo-web-browser',
     [
       'expo-image-picker',
       {

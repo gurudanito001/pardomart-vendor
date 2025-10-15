@@ -1,9 +1,12 @@
+import NotificationBell from '@/components/NotificationBell';
 import { useEarningsList, useTotalEarnings } from '@/hooks/api/useEarningsQueries';
 import { router } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  Pressable,
+  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 
 export default function EarningsWalletScreen() {
-  const { data: totalEarnings, isLoading: isLoadingTotal } = useTotalEarnings();
+  const { data: totalEarnings, isLoading: isLoadingTotal,  } = useTotalEarnings();
   const {
     data: transactions,
     isLoading: isLoadingTransactions,
@@ -32,8 +35,7 @@ export default function EarningsWalletScreen() {
   };
 
   const handleWithdraw = () => {
-    console.log('Process withdrawal');
-    // Navigate to withdrawal screen
+    router.push("/(private)/profile/wallet");
   };
 
   const handleViewAllTransactions = () => {
@@ -78,32 +80,41 @@ export default function EarningsWalletScreen() {
     </View>
   );
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  
+  const [showBalance, setShowBalance] = React.useState(true);
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.leftSection}>
             <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
               <Svg width="30" height="30" viewBox="0 0 31 30" fill="none">
-                <Path d="M20.1278 21.993C20.3661 22.2135 20.5 22.5125 20.5 22.8243C20.5 23.1361 20.3661 23.4352 20.1278 23.6556C19.8895 23.8761 19.5662 24 19.2292 24C18.8921 24 18.5689 23.8761 18.3306 23.6556L9.87313 15.8313C9.75486 15.7223 9.66102 15.5927 9.59699 15.4501C9.53296 15.3074 9.5 15.1545 9.5 15C9.5 14.8455 9.53296 14.6926 9.59699 14.5499C9.66102 14.4073 9.75486 14.2777 9.87313 14.1687L18.3306 6.34435C18.5689 6.12387 18.8921 6 19.2292 6C19.5662 6 19.8895 6.12387 20.1278 6.34435C20.3661 6.56483 20.5 6.86387 20.5 7.17568C20.5 7.48749 20.3661 7.78653 20.1278 8.00702L12.57 14.999L20.1278 21.993Z" fill="white"/>
+                <Path
+                  d="M20.1278 21.993C20.3661 22.2135 20.5 22.5125 20.5 22.8243C20.5 23.1361 20.3661 23.4352 20.1278 23.6556C19.8895 23.8761 19.5662 24 19.2292 24C18.8921 24 18.5689 23.8761 18.3306 23.6556L9.87313 15.8313C9.75486 15.7223 9.66102 15.5927 9.59699 15.4501C9.53296 15.3074 9.5 15.1545 9.5 15C9.5 14.8455 9.53296 14.6926 9.59699 14.5499C9.66102 14.4073 9.75486 14.2777 9.87313 14.1687L18.3306 6.34435C18.5689 6.12387 18.8921 6 19.2292 6C19.5662 6 19.8895 6.12387 20.1278 6.34435C20.3661 6.56483 20.5 6.86387 20.5 7.17568C20.5 7.48749 20.3661 7.78653 20.1278 8.00702L12.57 14.999L20.1278 21.993Z"
+                  fill="white"
+                />
               </Svg>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Earnings & Wallet</Text>
           </View>
           <View style={styles.rightSection}>
-            <TouchableOpacity style={styles.iconButton} onPress={handleNotifications}>
-              <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-                <Path d="M9.145 20.5C9.36103 21.2219 9.80417 21.8549 10.4086 22.3049C11.013 22.755 11.7464 22.998 12.5 22.998C13.2536 22.998 13.987 22.755 14.5914 22.3049C15.1958 21.8549 15.639 21.2219 15.855 20.5H9.145ZM3.5 19.5H21.5V16.5L19.5 13.5V8.5C19.5 7.58075 19.3189 6.6705 18.9672 5.82122C18.6154 4.97194 18.0998 4.20026 17.4497 3.55025C16.7997 2.90024 16.0281 2.38463 15.1788 2.03284C14.3295 1.68106 13.4193 1.5 12.5 1.5C11.5807 1.5 10.6705 1.68106 9.82122 2.03284C8.97194 2.38463 8.20026 2.90024 7.55025 3.55025C6.90024 4.20026 6.38463 4.97194 6.03284 5.82122C5.68106 6.6705 5.5 7.58075 5.5 8.5V13.5L3.5 16.5V19.5Z" fill="white"/>
-              </Svg>
-            </TouchableOpacity>
+            <NotificationBell from="/(private)/hone/earnings-wallet" />
           </View>
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={()=>{}} />
+        }
+      >
         <View style={styles.content}>
           {/* Wallet Balance Card */}
           <View style={styles.walletCard}>
@@ -112,7 +123,10 @@ export default function EarningsWalletScreen() {
             <View style={styles.balanceSection}>
               <View style={styles.balanceContainer}>
                 <Svg width="23" height="28" viewBox="0 0 23 28" fill="none">
-                  <Path d="M11.5 13.3C17.852 13.3 23 10.6859 23 7.4648C23 4.2437 17.852 1.62964 11.5 1.62964C5.14805 1.62964 0 4.2437 0 7.4648C0 10.6859 5.14805 13.3 11.5 13.3ZM11.5 22.6296C7.11113 22.6296 3.22988 21.3445 0.781641 19.3593C0.283008 20.0156 0 20.721 0 21.4648C0 24.6859 5.14805 27.3 11.5 27.3C17.852 27.3 23 24.6859 23 21.4648C23 20.721 22.717 20.0156 22.2184 19.3648C19.7701 21.3445 15.8889 22.6296 11.5 22.6296ZM11.5 15.6296C7.11113 15.6296 3.22988 14.3445 0.781641 12.3593C0.283008 13.0156 0 13.721 0 14.4648C0 17.6859 5.14805 20.3 11.5 20.3C17.852 20.3 23 17.6859 23 14.4648C23 13.721 22.717 13.0156 22.2184 12.3648C19.7701 14.3445 15.8889 15.6296 11.5 15.6296Z" fill="black"/>
+                  <Path
+                    d="M11.5 13.3C17.852 13.3 23 10.6859 23 7.4648C23 4.2437 17.852 1.62964 11.5 1.62964C5.14805 1.62964 0 4.2437 0 7.4648C0 10.6859 5.14805 13.3 11.5 13.3ZM11.5 22.6296C7.11113 22.6296 3.22988 21.3445 0.781641 19.3593C0.283008 20.0156 0 20.721 0 21.4648C0 24.6859 5.14805 27.3 11.5 27.3C17.852 27.3 23 24.6859 23 21.4648C23 20.721 22.717 20.0156 22.2184 19.3648C19.7701 21.3445 15.8889 22.6296 11.5 22.6296ZM11.5 15.6296C7.11113 15.6296 3.22988 14.3445 0.781641 12.3593C0.283008 13.0156 0 13.721 0 14.4648C0 17.6859 5.14805 20.3 11.5 20.3C17.852 20.3 23 17.6859 23 14.4648C23 13.721 22.717 13.0156 22.2184 12.3648C19.7701 14.3445 15.8889 15.6296 11.5 15.6296Z"
+                    fill="black"
+                  />
                 </Svg>
                 {isLoadingTotal ? (
                   <ActivityIndicator color="#000" />
@@ -120,17 +134,42 @@ export default function EarningsWalletScreen() {
                   <Text style={styles.balanceAmount}>${totalEarnings?.totalEarnings?.toFixed(2) ?? '0.00'}</Text>
                 )}
               </View>
-              
-              <View style={styles.hideIcon}>
-                <Svg width="11" height="10" viewBox="0 0 11 10" fill="none">
-                  <Path d="M3.0365 5.09698L1.106 3.16648C0.346 3.99498 0.058 4.82499 0.053 4.84198L0 4.99998L0.0525 5.15798C0.0635 5.19148 1.2105 8.49999 5.027 8.49999C5.4915 8.49999 5.9145 8.44899 6.303 8.36349L4.93 6.99049C4.43564 6.96625 3.96798 6.75898 3.61799 6.40899C3.26801 6.05901 3.06073 5.59134 3.0365 5.09698ZM5.027 1.49998C4.0995 1.49998 3.3395 1.70198 2.706 1.99898L0.8535 0.146484L0.1465 0.853484L9.1465 9.85349L9.8535 9.14649L8.2045 7.49749C9.5235 6.52099 9.994 5.17898 10.001 5.15798L10.0535 4.99998L10.001 4.84198C9.99 4.80849 8.8435 1.49998 5.027 1.49998ZM5.98 5.27298C6.0735 4.93448 5.994 4.55348 5.734 4.29298C5.474 4.03249 5.0925 3.95348 4.754 4.04698L4 3.29298C4.30903 3.10309 4.66429 3.00174 5.027 2.99998C6.13 2.99998 7.027 3.89698 7.027 4.99998C7.02552 5.36264 6.92395 5.71786 6.7335 6.02648L5.98 5.27298Z" fill="#7E7E7E"/>
-                </Svg>
-              </View>
+
+              <Pressable
+                onPress={() => setShowBalance((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  showBalance ? "Hide balance" : "Show balance"
+                }
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {showBalance ? (
+                  <Svg width="20" height="20" viewBox="0 0 11 10" fill="none">
+                    <Path
+                      d="M3.0365 5.09698L1.106 3.16648C0.346 3.99498 0.058 4.82499 0.053 4.84198L0 4.99998L0.0525 5.15798C0.0635 5.19148 1.2105 8.49999 5.027 8.49999C5.4915 8.49999 5.9145 8.44899 6.303 8.36349L4.93 6.99049C4.43564 6.96625 3.96798 6.75898 3.61799 6.40899C3.26801 6.05901 3.06073 5.59134 3.0365 5.09698ZM5.027 1.49998C4.0995 1.49998 3.3395 1.70198 2.706 1.99898L0.8535 0.146484L0.1465 0.853484L9.1465 9.85349L9.8535 9.14649L8.2045 7.49749C9.5235 6.52099 9.994 5.17898 10.001 5.15798L10.0535 4.99998L10.001 4.84198C9.99 4.80849 8.8435 1.49998 5.027 1.49998ZM5.98 5.27298C6.0735 4.93448 5.994 4.55348 5.734 4.29298C5.474 4.03249 5.0925 3.95348 4.754 4.04698L4 3.29298C4.30903 3.10309 4.66429 3.00174 5.027 2.99998C6.13 2.99998 7.027 3.89698 7.027 4.99998C7.02552 5.36264 6.92395 5.71786 6.7335 6.02648L5.98 5.27298Z"
+                      fill="#7E7E7E"
+                    />
+                  </Svg>
+                ) : (
+                  <Svg width="20" height="20" viewBox="0 0 11 10" fill="none">
+                    <Path
+                      d="M5.027 1.5C1.211 1.5 0.064 4.808 0.053 4.842L0 5l.053.158C.064 5.191 1.211 8.5 5.027 8.5c3.816 0 4.963-3.309 4.974-3.342L10.054 5l-.053-.158C9.989 4.808 8.843 1.5 5.027 1.5Z"
+                      fill="#7E7E7E"
+                    />
+                  </Svg>
+                )}
+              </Pressable>
             </View>
-            
-            <TouchableOpacity style={styles.withdrawButton} onPress={handleWithdraw}>
+
+            <TouchableOpacity
+              style={styles.withdrawButton}
+              onPress={handleWithdraw}
+            >
               <Svg width="24" height="24" viewBox="0 0 25 25" fill="none">
-                <Path d="M22.5 2.5H2.5C2.23478 2.5 1.98043 2.60536 1.79289 2.79289C1.60536 2.98043 1.5 3.23478 1.5 3.5V11.5C1.5 11.7652 1.60536 12.0196 1.79289 12.2071C1.98043 12.3946 2.23478 12.5 2.5 12.5H5.5V21.5C5.5 21.7652 5.60536 22.0196 5.79289 22.2071C5.98043 22.3946 6.23478 22.5 6.5 22.5H18.5C18.7652 22.5 19.0196 22.3946 19.2071 22.2071C19.3946 22.0196 19.5 21.7652 19.5 21.5V12.5H22.5C22.7652 12.5 23.0196 12.3946 23.2071 12.2071C23.3946 12.0196 23.5 11.7652 23.5 11.5V3.5C23.5 3.23478 23.3946 2.98043 23.2071 2.79289C23.0196 2.60536 22.7652 2.5 22.5 2.5ZM7.5 20.5V18.5C8.03043 18.5 8.53914 18.7107 8.91421 19.0858C9.28929 19.4609 9.5 19.9696 9.5 20.5H7.5ZM17.5 20.5H15.5C15.5 19.9696 15.7107 19.4609 16.0858 19.0858C16.4609 18.7107 16.9696 18.5 17.5 18.5V20.5ZM17.5 16.5C16.4391 16.5 15.4217 16.9214 14.6716 17.6716C13.9214 18.4217 13.5 19.4391 13.5 20.5H11.5C11.5 19.4391 11.0786 18.4217 10.3284 17.6716C9.57828 16.9214 8.56087 16.5 7.5 16.5V8.5H17.5V16.5ZM21.5 10.5H19.5V7.5C19.5 7.23478 19.3946 6.98043 19.2071 6.79289C19.0196 6.60536 18.7652 6.5 18.5 6.5H6.5C6.23478 6.5 5.98043 6.60536 5.79289 6.79289C5.60536 6.98043 5.5 7.23478 5.5 7.5V10.5H3.5V4.5H21.5V10.5ZM12.5 15.5C13.0933 15.5 13.6734 15.3241 14.1667 14.9944C14.6601 14.6648 15.0446 14.1962 15.2716 13.6481C15.4987 13.0999 15.5581 12.4967 15.4424 11.9147C15.3266 11.3328 15.0409 10.7982 14.6213 10.3787C14.2018 9.95912 13.6672 9.6734 13.0853 9.55764C12.5033 9.44189 11.9001 9.5013 11.3519 9.72836C10.8038 9.95542 10.3352 10.3399 10.0056 10.8333C9.67595 11.3266 9.5 11.9067 9.5 12.5C9.5 13.2956 9.81607 14.0587 10.3787 14.6213C10.9413 15.1839 11.7044 15.5 12.5 15.5ZM12.5 11.5C12.6978 11.5 12.8911 11.5586 13.0556 11.6685C13.22 11.7784 13.3482 11.9346 13.4239 12.1173C13.4996 12.3 13.5194 12.5011 13.4808 12.6951C13.4422 12.8891 13.347 13.0673 13.2071 13.2071C13.0673 13.347 12.8891 13.4422 12.6951 13.4808C12.5011 13.5194 12.3 13.4996 12.1173 13.4239C11.9346 13.3482 11.7784 13.22 11.6685 13.0556C11.5586 12.8911 11.5 12.6978 11.5 12.5C11.5 12.2348 11.6054 11.9804 11.7929 11.7929C11.9804 11.6054 12.2348 11.5 12.5 11.5Z" fill="white"/>
+                <Path
+                  d="M22.5 2.5H2.5C2.23478 2.5 1.98043 2.60536 1.79289 2.79289C1.60536 2.98043 1.5 3.23478 1.5 3.5V11.5C1.5 11.7652 1.60536 12.0196 1.79289 12.2071C1.98043 12.3946 2.23478 12.5 2.5 12.5H5.5V21.5C5.5 21.7652 5.60536 22.0196 5.79289 22.2071C5.98043 22.3946 6.23478 22.5 6.5 22.5H18.5C18.7652 22.5 19.0196 22.3946 19.2071 22.2071C19.3946 22.0196 19.5 21.7652 19.5 21.5V12.5H22.5C22.7652 12.5 23.0196 12.3946 23.2071 12.2071C23.3946 12.0196 23.5 11.7652 23.5 11.5V3.5C23.5 3.23478 23.3946 2.98043 23.2071 2.79289C23.0196 2.60536 22.7652 2.5 22.5 2.5ZM7.5 20.5V18.5C8.03043 18.5 8.53914 18.7107 8.91421 19.0858C9.28929 19.4609 9.5 19.9696 9.5 20.5H7.5ZM17.5 20.5H15.5C15.5 19.9696 15.7107 19.4609 16.0858 19.0858C16.4609 18.7107 16.9696 18.5 17.5 18.5V20.5ZM17.5 16.5C16.4391 16.5 15.4217 16.9214 14.6716 17.6716C13.9214 18.4217 13.5 19.4391 13.5 20.5H11.5C11.5 19.4391 11.0786 18.4217 10.3284 17.6716C9.57828 16.9214 8.56087 16.5 7.5 16.5V8.5H17.5V16.5ZM21.5 10.5H19.5V7.5C19.5 7.23478 19.3946 6.98043 19.2071 6.79289C19.0196 6.60536 18.7652 6.5 18.5 6.5H6.5C6.23478 6.5 5.98043 6.60536 5.79289 6.79289C5.60536 6.98043 5.5 7.23478 5.5 7.5V10.5H3.5V4.5H21.5V10.5ZM12.5 15.5C13.0933 15.5 13.6734 15.3241 14.1667 14.9944C14.6601 14.6648 15.0446 14.1962 15.2716 13.6481C15.4987 13.0999 15.5581 12.4967 15.4424 11.9147C15.3266 11.3328 15.0409 10.7982 14.6213 10.3787C14.2018 9.95912 13.6672 9.6734 13.0853 9.55764C12.5033 9.44189 11.9001 9.5013 11.3519 9.72836C10.8038 9.95542 10.3352 10.3399 10.0056 10.8333C9.67595 11.3266 9.5 11.9067 9.5 12.5C9.5 13.2956 9.81607 14.0587 10.3787 14.6213C10.9413 15.1839 11.7044 15.5 12.5 15.5ZM12.5 11.5C12.6978 11.5 12.8911 11.5586 13.0556 11.6685C13.22 11.7784 13.3482 11.9346 13.4239 12.1173C13.4996 12.3 13.5194 12.5011 13.4808 12.6951C13.4422 12.8891 13.347 13.0673 13.2071 13.2071C13.0673 13.347 12.8891 13.4422 12.6951 13.4808C12.5011 13.5194 12.3 13.4996 12.1173 13.4239C11.9346 13.3482 11.7784 13.22 11.6685 13.0556C11.5586 12.8911 11.5 12.6978 11.5 12.5C11.5 12.2348 11.6054 11.9804 11.7929 11.7929C11.9804 11.6054 12.2348 11.5 12.5 11.5Z"
+                  fill="white"
+                />
               </Svg>
               <Text style={styles.withdrawText}>Withdraw</Text>
             </TouchableOpacity>
@@ -172,47 +211,47 @@ export default function EarningsWalletScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
   },
   header: {
-    backgroundColor: '#06888C',
+    backgroundColor: "#06888C",
     paddingTop: 20,
     paddingBottom: 16,
   },
   headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
   },
   leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   backButton: {
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#FFF',
+    fontWeight: "700",
+    fontFamily: "Raleway",
+    color: "#FFF",
     lineHeight: 22,
   },
   rightSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
   },
   iconButton: {
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollView: {
     flex: 1,
@@ -224,7 +263,7 @@ const styles = StyleSheet.create({
     gap: 37,
   },
   walletCard: {
-    backgroundColor: 'rgba(191, 227, 198, 0.60)',
+    backgroundColor: "rgba(191, 227, 198, 0.60)",
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 25,
@@ -232,25 +271,25 @@ const styles = StyleSheet.create({
   },
   walletTitle: {
     fontSize: 14,
-    fontWeight: '500',
-    fontFamily: 'Raleway',
-    color: '#707070',
+    fontWeight: "500",
+    fontFamily: "Raleway",
+    color: "#707070",
   },
   balanceSection: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   balanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
   },
   balanceAmount: {
     fontSize: 28,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#000',
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    color: "#000",
     lineHeight: 25,
   },
   hideIcon: {
@@ -258,14 +297,14 @@ const styles = StyleSheet.create({
     height: 10,
   },
   withdrawButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 14,
     borderRadius: 16,
-    backgroundColor: '#06888C',
+    backgroundColor: "#06888C",
     gap: 6,
-    shadowColor: 'rgba(0, 0, 0, 0.06)',
+    shadowColor: "rgba(0, 0, 0, 0.06)",
     shadowOffset: {
       width: 0,
       height: 1,
@@ -277,31 +316,31 @@ const styles = StyleSheet.create({
   },
   withdrawText: {
     fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#FFF',
+    fontWeight: "700",
+    fontFamily: "Raleway",
+    color: "#FFF",
     lineHeight: 25,
   },
   transactionsSection: {
     gap: 19,
   },
   transactionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   transactionsTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#000',
+    fontWeight: "700",
+    fontFamily: "Raleway",
+    color: "#000",
     lineHeight: 25,
   },
   viewAllText: {
     fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-    color: '#06888C',
+    fontWeight: "700",
+    fontFamily: "Raleway",
+    color: "#06888C",
     lineHeight: 25,
   },
   centered: {
@@ -321,13 +360,13 @@ const styles = StyleSheet.create({
   transactionCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: "#D9D9D9",
     paddingVertical: 10,
     paddingHorizontal: 15,
   },
   transactionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 15,
   },
   transactionAvatar: {
@@ -339,9 +378,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#BFE3C6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#BFE3C6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   transactionInfo: {
     flex: 1,
@@ -349,26 +388,43 @@ const styles = StyleSheet.create({
   },
   transactionName: {
     fontSize: 12,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    color: '#000',
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    color: "#000",
   },
   transactionDate: {
     fontSize: 10,
-    fontWeight: '400',
-    fontFamily: 'Open Sans',
-    color: '#707070',
+    fontWeight: "400",
+    fontFamily: "Open Sans",
+    color: "#707070",
   },
   transactionAmount: {
     fontSize: 14,
-    fontWeight: '700',
-    fontFamily: 'Open Sans',
-    textAlign: 'right',
+    fontWeight: "700",
+    fontFamily: "Open Sans",
+    textAlign: "right",
   },
   earningAmount: {
-    color: '#2CAF0B',
+    color: "#2CAF0B",
   },
   withdrawalAmount: {
-    color: '#C70000',
+    color: "#C70000",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 24,
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: "Raleway-Bold",
+    color: "#000",
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    fontWeight: "400",
+    fontFamily: "OpenSans-Regular",
+    color: "#707070",
   },
 });

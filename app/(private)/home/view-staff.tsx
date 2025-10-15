@@ -7,26 +7,26 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    Modal,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import {
-  ArrowBackSVG,
-  ChatFilledSVG,
-  LocationSVG,
-  NotificationSVG,
-  PhoneOutlineSVG,
+    ArrowBackSVG,
+    ChatFilledSVG,
+    LocationSVG,
+    PhoneOutlineSVG
 } from '../../../components/icons';
+import NotificationBell from '../../../components/NotificationBell';
 
 export default function ViewShopperScreen() {
   const {fetchVendors} = useVendors();
@@ -110,9 +110,7 @@ export default function ViewShopperScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    router.push('/(private)/shared/notifications' as any);
-  };
+  const handleNotifications = () => {};
 
 
   const handleChat = () => {
@@ -170,7 +168,7 @@ export default function ViewShopperScreen() {
         <Text style={styles.headerTitle}>View Shopper</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-            <NotificationSVG width={24} height={24} color="white" />
+            <NotificationBell from="/(private)/shared/view-shopper" />
           </TouchableOpacity>
             {/* Support icon removed from header (kept only on Help page) */}
         </View>

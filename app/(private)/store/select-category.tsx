@@ -1,20 +1,20 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ArrowBackButtonSVG,
-  ArrowBackSVG,
-  NotificationSVG
+    ArrowBackButtonSVG,
+    ArrowBackSVG
 } from '../../../components/icons';
+import NotificationBell from '../../../components/NotificationBell';
 // Removed legacy types import
 
 const MOCK_CATEGORIES: Category[] = [
@@ -108,9 +108,7 @@ export default function SelectCategoryScreen() {
     router.back();
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
+  const handleNotifications = () => {};
 
 
   const handleCategorySelect = (categoryId: string) => {
@@ -158,9 +156,7 @@ export default function SelectCategoryScreen() {
           </View>
           
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-              <NotificationSVG width={24} height={24} color="white" />
-            </TouchableOpacity>
+            <NotificationBell from="/(private)/store/select-category" />
           </View>
         </View>
       </View>

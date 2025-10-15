@@ -2,18 +2,19 @@ import type { Order } from '@/api/models';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
-import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
+import { ArrowBackSVG } from '../../../components/icons';
+import NotificationBell from '../../../components/NotificationBell';
 import { useAcceptOrder } from '../../../hooks/api/useOrderMutations';
 import { useVendorOrders } from '../../../hooks/api/useVendorOrders';
 
@@ -40,9 +41,7 @@ export default function OrdersScreen() {
     }
   };
 
-  const handleNotifications = () => {
-    console.log('Open notifications');
-  };
+  const handleNotifications = () => {};
 
 
   const handlePreviewOrder = (orderId?: string | undefined) => {
@@ -218,9 +217,7 @@ export default function OrdersScreen() {
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-              <NotificationSVG width={24} height={24} color="white" />
-            </TouchableOpacity>
+            <NotificationBell from="/(private)/orders" />
             
             {/* Support icon removed from header (kept only on Help page) */}
           </View>

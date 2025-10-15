@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 /**
  * PardoMart Node API
  * API documentation for the PardoMart Node.js application.
