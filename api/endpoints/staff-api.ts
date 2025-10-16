@@ -31,12 +31,13 @@ import type { StaffStaffIdPatchRequest } from '../models';
 export const StaffApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
+         * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
+         * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        staffGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        staffGet: async (vendorId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/staff`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -52,6 +53,10 @@ export const StaffApiAxiosParamCreator = function (configuration?: Configuration
             // authentication bearerAuth required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
 
 
     
@@ -316,13 +321,14 @@ export const StaffApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = StaffApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
+         * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
+         * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async staffGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.staffGet(options);
+        async staffGet(vendorId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffGet(vendorId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['StaffApi.staffGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -417,13 +423,14 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = StaffApiFp(configuration)
     return {
         /**
-         * Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
+         * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
+         * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        staffGet(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.staffGet(options).then((request) => request(axios, basePath));
+        staffGet(vendorId?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffGet(vendorId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -495,13 +502,14 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
  */
 export class StaffApi extends BaseAPI {
     /**
-     * Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
+     * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
      * @summary List staff members based on user role
+     * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public staffGet(options?: RawAxiosRequestConfig) {
-        return StaffApiFp(this.configuration).staffGet(options).then((request) => request(this.axios, this.basePath));
+    public staffGet(vendorId?: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffGet(vendorId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

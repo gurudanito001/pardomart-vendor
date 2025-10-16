@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 // API & Models
 import { apiConfig } from '../../api/config';
 import { VendorApi } from '../../api/endpoints/vendor-api';
-import { CreateVendorPayload, PaginatedVendors, UpdateVendorPayload, Vendor, VendorWithDetails } from '../../api/models';
+import { CreateVendorPayload, PaginatedVendors, UpdateVendorPayload, Vendor, VendorListItem, VendorWithDetails } from '../../api/models';
 
 // Contexts
 import { toast } from 'sonner-native';
@@ -149,6 +149,17 @@ export const useVendors = () => {
       return response.data;
     } catch (error: any) {
       handleError(error, 'Failed to fetch vendor details');
+      throw error;
+    }
+  }, [vendorApi, handleError]);
+
+  const fetchMyStores = useCallback(async () => {
+    try {
+      const response = await vendorApi.vendorsGetvendorsbyUserIdGet();
+      return response.data as VendorListItem[];
+    } catch (error: any) {
+      handleError(error, 'Failed to fetch your stores');
+      // Re-throw to let React Query handle the error state
       throw error;
     }
   }, [vendorApi, handleError]);

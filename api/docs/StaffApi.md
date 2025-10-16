@@ -15,7 +15,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 # **staffGet**
 > staffGet()
 
-Retrieves a list of staff members with role-based access: - **Vendor**: Can see all staff members across all of their stores. - **Store Admin**: Can only see staff members from their assigned store. 
+Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
 
 ### Example
 
@@ -28,11 +28,18 @@ import {
 const configuration = new Configuration();
 const apiInstance = new StaffApi(configuration);
 
-const { status, data } = await apiInstance.staffGet();
+let vendorId: string; //Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles. (optional) (default to undefined)
+
+const { status, data } = await apiInstance.staffGet(
+    vendorId
+);
 ```
 
 ### Parameters
-This endpoint does not have any parameters.
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorId** | [**string**] | Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles. | (optional) defaults to undefined|
 
 
 ### Return type
@@ -53,6 +60,7 @@ void (empty response body)
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | A list of staff members. |  -  |
+|**403** | Forbidden. The user is not authorized to view staff for the specified store. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

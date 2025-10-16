@@ -12,10 +12,6 @@ export default function SharedStackLayout() {
       }}
     >
       <Stack.Screen name="notifications" />
-      <Stack.Screen name="my-shoppers" />
-      <Stack.Screen name="view-shopper" />
-      <Stack.Screen name="customers" />
-      <Stack.Screen name="customer-details" />
     </Stack>
     
   );

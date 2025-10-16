@@ -1,8 +1,8 @@
-import { StaffApi } from '@/api';
+import { StaffApi, Vendor } from '@/api';
 import { apiConfig } from '@/api/config';
 import { useAuth } from '@/context/AppProvider';
 import { useStaffMember } from '@/hooks/api/useStaff';
-import { useVendor, useVendors } from '@/hooks/api/useVendors';
+import { useVendors } from '@/hooks/api/useVendors';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -29,32 +29,27 @@ import {
 } from '../../../components/icons';
 
 export default function ViewShopperScreen() {
+  const {fetchVendors} = useVendors();
   const params = useLocalSearchParams();
   const shopperId = params.shopperId as string | undefined;
   const qc = useQueryClient();
   const { state: authState } = useAuth();
+  const userId = authState.user?.id;
 
   const { data: shopper, isLoading, isError, error, refetch, isFetching } = useStaffMember(shopperId);
 
-  // Fetch assigned store/vendor name from shopper.vendorId
-  const { getVendorById } = useVendor();
-  const assignedVendorQuery = useQuery({
-    queryKey: ['vendor-name', shopper?.vendorId ?? 'none'],
-    enabled: !!shopper?.vendorId,
-    queryFn: () => getVendorById(String(shopper?.vendorId)),
-    staleTime: 60 * 1000,
+  // Fetch all vendors for the current user to populate the dropdown
+  const { data: vendors, isLoading: isLoadingStores } = useQuery({
+    queryKey: ['vendors', userId],
+    queryFn: () => fetchVendors({ userId }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!userId,
   });
-  const assignedStoreName = (assignedVendorQuery.data as any)?.name ?? 'N/A';
+  const vendorOptions =
+    vendors?.data?.map((v: Vendor) => ({ label: v.name, value: v.id })) ?? [];
 
-  // Fetch all stores for current vendor owner (used in /store/index.tsx)
-  const { fetchVendors } = useVendors();
-  const { data: vendorsListData } = useQuery({
-    queryKey: ['vendors', authState.user?.id ?? 'me'],
-    enabled: !!authState.user?.id && authState.isReady,
-    queryFn: () => fetchVendors({ userId: authState.user?.id, page: 1, size: 100 }),
-    staleTime: 60 * 1000,
-  });
-  const vendorOptions = (vendorsListData as any)?.data?.map((v: any) => ({ label: v.name, value: v.id })) ?? [];
+  const assignedStoreName =
+    vendors?.data?.find((v: Vendor) => v.id === shopper?.vendorId)?.name ?? 'N/A';
 
   // Edit state management
   const [isStoreSelectModalVisible, setStoreSelectModalVisible] = React.useState(false);
@@ -211,9 +206,8 @@ export default function ViewShopperScreen() {
                 <View style={styles.shopperDetails}>
                   <View style={styles.shopperNameRow}>
                     <Text style={styles.shopperName}>{shopper?.name ?? 'Unknown'}</Text>
-                    <View style={[styles.statusBadge, (shopper?.isAvailable ?? shopper?.active) ? styles.availableBadge : styles.unavailableBadge]}>
-                      <Text style={[styles.statusText, (shopper?.isAvailable ?? shopper?.active) ? styles.availableText : styles.unavailableText]}>
-                        {(shopper?.isAvailable ?? shopper?.active) ? 'Available' : 'Not available'}
+                    <View style={[styles.statusBadge, (shopper?.name ?? shopper?.active) ? styles.availableBadge : styles.unavailableBadge]}>
+                      <Text style={[styles.statusText, (shopper?.name ?? shopper?.active) ? styles.availableText : styles.unavailableText]}>
                       </Text>
                     </View>
                   </View>

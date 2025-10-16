@@ -39,7 +39,7 @@ import type { User } from './user';
 import type { Vendor } from './vendor';
 
 export interface Order {
-      'id'?: string;
+    'id'?: string;
       'orderCode'?: string;
       'userId'?: string;
       'vendorId'?: string;
@@ -66,8 +66,7 @@ export interface Order {
       'deliveryAddress'?: DeliveryAddress;
       'shopper'?: User;
       'deliverer'?: User;
-};
-
+}
 
 export const OrderPaymentStatusEnum = {
     Pending: 'pending',

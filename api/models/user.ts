@@ -19,7 +19,7 @@ import type { Role } from './role';
 
 export interface User {
     'id'?: string;
-    'image'?: string;
+    'image'?: string | null;
     'name'?: string | null;
     'email'?: string | null;
     'mobileNumber'?: string;

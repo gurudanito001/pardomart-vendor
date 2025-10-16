@@ -1,42 +1,38 @@
-import { Payment, User } from '@/api';
+import type { Transaction } from '@/api';
+import { useCustomers, useCustomerTransactions } from '@/hooks/api/useCustomerQueries';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-    ArrowBackButtonSVG,
-    ArrowBackSVG,
-    NotificationSVG,
-    OrderSVG,
+  ArrowBackSVG,
+  NotificationSVG,
+  OrderSVG
 } from '../../../components/icons';
-
-const MOCK_TRANSACTIONS: Payment[] = [
-  { id: '1', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '2', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '3', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '4', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '5', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-  { id: '6', orderId: 'Order 556445', createdAt: 'Aug 12, 2025, 04:35am', amount: 342.66 },
-];
 
 export default function CustomerDetailsScreen() {
   const params = useLocalSearchParams();
-  const customerId = params.customerId as string;
+  const customerId = params.customerId as string | undefined;
+  const storeId = params.storeId as string | undefined;
 
-  const customer: User = {
-    id: customerId || '1',
-    name: 'Jonathan Smith',
-    email: 'Joanthansmith@gmail.com',
-    mobileNumber: '+1 334 654 7788',
-  };
+  // Fetch customer data
+  const { data: customers, isLoading: isLoadingCustomers } = useCustomers(storeId);
+  const customer = customers?.find((c) => c.id === customerId);
+
+  // Fetch customer transactions
+  const {
+    data: transactions,
+    isLoading: isLoadingTransactions,
+  } = useCustomerTransactions(customerId, storeId);
 
   const handleGoBack = () => {
     router.back();
@@ -46,22 +42,25 @@ export default function CustomerDetailsScreen() {
     console.log('Open notifications');
   };
 
-  
-
   const handleViewAllTransactions = () => {
-    console.log('View all transactions');
+    if (!customerId) return;
+    router.push({
+      pathname: '/(private)/home/transactions' as any,
+      params: { userId: customerId, storeId },
+    });
   };
 
-  const TransactionItem = ({ transaction }: { transaction: Payment }) => (
+  const TransactionItem = ({ transaction }: { transaction: Transaction }) => (
     <View style={styles.transactionItem}>
       <View style={styles.transactionContent}>
         <View style={styles.orderIconContainer}>
           <OrderSVG width={24} height={24} color="black" />
         </View>
         <View style={styles.transactionDetails}>
-          <View style={styles.transactionInfo}>
-            <Text style={styles.orderId}>{transaction.orderId}</Text>
-          </View>
+          <Text style={styles.orderId}>
+            {transaction.orderId ? `Order #${transaction.orderId}` : 'Transaction'}
+          </Text>
+          <Text style={styles.transactionAmount}>${transaction.amount?.toFixed(2)}</Text>
         </View>
       </View>
     </View>
@@ -86,61 +85,53 @@ export default function CustomerDetailsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Customer Information</Text>
-          
-          <View style={styles.customerInfoContainer}>
-            <Image source={require('../../../assets/images/user profile.png')} style={styles.customerAvatar} />
-            <View style={styles.customerDetails}>
-              <View style={styles.customerNameRow}>
-                <Text style={styles.customerName}>{customer.name}</Text>
+        {isLoadingCustomers ? (
+          <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#06888C" />
+        ) : customer ? (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Customer Information</Text>
+              <View style={styles.customerInfoContainer}>
+                <Image
+                  source={
+                    (customer as any).avatarUrl
+                      ? { uri: (customer as any).avatarUrl }
+                      : require('../../../assets/images/user profile.png')
+                  }
+                  style={styles.customerAvatar}
+                />
+                <View style={styles.customerDetails}>
+                  <View style={styles.customerNameRow}>
+                    <Text style={styles.customerName}>{customer.name}</Text>
+                  </View>
+                  <Text style={styles.customerEmail}>{customer.email}</Text>
+                </View>
               </View>
-              <Text style={styles.customerEmail}>{customer.email}</Text>
             </View>
-          </View>
-        </View>
 
-        <View style={styles.fieldsContainer}>
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email Address</Text>
-            <View style={styles.fieldInput}>
-              <Text style={styles.fieldValue}>{customer.email}</Text>
+            <View style={styles.transactionSection}>
+              <View style={styles.transactionHeader}>
+                <Text style={styles.sectionTitle}>Payment history</Text>
+                <TouchableOpacity onPress={handleViewAllTransactions}>
+                  <Text style={styles.viewAllText}>View all</Text>
+                </TouchableOpacity>
+              </View>
+              {isLoadingTransactions ? (
+                <ActivityIndicator color="#06888C" />
+              ) : (transactions?.length ?? 0) > 0 ? (
+                <View style={styles.transactionsList}>
+                  {transactions?.map((transaction) => (
+                    <TransactionItem key={transaction.id} transaction={transaction} />
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.noTransactionsText}>No payment history found.</Text>
+              )}
             </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Phone Number</Text>
-            <View style={styles.fieldInput}>
-              <Text style={styles.fieldValue}>{customer.mobileNumber}</Text>
-            </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Address</Text>
-            <View style={styles.fieldInput}>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.transactionSection}>
-          <View style={styles.transactionHeader}>
-            <Text style={styles.sectionTitle}>Payment history</Text>
-            <TouchableOpacity onPress={handleViewAllTransactions}>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.transactionsList}>
-            {MOCK_TRANSACTIONS.map((transaction) => (
-              <TransactionItem key={transaction.id} transaction={transaction} />
-            ))}
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.goBackButton} onPress={handleGoBack}>
-          <ArrowBackButtonSVG width={24} height={24} color="white" />
-          <Text style={styles.goBackText}>Go back</Text>
-        </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={styles.noTransactionsText}>Customer not found.</Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -320,6 +311,13 @@ const styles = StyleSheet.create({
     color: '#000',
     lineHeight: 14,
   },
+  transactionAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#000',
+    textAlign: 'right',
+  },
   goBackButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,5 +343,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  noTransactionsText: {
+    textAlign: 'center',
+    color: '#7C8BA0',
+    marginTop: 20,
+    fontFamily: 'Open Sans',
   },
 });

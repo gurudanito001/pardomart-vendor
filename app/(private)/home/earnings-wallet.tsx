@@ -1,6 +1,8 @@
+import { useEarningsList, useTotalEarnings } from '@/hooks/api/useEarningsQueries';
 import { router } from 'expo-router';
 import React from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StatusBar,
@@ -12,77 +14,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 
-interface Transaction {
-  id: string;
-  type: 'earning' | 'withdrawal';
-  name?: string;
-  amount: number;
-  date: string;
-  avatar?: string;
-}
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    type: 'earning',
-    name: 'Jeremiah Johns',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-    avatar: 'https://api.builder.io/api/v1/image/assets/TEMP/222214b9aa6ad996b4688828592130754b6d86ee?width=72',
-  },
-  {
-    id: '2',
-    type: 'withdrawal',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-  },
-  {
-    id: '3',
-    type: 'earning',
-    name: 'Jeremiah Johns',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-    avatar: 'https://api.builder.io/api/v1/image/assets/TEMP/be49974607e92074195149dd07ce08c646eea48d?width=72',
-  },
-  {
-    id: '4',
-    type: 'withdrawal',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-  },
-  {
-    id: '5',
-    type: 'earning',
-    name: 'Jeremiah Johns',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-    avatar: 'https://api.builder.io/api/v1/image/assets/TEMP/9d931bd96b4451ec550f55a0d925e05a02ac2c72?width=72',
-  },
-  {
-    id: '6',
-    type: 'withdrawal',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-  },
-  {
-    id: '7',
-    type: 'withdrawal',
-    amount: 342.66,
-    date: 'Aug 12, 2025, 04:35am',
-  },
-];
-
 export default function EarningsWalletScreen() {
+  const { data: totalEarnings, isLoading: isLoadingTotal } = useTotalEarnings();
+  const {
+    data: transactions,
+    isLoading: isLoadingTransactions,
+    isError,
+    error,
+  } = useEarningsList();
+
   const handleGoBack = () => {
     router.back();
   };
 
   const handleNotifications = () => {
     console.log('Open notifications');
-  };
-
-  const handleSupport = () => {
-    console.log('Open support');
   };
 
   const handleWithdraw = () => {
@@ -92,15 +38,15 @@ export default function EarningsWalletScreen() {
 
   const handleViewAllTransactions = () => {
     console.log('View all transactions');
-    // Navigate to all transactions screen
+    router.push('/(private)/home/transactions');
   };
 
-  const TransactionCard = ({ transaction }: { transaction: Transaction }) => (
+  const TransactionCard = ({ transaction }: { transaction: any }) => (
     <View style={styles.transactionCard}>
       <View style={styles.transactionContent}>
-        {transaction.type === 'earning' && transaction.avatar ? (
+        {transaction.type === 'order_payout' && transaction.user?.image ? (
           <Image 
-            source={{ uri: transaction.avatar }}
+            source={{ uri: transaction.user.image }}
             style={styles.transactionAvatar}
           />
         ) : (
@@ -112,17 +58,21 @@ export default function EarningsWalletScreen() {
         )}
         
         <View style={styles.transactionInfo}>
-          <Text style={styles.transactionName}>
-            {transaction.type === 'earning' ? transaction.name : 'Withdrawal'}
+          <Text style={styles.transactionName} numberOfLines={1}>
+            {transaction.type === 'order_payout'
+              ? `From ${transaction.user?.name ?? 'Customer'}`
+              : 'Withdrawal'}
           </Text>
-          <Text style={styles.transactionDate}>{transaction.date}</Text>
+          <Text style={styles.transactionDate}>
+            {new Date(transaction.createdAt ?? '').toLocaleString()}
+          </Text>
         </View>
         
         <Text style={[
           styles.transactionAmount,
-          transaction.type === 'earning' ? styles.earningAmount : styles.withdrawalAmount
+          transaction.type === 'order_payout' ? styles.earningAmount : styles.withdrawalAmount
         ]}>
-          {transaction.type === 'earning' ? '+' : '-'}${transaction.amount}
+          {transaction.type === 'order_payout' ? '+' : '-'}${transaction.amount?.toFixed(2)}
         </Text>
       </View>
     </View>
@@ -157,14 +107,18 @@ export default function EarningsWalletScreen() {
         <View style={styles.content}>
           {/* Wallet Balance Card */}
           <View style={styles.walletCard}>
-            <Text style={styles.walletTitle}>Your Wallet Balance</Text>
             
+            <Text style={styles.walletTitle}>Wallet Balance</Text>
             <View style={styles.balanceSection}>
               <View style={styles.balanceContainer}>
                 <Svg width="23" height="28" viewBox="0 0 23 28" fill="none">
                   <Path d="M11.5 13.3C17.852 13.3 23 10.6859 23 7.4648C23 4.2437 17.852 1.62964 11.5 1.62964C5.14805 1.62964 0 4.2437 0 7.4648C0 10.6859 5.14805 13.3 11.5 13.3ZM11.5 22.6296C7.11113 22.6296 3.22988 21.3445 0.781641 19.3593C0.283008 20.0156 0 20.721 0 21.4648C0 24.6859 5.14805 27.3 11.5 27.3C17.852 27.3 23 24.6859 23 21.4648C23 20.721 22.717 20.0156 22.2184 19.3648C19.7701 21.3445 15.8889 22.6296 11.5 22.6296ZM11.5 15.6296C7.11113 15.6296 3.22988 14.3445 0.781641 12.3593C0.283008 13.0156 0 13.721 0 14.4648C0 17.6859 5.14805 20.3 11.5 20.3C17.852 20.3 23 17.6859 23 14.4648C23 13.721 22.717 13.0156 22.2184 12.3648C19.7701 14.3445 15.8889 15.6296 11.5 15.6296Z" fill="black"/>
                 </Svg>
-                <Text style={styles.balanceAmount}>$7,210.55</Text>
+                {isLoadingTotal ? (
+                  <ActivityIndicator color="#000" />
+                ) : (
+                  <Text style={styles.balanceAmount}>${totalEarnings?.totalEarnings?.toFixed(2) ?? '0.00'}</Text>
+                )}
               </View>
               
               <View style={styles.hideIcon}>
@@ -191,11 +145,23 @@ export default function EarningsWalletScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.transactionsList}>
-              {MOCK_TRANSACTIONS.map((transaction) => (
-                <TransactionCard key={transaction.id} transaction={transaction} />
-              ))}
-            </View>
+            {isLoadingTransactions && (
+              <View style={styles.centered}>
+                <ActivityIndicator size="large" color="#06888C" />
+              </View>
+            )}
+            {isError && (
+              <View style={styles.centered}>
+                <Text style={styles.errorText}>Error: {error?.message}</Text>
+              </View>
+            )}
+            {!isLoadingTransactions && !isError && (
+              <View style={styles.transactionsList}>
+                {transactions?.map((transaction) => (
+                  <TransactionCard key={transaction.id} transaction={transaction} />
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -260,9 +226,9 @@ const styles = StyleSheet.create({
   walletCard: {
     backgroundColor: 'rgba(191, 227, 198, 0.60)',
     borderRadius: 16,
-    paddingVertical: 36,
-    paddingHorizontal: 41,
-    gap: 15,
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    gap: 10,
   },
   walletTitle: {
     fontSize: 14,
@@ -296,7 +262,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 120,
     borderRadius: 16,
     backgroundColor: '#06888C',
     gap: 6,
@@ -308,6 +273,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 9,
     elevation: 3,
+    marginTop: 10,
   },
   withdrawText: {
     fontSize: 16,
@@ -337,6 +303,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#06888C',
     lineHeight: 25,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
   },
   transactionsList: {
     gap: 8,

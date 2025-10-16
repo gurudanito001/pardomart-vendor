@@ -23,6 +23,8 @@ export const useCustomers = (vendorId?: string) => {
         // may wrap the response differently; handle both .data and direct array.
         const data = response?.data ?? response;
 
+        console.log('Fetched customers data:', data);
+
         if (!Array.isArray(data)) return [];
 
         // Map users to CustomerItem; preserve available fields and provide sensible defaults
