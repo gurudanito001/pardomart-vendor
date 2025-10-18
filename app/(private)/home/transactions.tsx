@@ -175,7 +175,7 @@ export default function TransactionsScreen() {
 
           <Text style={styles.headerTitle}>Transactions</Text>
 
-          <View style={styles.headerActions}>
+          {/* <View style={styles.headerActions}>
             <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
               <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <Path
@@ -184,7 +184,7 @@ export default function TransactionsScreen() {
                 />
               </Svg>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
 
         {/* Store Selector Dropdown */}

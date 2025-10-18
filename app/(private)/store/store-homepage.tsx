@@ -108,7 +108,7 @@ type ActionKey =
   | "store-profile"
   | "store-documents"
   | "store-products"
-  | "store-shoppers"
+  | "store-staff"
   | "store-customers"
   | "store-settings";
 
@@ -199,11 +199,11 @@ export default function SettingUpStoreScreen() {
         break;
       case "store-settings":
         break;
-      case "store-shoppers":
-        router.push(`/(private)/shared/my-shoppers?storeId=${storeId}` as any);
+      case "store-staff":
+        router.push(`/(private)/store/store-staff?storeId=${storeId}` as any);
         break;
       case "store-customers":
-        router.push(`/(private)/shared/customers?storeId=${storeId}` as any);
+        router.push(`/(private)/store/store-customers?storeId=${storeId}` as any);
         break;
       default:
         break;
@@ -252,8 +252,8 @@ export default function SettingUpStoreScreen() {
         ),
       },
       {
-        key: "store-shoppers",
-        title: "Store Shoppers",
+        key: "store-staff",
+        title: "Store Staff",
         priority: 4,
         icon: <MaterialIcons name="shopping-cart" size={20} color="black" />,
       },
@@ -383,9 +383,9 @@ export default function SettingUpStoreScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Set up your store</Text>
+          <Text style={styles.title}>Store Homepage</Text>
           <Text style={styles.subtitle}>
-            Provide all the information of your stores here
+            View all the information about your store here
           </Text>
         </View>
 

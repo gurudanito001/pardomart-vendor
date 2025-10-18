@@ -10,20 +10,19 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-import NotificationBell from '../../../components/NotificationBell';
 
 export default function EditStoreScreen() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
@@ -152,9 +151,6 @@ export default function EditStoreScreen() {
               </Svg>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Edit Store Profile</Text>
-          </View>
-          <View style={styles.rightSection}>
-            <NotificationBell from="/(private)/store/edit-store" />
           </View>
         </View>
       </View>

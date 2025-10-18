@@ -5,14 +5,15 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -63,11 +64,6 @@ export default function StoreProductsScreen() {
     console.log('Open support');
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    console.log('Search for:', query);
-  };
-
   const handleAddProduct = () => {
     console.log('Add new product');
     router.push({
@@ -113,6 +109,12 @@ export default function StoreProductsScreen() {
   );
 
   const products = productsData?.data || [];
+  const filteredProducts = products.filter(product => {
+    if (!searchQuery) return true;
+    return product.name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+  const totalProducts = productsData?.totalCount || 0;
+  const showingCount = filteredProducts.length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -192,33 +194,38 @@ export default function StoreProductsScreen() {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <Path d="M13.2353 13.9318C13.1474 13.9314 13.0605 13.9135 12.9797 13.8791C12.8988 13.8448 12.8256 13.7947 12.7643 13.7318L10.3153 11.2828C9.05417 12.3026 7.44984 12.7998 5.83303 12.6717C4.21621 12.5437 2.71014 11.8002 1.62528 10.5946C0.540426 9.38894 -0.0405212 7.81302 0.00219959 6.1917C0.0449203 4.57038 0.708053 3.02725 1.85489 1.88041C3.00174 0.733565 4.54487 0.070433 6.16619 0.0277123C7.78751 -0.0150085 9.36342 0.565939 10.5691 1.65079C11.7747 2.73565 12.5182 4.24172 12.6462 5.85854C12.7743 7.47536 12.2771 9.07968 11.2573 10.3408L13.7063 12.7898C13.7994 12.8829 13.8629 13.0016 13.8886 13.1308C13.9143 13.26 13.9011 13.394 13.8507 13.5157C13.8003 13.6374 13.7149 13.7414 13.6054 13.8146C13.4958 13.8878 13.367 13.9268 13.2353 13.9268V13.9318ZM6.33227 1.36478C5.34336 1.36478 4.37667 1.65803 3.55442 2.20744C2.73217 2.75684 2.09131 3.53774 1.71287 4.45137C1.33444 5.365 1.23542 6.37033 1.42834 7.34024C1.62127 8.31014 2.09747 9.20106 2.79674 9.90032C3.496 10.5996 4.38691 11.0758 5.35682 11.2687C6.32672 11.4616 7.33206 11.3626 8.24569 10.9842C9.15932 10.6057 9.94021 9.96488 10.4896 9.14264C11.039 8.32039 11.3323 7.35369 11.3323 6.36478C11.3307 5.03919 10.8034 3.76834 9.86605 2.831C8.92871 1.89367 7.65787 1.36637 6.33227 1.36478Z" fill="black"/>
           </Svg>
-          <Text style={styles.searchPlaceholder}>Search Products</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search Products"
+            placeholderTextColor="#7C7B7B"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Products Header */}
-          <Text style={styles.productsHeader}>Products ({productsData?.totalCount || 0})</Text>
+          <Text style={styles.productsHeader}>Products ({totalProducts})</Text>
 
           {/* Products Grid */}
           {isLoadingProducts || isLoadingVendor ? (
             <ActivityIndicator size="large" color="#06888C" style={{ marginVertical: 40 }} />
           ) : (
             <View style={styles.productsGrid}>
-              {products.length > 0 ? (
-                products.map(renderProduct)
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map(renderProduct)
               ) : (
-                <Text style={styles.noProductsText}>No products found for this store.</Text>
+                <Text style={styles.noProductsText}>{searchQuery ? 'No products match your search.' : 'No products found for this store.'}</Text>
               )}
             </View>
           )}
 
           {/* Pagination */}
           <View style={styles.pagination}>
-            <Text style={styles.paginationText}>Showing 1-10 of 20</Text>
+            <Text style={styles.paginationText}>Showing {showingCount} of {totalProducts}</Text>
             <TouchableOpacity style={styles.nextButton}>
               <Text style={styles.nextText}>Next</Text>
               <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
@@ -351,6 +358,14 @@ const styles = StyleSheet.create({
     borderColor: '#B4BED4',
     backgroundColor: '#F0F0F0',
     gap: 14,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#000',
+    padding: 0,
   },
   searchPlaceholder: {
     fontSize: 14,

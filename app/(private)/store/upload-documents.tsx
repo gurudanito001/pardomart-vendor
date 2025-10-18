@@ -2,6 +2,7 @@ import { toast } from "@/utils/toast";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Platform,
   ScrollView,
@@ -56,16 +57,15 @@ async function prepareUploadFile(
   if (Platform.OS === "web") {
     if (img.base64) {
       const byteChars = atob(img.base64);
-      const byteNumbers = new Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++)
-        byteNumbers[i] = byteChars.charCodeAt(i);
+      const byteNumbers = Array.from(byteChars, (char) => char.charCodeAt(0));
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type });
       return new File([blob], name, { type });
     }
     const res = await fetch(img.uri);
     const blob = await res.blob();
-    return new File([blob], name, { type: blob.type || type });
+    // Ensure the file has a name and type
+    return new File([blob], name, { type: blob.type || type, lastModified: Date.now() });
   }
 
   return {
@@ -156,8 +156,16 @@ export default function UploadDocumentsScreen() {
       );
 
       await Promise.all([
-        mediaApi.mediaUploadPost(certFile as any, String(storeId), "document"),
-        mediaApi.mediaUploadPost(idFile as any, String(storeId), "document"),
+        mediaApi.mediaUploadPost({
+          file: certFile,
+          referenceId: String(storeId),
+          referenceType: "document",
+        }),
+        mediaApi.mediaUploadPost({
+          file: idFile,
+          referenceId: String(storeId),
+          referenceType: "document",
+        }),
       ]);
 
       toast.success("Documents uploaded successfully.");
@@ -238,6 +246,11 @@ export default function UploadDocumentsScreen() {
       onPress={onPress}
       disabled={isLoading}
     >
+      {isLoading && (
+        <View style={styles.uploadZoneOverlay}>
+          <ActivityIndicator size="large" color="#06888C" />
+        </View>
+      )}
       <UploadIcon />
       <View style={styles.uploadTextContainer}>
         <Text style={styles.uploadText}>
@@ -501,6 +514,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 32,
     backgroundColor: "#FFF",
+  },
+  uploadZoneOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    zIndex: 1,
   },
   uploadTextContainer: {
     alignItems: "center",

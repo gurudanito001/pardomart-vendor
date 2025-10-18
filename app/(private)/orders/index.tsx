@@ -1,14 +1,14 @@
-import type { Order } from '@/api/models';
+import type { VendorOrder } from '@/api/models';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -19,7 +19,7 @@ import { useAcceptOrder } from '../../../hooks/api/useOrderMutations';
 import { useVendorOrders } from '../../../hooks/api/useVendorOrders';
 
 // This defines the shape of the data after it's been transformed by the `useVendorOrders` hook's `select` function.
-type DisplayOrder = Order & {
+type DisplayOrder = VendorOrder & {
   customerName: string;
   total: number | undefined;
   time: string;
@@ -34,6 +34,7 @@ export default function OrdersScreen() {
 
 
   const handleGoBack = () => {
+    console.log('Go back');
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -209,12 +210,12 @@ export default function OrdersScreen() {
       <View style={styles.extendedHeader}>
         {/* Header Content */}
         <View style={styles.headerContent}>
-          <View style={styles.leftSection}>
-            <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-              <ArrowBackSVG width={30} height={30} color="white" />
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.leftSection} onPress={handleGoBack}>
+            <View style={styles.backButton} >
+              <ArrowBackSVG width={20} height={20} color="white" />
+            </View>
             <Text style={styles.headerTitle}>My Orders</Text>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.headerActions}>
             <NotificationBell from="/(private)/orders" />
@@ -235,17 +236,13 @@ export default function OrdersScreen() {
         </View> */}
       </View>
 
-      <View style={styles.scrollContainer}>
-        <ScrollView 
-          style={styles.scrollView} 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            {renderContent()}
-          </View>
-        </ScrollView>
-      </View>
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {renderContent()}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -258,9 +255,6 @@ const styles = StyleSheet.create({
   extendedHeader: {
     backgroundColor: '#06888C',
     paddingTop: 20,
-    paddingBottom: 74,
-    zIndex: 0, // Background layer
-    position: 'relative',
   },
   headerContent: {
     flexDirection: 'row',
@@ -319,26 +313,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   scrollContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 100,
-  },
-  scrollView: {
     flex: 1,
+    paddingHorizontal: 21,
+    paddingTop: 20,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingBottom: 20,
+    gap: 19,
   },
   content: {
-    paddingHorizontal: 21,
-    paddingTop: 114,
-    marginTop: 20,
+    flex: 1,
     gap: 19,
-    zIndex: 200,
-    position: 'relative',
   },
   orderCard: {
     padding: 17,
@@ -353,9 +338,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 1,
     shadowRadius: 3,
-    elevation: 10, // Much higher elevation for Android layering
-    zIndex: 300,
-    position: 'relative',
   },
   centered: {
     flex: 1,

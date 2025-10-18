@@ -2,19 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import EmptyStore from '../../../components/EmptyStore';
-import NotificationBell from '../../../components/NotificationBell';
 import { useAuth } from '../../../context/AppProvider';
 import { useVendors } from '../../../hooks/api/useVendors';
 
@@ -86,17 +85,6 @@ export default function StoreScreen() {
     </TouchableOpacity>
   );
 
-  /* const AddStoreCard = ({ onPress }: { onPress: () => void }) => (
-    <TouchableOpacity style={styles.addStoreCard} onPress={onPress}>
-      <View style={styles.addStoreContent}>
-        <Svg width="48" height="48" viewBox="0 0 49 48" fill="none">
-          <Path d="M38.5 25.996H26.5V37.996H22.5V25.996H10.5V21.996H22.5V9.99597H26.5V21.996H38.5V25.996Z" fill="black"/>
-        </Svg>
-        <Text style={styles.addStoreText}>Add new store</Text>
-      </View>
-    </TouchableOpacity>
-  ); */
-
   const vendors = vendorsData?.data ?? [];
   const totalStores = vendorsData?.totalCount ?? 0;
   const isEmpty = !isLoading && totalStores === 0;
@@ -130,9 +118,9 @@ export default function StoreScreen() {
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Stores</Text>
           </View>
-          <View style={styles.rightSection}>
+          {/* <View style={styles.rightSection}>
             <NotificationBell from="/(private)/store" />
-          </View>
+          </View> */}
         </View>
       </View>
 
