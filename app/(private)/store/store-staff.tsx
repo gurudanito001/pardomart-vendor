@@ -95,7 +95,7 @@ export default function MyShoppersScreen() {
             <View style={styles.headerRight}>
               <TouchableOpacity
                 style={styles.addButton}
-                onPress={() => router.push(`/(private)/store/add-shopper?storeId=${storeId}` as any)}
+                onPress={() => router.push(`/(private)/store/add-staff?storeId=${storeId}` as any)}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <Path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="white"/>
@@ -115,9 +115,9 @@ export default function MyShoppersScreen() {
         ) : displayedShoppers.length === 0 ? (
           <View style={styles.centerContent}>
             <MyShoppersSVG color="#E0E0E0" width={80} height={80} />
-            <Text style={styles.emptyStateTitle}>No Shoppers Found</Text>
+            <Text style={styles.emptyStateTitle}>No Staff Found</Text>
             <Text style={styles.emptyStateSubtitle}>
-              There are no shoppers assigned to the selected store.
+              There are no staff assigned to the selected store.
             </Text>
             <TouchableOpacity onPress={() => refetch()} style={styles.refreshButton}>
               <Text style={styles.refreshButtonText}>Refresh</Text>

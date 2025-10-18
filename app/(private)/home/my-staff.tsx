@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-export default function MyShoppersScreen() {
+export default function MyStaffScreen() {
   const {fetchVendors} = useVendors();
   const { storeId: initialStoreId } = useLocalSearchParams<{ storeId?: string }>();
   const [selectedStoreId, setSelectedStoreId] = useState<string | undefined>(initialStoreId);
@@ -116,7 +116,18 @@ export default function MyShoppersScreen() {
                   />
                 </Svg>
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>My Shoppers</Text>
+              <Text style={styles.headerTitle}>My Staff</Text>
+            </View>
+
+            <View style={styles.headerRight}>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => router.push(`/(private)/home/add-staff` as any)}
+              >
+                <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <Path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="white" />
+                </Svg>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -176,9 +187,9 @@ export default function MyShoppersScreen() {
         ) : displayedShoppers.length === 0 ? (
           <View style={styles.centerContent}>
             <MyShoppersSVG color="#E0E0E0" width={80} height={80} />
-            <Text style={styles.emptyStateTitle}>No Shoppers Found</Text>
+            <Text style={styles.emptyStateTitle}>No staff Found</Text>
             <Text style={styles.emptyStateSubtitle}>
-              There are no shoppers assigned to the selected store.
+              There are no staff assigned to the selected store.
             </Text>
             <TouchableOpacity onPress={() => refetch()} style={styles.refreshButton}>
               <Text style={styles.refreshButtonText}>Refresh</Text>
@@ -373,5 +384,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addButton: {
+    padding: 6,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
 });

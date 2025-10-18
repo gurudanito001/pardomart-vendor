@@ -7,19 +7,19 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
 
-export default function AddShopperScreen() {
+export default function AddStaffScreen() {
   const params = useLocalSearchParams<{ storeId?: string | string[] }>();
   const storeIdFromParam = useMemo(() => {
     const value = params.storeId;
@@ -48,10 +48,10 @@ export default function AddShopperScreen() {
     },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['staff', storeIdFromParam] });
-      router.replace({ pathname: '/(private)/home/my-shoppers', params: { storeId: storeIdFromParam } } as any);
+      router.replace({ pathname: '/(private)/home/my-staff', params: { storeId: storeIdFromParam } } as any);
     },
     onError: (e: any) => {
-      setError(e?.message ?? 'Failed to add shopper');
+      setError(e?.message ?? 'Failed to add staff');
     },
   });
 
@@ -72,7 +72,7 @@ export default function AddShopperScreen() {
       email: email.trim(),
       mobileNumber: mobileNumber.trim(),
       vendorId: storeIdFromParam!,
-      role: Role.VendorStaff,
+      role: Role.StoreShopper,
     } as any;
     createMutation.mutate(payload);
   };
@@ -85,7 +85,7 @@ export default function AddShopperScreen() {
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Shopper</Text>
+        <Text style={styles.headerTitle}>Add Staff</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationSVG width={24} height={24} color="white" />
@@ -107,7 +107,7 @@ export default function AddShopperScreen() {
 
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Full Name</Text>
-              <Input placeholder="Enter shopper name" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="next" />
+              <Input placeholder="Enter staff name" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="next" />
             </View>
 
             <View style={styles.fieldGroup}>
@@ -122,7 +122,7 @@ export default function AddShopperScreen() {
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <Button title="Create Shopper" onPress={handleCreate} loading={createMutation.isPending} disabled={!canSubmit || createMutation.isPending} fullWidth style={styles.submitButton} />
+            <Button title="Create Staff" onPress={handleCreate} loading={createMutation.isPending} disabled={!canSubmit || createMutation.isPending} fullWidth style={styles.submitButton} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
