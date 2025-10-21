@@ -1,5 +1,5 @@
 import type { VendorOrder } from '@/api/models';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -28,7 +28,9 @@ type DisplayOrder = VendorOrder & {
 };
 
 export default function OrdersScreen() {
-  const { data: orders, isLoading, isError, error } = useVendorOrders();
+  const params = useLocalSearchParams<{ storeId?: string }>();
+  const storeId = params.storeId;
+  const { data: orders, isLoading, isError, error } = useVendorOrders(storeId);
   const { mutate: acceptOrder, isPending: isAcceptingOrder, data: acceptedOrderId } = useAcceptOrder();
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
 
@@ -128,7 +130,7 @@ export default function OrdersScreen() {
       <View style={styles.orderDetails}>
         <View style={styles.totalSection}>
           <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalAmount}>${order.total}</Text>
+          <Text style={styles.totalAmount}>${order.total?.toFixed(2)}</Text>
         </View>
         <Text style={styles.customerName}>{order.customerName}</Text>
         

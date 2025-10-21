@@ -15,21 +15,32 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { Category } from './category';
 import type { OrderItemStatus } from './order-item-status';
+import { Product } from './product';
+import { VendorProduct } from './vendor-product';
+
+interface VendorProductWithDetails extends VendorProduct    {
+    product?: Product;
+    categories?: Category[]
+}
 
 export interface OrderItem {
     'id'?: string;
     'orderId'?: string;
     'vendorProductId'?: string;
+    'vendorProduct'?: VendorProductWithDetails
     'quantity'?: number;
     'instructions'?: string | null;
     'status'?: OrderItemStatus;
     'quantityFound'?: number | null;
+    'replacements'?: VendorProduct[] | null;
     'chosenReplacementId'?: string | null;
     'isReplacementApproved'?: boolean | null;
     'createdAt'?: string;
     'updatedAt'?: string;
 }
+
 
 
 

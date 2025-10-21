@@ -1,4 +1,4 @@
-import { StaffApi, Vendor } from '@/api';
+import { Role, StaffApi, Vendor } from '@/api';
 import { apiConfig } from '@/api/config';
 import { useAuth } from '@/context/AppProvider';
 import { useStaffMember } from '@/hooks/api/useStaff';
@@ -7,24 +7,24 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    Modal,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  Modal,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import {
-    ArrowBackSVG,
-    ChatFilledSVG,
-    LocationSVG,
-    PhoneOutlineSVG
+  ArrowBackSVG,
+  ChatFilledSVG,
+  LocationSVG,
+  PhoneOutlineSVG
 } from '../../../components/icons';
 import NotificationBell from '../../../components/NotificationBell';
 
@@ -51,6 +51,16 @@ export default function ViewShopperScreen() {
   const assignedStoreName =
     vendors?.data?.find((v: Vendor) => v.id === shopper?.vendorId)?.name ?? 'N/A';
 
+  const roleOptions = React.useMemo(() => [
+    { label: 'Store Admin', value: Role.StoreAdmin },
+    { label: 'Store Shopper', value: Role.StoreShopper },
+  ], []);
+
+  const assignedRoleName = React.useMemo(() => {
+    return roleOptions.find(r => r.value === shopper?.role)?.label ?? 'N/A';
+  }, [shopper, roleOptions]);
+
+
   // Edit state management
   const [isStoreSelectModalVisible, setStoreSelectModalVisible] = React.useState(false);
   const [selectedStoreId, setSelectedStoreId] = React.useState<string | undefined>(undefined);
@@ -61,11 +71,15 @@ export default function ViewShopperScreen() {
   const [isEditingEmail, setIsEditingEmail] = React.useState(false);
   const [tempEmail, setTempEmail] = React.useState<string>('');
 
+  const [isRoleSelectModalVisible, setIsRoleSelectModalVisible] = React.useState(false);
+  const [selectedRole, setSelectedRole] = React.useState<Role | undefined>(undefined);
+
   React.useEffect(() => {
     if (shopper) {
       setSelectedStoreId(shopper.vendorId || undefined);
       setTempPhone(shopper.mobileNumber || '');
       setTempEmail(shopper.email || '');
+      setSelectedRole(shopper.role as Role || undefined);
     }
   }, [shopper]);
 
@@ -78,33 +92,28 @@ export default function ViewShopperScreen() {
       const res = await staffApi.staffStaffIdPatch(payload, shopperId);
       return res.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (data, variables) => {
       toast.success('Updated successfully');
-      await qc.invalidateQueries({ queryKey: ['staff', 'detail', shopperId] });
-      await qc.invalidateQueries({ queryKey: ['staff'] });
       setStoreSelectModalVisible(false);
       setIsEditingPhone(false);
       setIsEditingEmail(false);
+      setIsRoleSelectModalVisible(false);
+      // If we are disabling the user, go back after success.
+      if (variables.active === false && router.canGoBack()) {
+        await qc.invalidateQueries({ queryKey: ['staff'] });
+        router.back();
+      } else {
+        await qc.invalidateQueries({ queryKey: ['staff', 'detail', shopperId] });
+        await qc.invalidateQueries({ queryKey: ['staff'] });
+      }
     },
     onError: (e: any) => {
       toast.error(e?.response?.data?.message || e?.message || 'Update failed');
     }
   });
 
-  // Delete shopper
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!shopperId) throw new Error('Missing staffId');
-      await staffApi.staffStaffIdDelete(shopperId);
-    },
-    onSuccess: async () => {
-      toast.success('Shopper deleted');
-      await qc.invalidateQueries({ queryKey: ['staff'] });
-      router.back();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Delete failed')
-  });
+  // Disable staff state
+  const [confirmToggleStatusOpen, setConfirmToggleStatusOpen] = React.useState(false);
 
   const handleGoBack = () => {
     router.back();
@@ -135,6 +144,11 @@ export default function ViewShopperScreen() {
     updateMutation.mutate({ mobileNumber: tempPhone });
   };
 
+  const handleSaveRole = () => {
+    if (!selectedRole) return;
+    updateMutation.mutate({ role: selectedRole });
+  };
+
   const handleEditEmail = () => {
     if (!isEditingEmail) setTempEmail(shopper?.email || '');
     setIsEditingEmail((v) => !v);
@@ -144,8 +158,14 @@ export default function ViewShopperScreen() {
     updateMutation.mutate({ email: tempEmail });
   };
 
-  const handleDeleteShopper = () => {
-    setConfirmDeleteOpen(true);
+  const handleToggleStaffStatus = () => {
+    setConfirmToggleStatusOpen(true);
+  };
+
+  const confirmToggleStaffStatus = () => {
+    if (!shopper) return;
+    updateMutation.mutate({ active: !shopper.active });
+    setConfirmToggleStatusOpen(false);
   };
 
   if (!shopperId) {
@@ -204,8 +224,9 @@ export default function ViewShopperScreen() {
                 <View style={styles.shopperDetails}>
                   <View style={styles.shopperNameRow}>
                     <Text style={styles.shopperName}>{shopper?.name ?? 'Unknown'}</Text>
-                    <View style={[styles.statusBadge, (shopper?.name ?? shopper?.active) ? styles.availableBadge : styles.unavailableBadge]}>
-                      <Text style={[styles.statusText, (shopper?.name ?? shopper?.active) ? styles.availableText : styles.unavailableText]}>
+                    <View style={[styles.statusBadge, shopper?.active ? styles.availableBadge : styles.unavailableBadge]}>
+                      <Text style={[styles.statusText, shopper?.active ? styles.availableText : styles.unavailableText]}>
+                        {shopper?.active ? 'Active' : 'Disabled'}
                       </Text>
                     </View>
                   </View>
@@ -238,6 +259,27 @@ export default function ViewShopperScreen() {
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity style={styles.editButton} onPress={() => setStoreSelectModalVisible(true)}>
+                      <Text style={styles.editButtonText}>Change</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Role */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>Role</Text>
+                <View style={styles.fieldInputWithButton}>
+                  <View style={styles.addressContainer}>
+                    <Text style={styles.fieldValue} numberOfLines={1}>
+                      {assignedRoleName}
+                    </Text>
+                  </View>
+                  {selectedRole && selectedRole !== shopper?.role ? (
+                    <TouchableOpacity style={styles.editButton} onPress={handleSaveRole} disabled={updateMutation.isPending}>
+                      <Text style={styles.editButtonText}>{updateMutation.isPending ? 'Saving...' : 'Save'}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.editButton} onPress={() => setIsRoleSelectModalVisible(true)}>
                       <Text style={styles.editButtonText}>Change</Text>
                     </TouchableOpacity>
                   )}
@@ -288,8 +330,14 @@ export default function ViewShopperScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteShopper}>
-              <Text style={styles.deleteButtonText}>Delete Shopper</Text>
+            <TouchableOpacity
+              style={[
+                styles.toggleStatusButton,
+                shopper?.active ? styles.deactivateButton : styles.activateButton,
+              ]}
+              onPress={handleToggleStaffStatus}
+            >
+              <Text style={styles.toggleStatusButtonText}>{shopper?.active ? 'Deactivate Staff' : 'Activate Staff'}</Text>
             </TouchableOpacity>
           </>
         )}
@@ -318,18 +366,45 @@ export default function ViewShopperScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* Role Select Modal */}
+      <Modal transparent visible={isRoleSelectModalVisible} animationType="fade" onRequestClose={() => setIsRoleSelectModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsRoleSelectModalVisible(false)}>
+          <View style={styles.storeSelectModalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select a Role</Text>
+            <ScrollView>
+              {roleOptions.map((opt: any) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.optionItem, selectedRole === opt.value && styles.selectedOption]}
+                  onPress={() => {
+                    setSelectedRole(opt.value);
+                    setIsRoleSelectModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.optionText, selectedRole === opt.value && styles.selectedOptionText]}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Confirmation Modal */}
-      <Modal transparent visible={confirmDeleteOpen} animationType="fade" onRequestClose={() => setConfirmDeleteOpen(false)}>
+      <Modal transparent visible={confirmToggleStatusOpen} animationType="fade" onRequestClose={() => setConfirmToggleStatusOpen(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Delete shopper?</Text>
-            <Text style={styles.modalMessage}>This action cannot be undone.</Text>
+            <Text style={styles.modalTitle}>{shopper?.active ? 'Deactivate Staff?' : 'Activate Staff?'}</Text>
+            <Text style={styles.modalMessage}>
+              {shopper?.active ? 'This will revoke their access. Are you sure?' : 'This will restore their access. Are you sure?'}
+            </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#E5E7EB' }]} onPress={() => setConfirmDeleteOpen(false)}>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#E5E7EB' }]} onPress={() => setConfirmToggleStatusOpen(false)}>
                 <Text style={[styles.modalButtonText, { color: '#111827' }]}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#C70000' }]} onPress={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
-                <Text style={styles.modalButtonText}>{deleteMutation.isPending ? 'Deleting...' : 'Delete'}</Text>
+              <TouchableOpacity
+                style={[styles.modalButton, shopper?.active ? { backgroundColor: '#C70000' } : { backgroundColor: '#06888C' }]}
+                onPress={confirmToggleStaffStatus} disabled={updateMutation.isPending}>
+                <Text style={styles.modalButtonText}>{updateMutation.isPending ? 'Processing...' : (shopper?.active ? 'Deactivate' : 'Activate')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -401,9 +476,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   shopperAvatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   shopperDetails: {
     flex: 1,
@@ -518,11 +593,10 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 16,
   },
-  deleteButton: {
+  toggleStatusButton: {
     paddingVertical: 14,
     paddingHorizontal: 50,
     borderRadius: 16,
-    backgroundColor: '#C70000',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 40,
@@ -535,7 +609,13 @@ const styles = StyleSheet.create({
     shadowRadius: 9,
     elevation: 2,
   },
-  deleteButtonText: {
+  deactivateButton: {
+    backgroundColor: '#C70000',
+  },
+  activateButton: {
+    backgroundColor: '#06888C',
+  },
+  toggleStatusButtonText: {
     fontSize: 16,
     fontWeight: '700',
     fontFamily: 'Raleway',

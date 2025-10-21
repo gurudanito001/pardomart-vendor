@@ -1,7 +1,7 @@
-import type { OrderItem } from '@/api/models';
+import type { OrderItem, OrderStatus } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
 import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
+import { CompletedOrdersSVG } from '../../../components/icons/CompletedOrdersSVG';
 
 type GroupedItems = Record<string, OrderItem[]>;
 
@@ -29,9 +30,20 @@ const OrderIcon = () => (
 export default function ShoppingListScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
-  const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>('pending');
+  const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>();
 
-  const { not_found_Items, pendingItems, completedItems, itemsLeft, notFoundCount } = useMemo(() => {
+
+  const {
+    not_found_Items,
+    pendingItems,
+    completedItems,
+    itemsLeft,
+    pendingCount,
+    notFoundCount,
+    completedCount,
+    isBaggingComplete,
+    isPostBagging,
+  } = useMemo(() => {
     const items = order?.orderItems ?? [];
 
     const groupByCategory = (filteredItems: OrderItem[]): GroupedItems =>
@@ -48,14 +60,39 @@ export default function ShoppingListScreen() {
     const not_found = items.filter(item => item.status === 'NOT_FOUND');
     const completed = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
 
+    const postBaggingStatuses: OrderStatus[] = [
+      'ready_for_pickup',
+      'ready_for_delivery',
+      'accepted_for_delivery',
+      'en_route',
+      'delivered',
+      'picked_up_by_customer',
+    ];
+
     return {
       not_found_Items: groupByCategory(not_found),
-      pendingItems: groupByCategory(pending),
-      completedItems: groupByCategory(completed),
-      itemsLeft: pending.length + not_found.length,
       notFoundCount: not_found.length,
+      pendingItems: groupByCategory(pending),
+      pendingCount: pending.length,
+      completedItems: groupByCategory(completed),
+      completedCount: completed.length,
+      itemsLeft: pending.length + not_found.length,
+      isBaggingComplete: pending.length === 0 && not_found.length === 0,
+      isPostBagging: postBaggingStatuses.includes(order?.orderStatus as OrderStatus),
     };
   }, [order]);
+
+  useEffect(() => {
+    if (order) {
+      if (pendingCount > 0) {
+        setActiveTab('pending');
+      } else if (notFoundCount > 0) {
+        setActiveTab('not_found');
+      } else {
+        setActiveTab('completed');
+      }
+    }
+  }, [order, pendingCount, notFoundCount]);
 
   const handleGoBack = () => {
     router.back();
@@ -76,6 +113,27 @@ export default function ShoppingListScreen() {
     });
   };
 
+  const handlePreviewOrder = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/preview-page',
+      params: { orderId },
+    });
+  };
+
+  const handleVerifyPickup = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/verify-order-code',
+      params: { orderId },
+    });
+  };
   const renderOrderItem = (item: OrderItem) => (
     <View key={item.id} style={styles.itemCard}>
       <Image 
@@ -116,6 +174,21 @@ export default function ShoppingListScreen() {
       </View>
     );
   };
+
+  if (order && (order.orderStatus === 'delivered' || order.orderStatus === 'picked_up_by_customer')) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <CompletedOrdersSVG />
+        <Text style={styles.successTitle}>Order Completed</Text>
+        <Text style={styles.successMessage}>
+          This order has been successfully {order.orderStatus === 'delivered' ? 'delivered' : 'picked up'}.
+        </Text>
+        <TouchableOpacity style={styles.continueButton} onPress={handlePreviewOrder}>
+          <Text style={styles.continueButtonText}>Preview Completed Order</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -159,19 +232,23 @@ export default function ShoppingListScreen() {
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'pending' && styles.activeTabItem]}
           onPress={() => setActiveTab('pending')}>
-          <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
+          <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>
+            Pending ({pendingCount})
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'not_found' && styles.activeTabItem]}
           onPress={() => setActiveTab('not_found')}>
-          <Text style={[styles.tabText, activeTab === 'not_found' && styles.activeTabText]}>Not Found</Text>
+          <Text style={[styles.tabText, activeTab === 'not_found' && styles.activeTabText]}>
+            Not Found ({notFoundCount})
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'completed' && styles.activeTabItem]}
           onPress={() => setActiveTab('completed')}>
-          <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>Completed</Text>
+          <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>Completed ({completedCount})</Text>
         </TouchableOpacity>
       </View>
 
@@ -191,9 +268,21 @@ export default function ShoppingListScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.continueButton} onPress={handleContinueShopping}>
-          <Text style={styles.continueButtonText}>Continue Shopping</Text>
-        </TouchableOpacity>
+        {isBaggingComplete ? (
+          isPostBagging ? (
+            <TouchableOpacity style={styles.continueButton} onPress={handleVerifyPickup}>
+              <Text style={styles.continueButtonText}>Verify Pickup</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.continueButton} onPress={handlePreviewOrder}>
+              <Text style={styles.continueButtonText}>Preview Order</Text>
+            </TouchableOpacity>
+          )
+        ) : (
+          <TouchableOpacity style={styles.continueButton} onPress={handleContinueShopping}>
+            <Text style={styles.continueButtonText}>Continue Shopping</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -207,6 +296,20 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    fontFamily: 'Raleway',
+    color: '#06888C',
+    marginTop: 20,
+  },
+  successMessage: {
+    fontSize: 16,
+    color: '#484C52',
+    textAlign: 'center',
+    marginVertical: 10,
+    paddingHorizontal: 40,
   },
   errorText: {
     color: 'red',
@@ -387,6 +490,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
   },
   itemsLeftContainer: {
     paddingHorizontal: 23,

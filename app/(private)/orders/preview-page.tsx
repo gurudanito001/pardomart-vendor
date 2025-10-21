@@ -1,5 +1,8 @@
-import type { OrderItem } from '@/api/models';
+import { OrderApi } from '@/api';
+import { apiConfig } from '@/api/config';
+import type { OrderItem, OrderStatus } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo } from 'react';
 import {
@@ -14,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { borderRadius, colors, shadows, spacing, typography } from '../../../styles/theme';
 
 type GroupedItems = Record<string, OrderItem[]>;
@@ -27,12 +31,34 @@ const InfoIcon = () => (
 export default function PreviewPage() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const queryClient = useQueryClient();
+  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: ({ newStatus }: { newStatus: OrderStatus }) => {
+      if (!orderId) throw new Error('Order ID is missing');
+      return orderApi.orderIdStatusPatch({ status: newStatus }, orderId);
+    },
+    onSuccess: () => {
+      toast.success('Order status updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
+      router.push({
+        pathname: '/(private)/orders/verify-order-code',
+        params: { orderId },
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to update order status.');
+    },
+  });
+
 
   const groupedItems = useMemo(() => {
     const items = order?.orderItems ?? [];
-    const foundItems = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
+    const relevantItems = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED' || item.status === 'NOT_FOUND');
 
-    return foundItems.reduce((acc, item) => {
+    return relevantItems.reduce((acc, item) => {
       const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
       if (!acc[categoryName]) {
         acc[categoryName] = [];
@@ -50,10 +76,34 @@ export default function PreviewPage() {
     console.log('Open notifications');
   };
 
-  const handleProceedToBagging = () => {
-    console.log('Proceed to bagging');
-    // Navigate to bagging page
+  const handleCompletedBagging = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    if (!order?.deliveryMethod) {
+      toast.error('Delivery method is unknown.');
+      return;
+    }
+
+    let newStatus: OrderStatus;
+    if (order.deliveryMethod === 'customer_pickup') {
+      newStatus = 'ready_for_pickup';
+    } else { // Assumes 'delivery_person' or other delivery types
+      newStatus = 'ready_for_delivery';
+    }
+    updateOrderStatusMutation.mutate({ newStatus });
   };
+
+  const postBaggingStatuses: OrderStatus[] = [
+    'ready_for_pickup',
+    'ready_for_delivery',
+    'accepted_for_delivery',
+    'en_route',
+    'delivered',
+    'picked_up_by_customer',
+  ];
+  const showCompletedBaggingButton = !postBaggingStatuses.includes(order?.orderStatus as OrderStatus);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,7 +150,7 @@ export default function PreviewPage() {
               <View style={styles.tipContent}>
                 <InfoIcon />
                 <Text style={styles.tipText}>
-                  Cross-check all shopping items and make sure the list is complete.
+                  Cross-check all shopping items and make sure the list is complete. Then proceed to bagging. Click on the button below to complete the bagging process.
                 </Text>
               </View>
             </View>
@@ -121,17 +171,25 @@ export default function PreviewPage() {
       )}
 
       {/* Proceed to Bagging Button */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.proceedButton} onPress={handleProceedToBagging}>
-          <Svg width="24" height="24" viewBox="0 0 25 25" fill="none">
-            <Path 
-              d="M7.5 22.5C6.95 22.5 6.47934 22.3043 6.088 21.913C5.69667 21.5217 5.50067 21.0507 5.5 20.5C5.49934 19.9493 5.69534 19.4787 6.088 19.088C6.48067 18.6973 6.95134 18.5013 7.5 18.5C8.04867 18.4987 8.51967 18.6947 8.913 19.088C9.30634 19.4813 9.502 19.952 9.5 20.5C9.498 21.048 9.30234 21.519 8.913 21.913C8.52367 22.307 8.05267 22.5027 7.5 22.5ZM17.5 22.5C16.95 22.5 16.4793 22.3043 16.088 21.913C15.6967 21.5217 15.5007 21.0507 15.5 20.5C15.4993 19.9493 15.6953 19.4787 16.088 19.088C16.4807 18.6973 16.9513 18.5013 17.5 18.5C18.0487 18.4987 18.5197 18.6947 18.913 19.088C19.3063 19.4813 19.502 19.952 19.5 20.5C19.498 21.048 19.3023 21.519 18.913 21.913C18.5237 22.307 18.0527 22.5027 17.5 22.5ZM3.5 4.5H2.5C2.21667 4.5 1.97934 4.404 1.788 4.212C1.59667 4.02 1.50067 3.78267 1.5 3.5C1.49934 3.21733 1.59534 2.98 1.788 2.788C1.98067 2.596 2.218 2.5 2.5 2.5H4.15C4.33334 2.5 4.50834 2.55 4.675 2.65C4.84167 2.75 4.96667 2.89167 5.05 3.075L9.025 11.5H16.025L19.65 5C19.7333 4.83333 19.85 4.70833 20 4.625C20.15 4.54167 20.3167 4.5 20.5 4.5C20.8833 4.5 21.171 4.66267 21.363 4.988C21.555 5.31333 21.559 5.64233 21.375 5.975L17.8 12.45C17.6167 12.7833 17.371 13.0417 17.063 13.225C16.755 13.4083 16.4173 13.5 16.05 13.5H8.6L7.5 15.5H18.5C18.7833 15.5 19.021 15.596 19.213 15.788C19.405 15.98 19.5007 16.2173 19.5 16.5C19.4993 16.7827 19.4033 17.0203 19.212 17.213C19.0207 17.4057 18.7833 17.5013 18.5 17.5H7.5C6.75 17.5 6.179 17.175 5.787 16.525C5.395 15.875 5.38267 15.2167 5.75 14.55L7.1 12.1L3.5 4.5ZM12.675 7.5H9.5C9.21667 7.5 8.97934 7.404 8.788 7.212C8.59667 7.02 8.50067 6.78267 8.5 6.5C8.49934 6.21733 8.59534 5.98 8.788 5.788C8.98067 5.596 9.218 5.5 9.5 5.5H12.675L11.775 4.6C11.575 4.4 11.479 4.16667 11.487 3.9C11.495 3.63333 11.5993 3.4 11.8 3.2C12 3.01667 12.2333 2.92067 12.5 2.912C12.7667 2.90333 13 2.99933 13.2 3.2L15.8 5.8C16 6 16.1 6.23333 16.1 6.5C16.1 6.76667 16 7 15.8 7.2L13.2 9.8C13.0167 9.98333 12.7877 10.0793 12.513 10.088C12.2383 10.0967 12.0007 10.0007 11.8 9.8C11.6167 9.61667 11.525 9.38333 11.525 9.1C11.525 8.81667 11.6167 8.58333 11.8 8.4L12.675 7.5Z" 
-              fill="white"
-            />
-          </Svg>
-          <Text style={styles.proceedButtonText}>Proceed to Bagging</Text>
-        </TouchableOpacity>
-      </View>
+      {showCompletedBaggingButton && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.proceedButton, updateOrderStatusMutation.isPending && styles.disabledButton]}
+            onPress={handleCompletedBagging}
+            disabled={updateOrderStatusMutation.isPending}
+          >
+            <Svg width="24" height="24" viewBox="0 0 25 25" fill="none">
+              <Path
+                d="M7.5 22.5C6.95 22.5 6.47934 22.3043 6.088 21.913C5.69667 21.5217 5.50067 21.0507 5.5 20.5C5.49934 19.9493 5.69534 19.4787 6.088 19.088C6.48067 18.6973 6.95134 18.5013 7.5 18.5C8.04867 18.4987 8.51967 18.6947 8.913 19.088C9.30634 19.4813 9.502 19.952 9.5 20.5C9.498 21.048 9.30234 21.519 8.913 21.913C8.52367 22.307 8.05267 22.5027 7.5 22.5ZM17.5 22.5C16.95 22.5 16.4793 22.3043 16.088 21.913C15.6967 21.5217 15.5007 21.0507 15.5 20.5C15.4993 19.9493 15.6953 19.4787 16.088 19.088C16.4807 18.6973 16.9513 18.5013 17.5 18.5C18.0487 18.4987 18.5197 18.6947 18.913 19.088C19.3063 19.4813 19.502 19.952 19.5 20.5C19.498 21.048 19.3023 21.519 18.913 21.913C18.5237 22.307 18.0527 22.5027 17.5 22.5ZM3.5 4.5H2.5C2.21667 4.5 1.97934 4.404 1.788 4.212C1.59667 4.02 1.50067 3.78267 1.5 3.5C1.49934 3.21733 1.59534 2.98 1.788 2.788C1.98067 2.596 2.218 2.5 2.5 2.5H4.15C4.33334 2.5 4.50834 2.55 4.675 2.65C4.84167 2.75 4.96667 2.89167 5.05 3.075L9.025 11.5H16.025L19.65 5C19.7333 4.83333 19.85 4.70833 20 4.625C20.15 4.54167 20.3167 4.5 20.5 4.5C20.8833 4.5 21.171 4.66267 21.363 4.988C21.555 5.31333 21.559 5.64233 21.375 5.975L17.8 12.45C17.6167 12.7833 17.371 13.0417 17.063 13.225C16.755 13.4083 16.4173 13.5 16.05 13.5H8.6L7.5 15.5H18.5C18.7833 15.5 19.021 15.596 19.213 15.788C19.405 15.98 19.5007 16.2173 19.5 16.5C19.4993 16.7827 19.4033 17.0203 19.212 17.213C19.0207 17.4057 18.7833 17.5013 18.5 17.5H7.5C6.75 17.5 6.179 17.175 5.787 16.525C5.395 15.875 5.38267 15.2167 5.75 14.55L7.1 12.1L3.5 4.5ZM12.675 7.5H9.5C9.21667 7.5 8.97934 7.404 8.788 7.212C8.59667 7.02 8.50067 6.78267 8.5 6.5C8.49934 6.21733 8.59534 5.98 8.788 5.788C8.98067 5.596 9.218 5.5 9.5 5.5H12.675L11.775 4.6C11.575 4.4 11.479 4.16667 11.487 3.9C11.495 3.63333 11.5993 3.4 11.8 3.2C12 3.01667 12.2333 2.92067 12.5 2.912C12.7667 2.90333 13 2.99933 13.2 3.2L15.8 5.8C16 6 16.1 6.23333 16.1 6.5C16.1 6.76667 16 7 15.8 7.2L13.2 9.8C13.0167 9.98333 12.7877 10.0793 12.513 10.088C12.2383 10.0967 12.0007 10.0007 11.8 9.8C11.6167 9.61667 11.525 9.38333 11.525 9.1C11.525 8.81667 11.6167 8.58333 11.8 8.4L12.675 7.5Z"
+                fill="white"
+              />
+            </Svg>
+            <Text style={styles.proceedButtonText}>
+              {updateOrderStatusMutation.isPending ? 'Processing...' : 'Completed Bagging'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -150,21 +208,39 @@ const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
         
         <View style={styles.itemDetails}>
           <View style={styles.itemHeader}>
-            <View style={styles.confirmedBadge}>
-            <Svg width="12" height="12" viewBox="0 0 13 12" fill="none">
-              <Path 
-                  fillRule="evenodd" 
-                  clipRule="evenodd" 
-                  d="M6.01626 12C6.80633 12 7.58866 11.8448 8.31858 11.5433C9.04851 11.2417 9.71174 10.7998 10.2704 10.2426C10.8291 9.68549 11.2722 9.02405 11.5746 8.2961C11.8769 7.56815 12.0325 6.78793 12.0325 6C12.0325 5.21207 11.8769 4.43185 11.5746 3.7039C11.2722 2.97595 10.8291 2.31451 10.2704 1.75736C9.71174 1.20021 9.04851 0.758251 8.31858 0.456723C7.58866 0.155195 6.80633 -1.17411e-08 6.01626 0C4.42065 2.37122e-08 2.89039 0.632141 1.76212 1.75736C0.633854 2.88258 0 4.4087 0 6C0 7.5913 0.633854 9.11742 1.76212 10.2426C2.89039 11.3679 4.42065 12 6.01626 12ZM5.86117 8.42667L9.20354 4.42667L8.17677 3.57333L5.30233 7.01267L3.81498 5.52867L2.86976 6.47133L4.87518 8.47133L5.39257 8.98733L5.86117 8.42667Z" 
-                  fill="#01891C"
-                />
-            </Svg>
-              <Text style={styles.confirmedText}>Confirmed</Text>
-            </View>
-            
-            <Text style={styles.foundText}>
-              {item.quantityFound ?? item.quantity} of {item.quantity} found
-            </Text>
+            {item.status === 'NOT_FOUND' ? (
+              <>
+                <View style={styles.notFoundBadge}>
+                  <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <Path 
+                      d="M6 0C2.68629 0 0 2.68629 0 6C0 9.31371 2.68629 12 6 12C9.31371 12 12 9.31371 12 6C12 2.68629 9.31371 0 6 0ZM8.48528 7.07107L7.07107 8.48528L6 7.41421L4.92893 8.48528L3.51472 7.07107L4.58579 6L3.51472 4.92893L4.92893 3.51472L6 4.58579L7.07107 3.51472L8.48528 4.92893L7.41421 6L8.48528 7.07107Z"
+                      fill="#C70000"
+                    />
+                  </Svg>
+                  <Text style={styles.notFoundText}>Not Found</Text>
+                </View>
+                <Text style={styles.foundText}>
+                  0 of {item.quantity} found
+                </Text>
+                </>
+            ) : (
+              <>
+                <View style={styles.confirmedBadge}>
+                  <Svg width="12" height="12" viewBox="0 0 13 12" fill="none">
+                    <Path 
+                      fillRule="evenodd" 
+                      clipRule="evenodd" 
+                      d="M6.01626 12C6.80633 12 7.58866 11.8448 8.31858 11.5433C9.04851 11.2417 9.71174 10.7998 10.2704 10.2426C10.8291 9.68549 11.2722 9.02405 11.5746 8.2961C11.8769 7.56815 12.0325 6.78793 12.0325 6C12.0325 5.21207 11.8769 4.43185 11.5746 3.7039C11.2722 2.97595 10.8291 2.31451 10.2704 1.75736C9.71174 1.20021 9.04851 0.758251 8.31858 0.456723C7.58866 0.155195 6.80633 -1.17411e-08 6.01626 0C4.42065 2.37122e-08 2.89039 0.632141 1.76212 1.75736C0.633854 2.88258 0 4.4087 0 6C0 7.5913 0.633854 9.11742 1.76212 10.2426C2.89039 11.3679 4.42065 12 6.01626 12ZM5.86117 8.42667L9.20354 4.42667L8.17677 3.57333L5.30233 7.01267L3.81498 5.52867L2.86976 6.47133L4.87518 8.47133L5.39257 8.98733L5.86117 8.42667Z" 
+                      fill="#01891C"
+                    />
+                  </Svg>
+                  <Text style={styles.confirmedText}>Confirmed</Text>
+                </View>
+                <Text style={styles.foundText}>
+                  {item.quantityFound ?? item.quantity} of {item.quantity} found
+                </Text>
+              </>
+            )}
           </View>
           
           <Text style={styles.itemName} numberOfLines={2}>{item.vendorProduct?.name}</Text>
@@ -257,7 +333,7 @@ const styles = StyleSheet.create({
   tipContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 5,
   },
   tipText: {
     flex: 1,
@@ -317,6 +393,19 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.textPrimary,
     lineHeight: 16,
+  },
+  notFoundBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  notFoundText: {
+    fontSize: 12,
+    fontFamily: typography.families.secondary,
+    fontWeight: typography.weights.bold,
+    color: '#C70000', // Red color for not found
+    lineHeight: 16,
+    textTransform: 'uppercase',
   },
   foundText: {
     fontSize: 12,
@@ -394,5 +483,8 @@ const styles = StyleSheet.create({
     color: colors.background,
     lineHeight: 25,
     textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#A9A9A9',
   },
 });

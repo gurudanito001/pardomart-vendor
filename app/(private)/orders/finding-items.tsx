@@ -4,15 +4,15 @@ import { Camera, CameraView } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Rect, Svg } from 'react-native-svg';
@@ -70,8 +70,9 @@ export default function FindingItemsScreen() {
 
   const pendingOrderItems = useMemo(() => {
     const items = order?.orderItems ?? [];
-    return items.filter(item => item.status !== 'FOUND' && item.status !== 'REPLACED');
+    return items.filter(item => item.status !== 'FOUND' && item.status !== 'REPLACED' && item.status !== 'NOT_FOUND');
   }, [order]);
+
   const currentItem = useMemo(() => {
     if (!pendingOrderItems || pendingOrderItems.length === 0) return null;
     return pendingOrderItems[currentItemIndex];
@@ -92,10 +93,6 @@ export default function FindingItemsScreen() {
     // Pre-fill the found quantity with the required quantity when the input becomes visible
     setFoundQuantity(currentItem?.quantity?.toString() ?? '1');
   }, [showQuantityInput, currentItem]);
-
-  useEffect(() => {
-    console.log('Current order item:', order?.orderItems?.[currentItemIndex]);
-  }, [currentItemIndex]);
 
   const handleGoBack = () => {
     router.back();
@@ -137,7 +134,6 @@ export default function FindingItemsScreen() {
     updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
       onSuccess: () => {
         toast.info(`"${currentItem.vendorProduct?.name}" marked as not found.`);
-        setCurrentItemIndex(prevIndex => prevIndex + 1);
       },
       onError: () => toast.error('Failed to update item status.')
     });
@@ -196,7 +192,6 @@ export default function FindingItemsScreen() {
       updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
         onSuccess: () => {
           toast.success(`Item substituted successfully.`);
-          setCurrentItemIndex(prevIndex => prevIndex + 1);
           setIsSubstituting(false);
         },
         onError: (err) => toast.error(`Substitution failed: ${err.message}`),
@@ -236,9 +231,7 @@ export default function FindingItemsScreen() {
         setIsSubstituting(false); // Exit substitution mode
         if (currentItemIndex >= pendingOrderItems.length - 1) {
           toast.success('All items have been found!');
-        }
-        setCurrentItemIndex(prevIndex => prevIndex + 1);
-      }
+        }      }
     });
   };
 
@@ -426,9 +419,16 @@ export default function FindingItemsScreen() {
               </TouchableOpacity>
             </>
           ) : allItemsFound ? (
+            <>
             <TouchableOpacity style={styles.scanButton} onPress={handleFinishShopping}>
               <Text style={styles.scanButtonText}>Preview order</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.scanButton} onPress={()=>{}}>
+              <Text style={styles.scanButtonText}>Verify Pickup</Text>
+            </TouchableOpacity>
+            </>
+            
           ) : (
             null // Hide buttons while confirming quantity
           )}

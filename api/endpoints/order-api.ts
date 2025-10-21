@@ -44,6 +44,8 @@ import type { MessageWithRelations } from '../models';
 // @ts-ignore
 import type { Order } from '../models';
 // @ts-ignore
+import type { OrderIdVerifyPickupPostRequest } from '../models';
+// @ts-ignore
 import type { OrderItemWithRelations } from '../models';
 // @ts-ignore
 import type { OrderStatus } from '../models';
@@ -394,6 +396,50 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(updateOrderStatusPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows a vendor or their staff to verify an order for pickup by providing a 6-digit OTP. Upon successful verification, the order status is automatically transitioned. - If `deliveryMethod` is `customer_pickup`, status changes from `ready_for_pickup` to `picked_up_by_customer`. - If `deliveryMethod` is `delivery_person`, status changes from `ready_for_delivery` to `en_route`. 
+         * @summary Verify order pickup with an OTP
+         * @param {OrderIdVerifyPickupPostRequest} orderIdVerifyPickupPostRequest 
+         * @param {string} id The ID of the order to verify.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderIdVerifyPickupPost: async (orderIdVerifyPickupPostRequest: OrderIdVerifyPickupPostRequest, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderIdVerifyPickupPostRequest' is not null or undefined
+            assertParamExists('orderIdVerifyPickupPost', 'orderIdVerifyPickupPostRequest', orderIdVerifyPickupPostRequest)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('orderIdVerifyPickupPost', 'id', id)
+            const localVarPath = `/order/{id}/verify-pickup`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(orderIdVerifyPickupPostRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1015,6 +1061,20 @@ export const OrderApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Allows a vendor or their staff to verify an order for pickup by providing a 6-digit OTP. Upon successful verification, the order status is automatically transitioned. - If `deliveryMethod` is `customer_pickup`, status changes from `ready_for_pickup` to `picked_up_by_customer`. - If `deliveryMethod` is `delivery_person`, status changes from `ready_for_delivery` to `en_route`. 
+         * @summary Verify order pickup with an OTP
+         * @param {OrderIdVerifyPickupPostRequest} orderIdVerifyPickupPostRequest 
+         * @param {string} id The ID of the order to verify.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest: OrderIdVerifyPickupPostRequest, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderIdVerifyPickupPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Accept a pending order
          * @param {string} orderId The ID of the order to accept.
@@ -1271,6 +1331,17 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.orderIdStatusPatch(updateOrderStatusPayload, id, options).then((request) => request(axios, basePath));
         },
         /**
+         * Allows a vendor or their staff to verify an order for pickup by providing a 6-digit OTP. Upon successful verification, the order status is automatically transitioned. - If `deliveryMethod` is `customer_pickup`, status changes from `ready_for_pickup` to `picked_up_by_customer`. - If `deliveryMethod` is `delivery_person`, status changes from `ready_for_delivery` to `en_route`. 
+         * @summary Verify order pickup with an OTP
+         * @param {OrderIdVerifyPickupPostRequest} orderIdVerifyPickupPostRequest 
+         * @param {string} id The ID of the order to verify.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest: OrderIdVerifyPickupPostRequest, id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest, id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Accept a pending order
          * @param {string} orderId The ID of the order to accept.
@@ -1494,6 +1565,18 @@ export class OrderApi extends BaseAPI {
      */
     public orderIdStatusPatch(updateOrderStatusPayload: UpdateOrderStatusPayload, id: string, options?: RawAxiosRequestConfig) {
         return OrderApiFp(this.configuration).orderIdStatusPatch(updateOrderStatusPayload, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows a vendor or their staff to verify an order for pickup by providing a 6-digit OTP. Upon successful verification, the order status is automatically transitioned. - If `deliveryMethod` is `customer_pickup`, status changes from `ready_for_pickup` to `picked_up_by_customer`. - If `deliveryMethod` is `delivery_person`, status changes from `ready_for_delivery` to `en_route`. 
+     * @summary Verify order pickup with an OTP
+     * @param {OrderIdVerifyPickupPostRequest} orderIdVerifyPickupPostRequest 
+     * @param {string} id The ID of the order to verify.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest: OrderIdVerifyPickupPostRequest, id: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest, id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

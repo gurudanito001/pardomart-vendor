@@ -1,4 +1,3 @@
-import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
@@ -109,6 +108,8 @@ type ActionKey =
   | "store-documents"
   | "store-products"
   | "store-staff"
+  | "store-orders"
+  | "store-transactions"
   | "store-customers"
   | "store-settings";
 
@@ -205,6 +206,12 @@ export default function SettingUpStoreScreen() {
       case "store-customers":
         router.push(`/(private)/store/store-customers?storeId=${storeId}` as any);
         break;
+      case "store-orders":
+        router.push(`/(private)/orders?storeId=${storeId}` as any);
+        break;
+      case "store-transactions":
+        router.push(`/(private)/store/store-transactions?storeId=${storeId}` as any);
+        break;
       default:
         break;
     }
@@ -243,10 +250,53 @@ export default function SettingUpStoreScreen() {
         title: "Store Products",
         priority: 3,
         icon: (
-          <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+          <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <Path
-              d="M18.3333 5.5H3.66667V4.58333C3.66667 4.08667 4.08667 3.66667 4.58333 3.66667H17.4167C17.9133 3.66667 18.3333 4.08667 18.3333 4.58333V5.5ZM19.25 7.33333L18.3333 17.4167C18.3333 17.9133 17.9133 18.3333 17.4167 18.3333H4.58333C4.08667 18.3333 3.66667 17.9133 3.66667 17.4167L2.75 7.33333H19.25ZM11 10.0833C11 9.58667 10.58 9.16667 10.0833 9.16667C9.58667 9.16667 9.16667 9.58667 9.16667 10.0833V14.6667C9.16667 15.1633 9.58667 15.5833 10.0833 15.5833C10.58 15.5833 11 15.1633 11 14.6667V10.0833ZM14.6667 10.0833C14.6667 9.58667 14.2467 9.16667 13.75 9.16667C13.2533 9.16667 12.8333 9.58667 12.8333 10.0833V14.6667C12.8333 15.1633 13.2533 15.5833 13.75 15.5833C14.2467 15.5833 14.6667 15.1633 14.6667 14.6667V10.0833ZM7.33333 10.0833C7.33333 9.58667 6.91333 9.16667 6.41667 9.16667C5.92 9.16667 5.5 9.58667 5.5 10.0833V14.6667C5.5 15.1633 5.92 15.5833 6.41667 15.5833C6.91333 15.5833 7.33333 15.1633 7.33333 14.6667V10.0833Z"
+              d="M20 6L18.59 4.59L13.82 9.36L10.64 6.18L4 12.82L5.41 14.23L10.64 9L13.82 12.18L20 6Z"
               fill="black"
+            />
+            <Path d="M4 20H20V4H4V20ZM6 6H18V18H6V6Z" fill="black" />
+          </Svg>
+        ),
+      },
+      {
+        key: "store-orders",
+        title: "Store Orders",
+        priority: 4,
+        icon: (
+          <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M3 7.5H21L20 21H4L3 7.5Z"
+              stroke="black"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M8 9.5V3H16V9.5"
+              stroke="black"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        ),
+      },
+      {
+        key: "store-transactions",
+        title: "Store Transactions",
+        priority: 6,
+        icon: (
+          <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M17 4H7C5.89543 4 5 4.89543 5 6V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V6C19 4.89543 18.1046 4 17 4Z"
+              stroke="black"
+              strokeWidth="2"
+            />
+            <Path
+              d="M9 9H15M9 13H15M9 17H13"
+              stroke="black"
+              strokeWidth="2"
+              strokeLinecap="round"
             />
           </Svg>
         ),
@@ -255,7 +305,14 @@ export default function SettingUpStoreScreen() {
         key: "store-staff",
         title: "Store Staff",
         priority: 4,
-        icon: <MaterialIcons name="shopping-cart" size={20} color="black" />,
+        icon: (
+          <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M16 11C17.66 11 19 9.66 19 8C19 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 11 9.66 11 8C11 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z"
+              fill="black"
+            />
+          </Svg>
+        ),
       },
       {
         key: "store-customers",
@@ -266,7 +323,7 @@ export default function SettingUpStoreScreen() {
       {
         key: "store-settings",
         title: "Store Settings",
-        priority: 6,
+        priority: 7,
         icon: <SettingsSVG width={22} height={22} color="black" />,
       },
     ];

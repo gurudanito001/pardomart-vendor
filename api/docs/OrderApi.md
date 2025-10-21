@@ -12,6 +12,7 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**orderIdGet**](#orderidget) | **GET** /order/{id} | Get an order by its ID|
 |[**orderIdPatch**](#orderidpatch) | **PATCH** /order/{id} | Update an order|
 |[**orderIdStatusPatch**](#orderidstatuspatch) | **PATCH** /order/{id}/status | Update the status of an order|
+|[**orderIdVerifyPickupPost**](#orderidverifypickuppost) | **POST** /order/{id}/verify-pickup | Verify order pickup with an OTP|
 |[**orderOrderIdAcceptPatch**](#orderorderidacceptpatch) | **PATCH** /order/{orderId}/accept | Accept a pending order|
 |[**orderOrderIdDeclinePatch**](#orderorderiddeclinepatch) | **PATCH** /order/{orderId}/decline | Decline a pending order|
 |[**orderOrderIdItemsItemIdRespondToReplacementPatch**](#orderorderiditemsitemidrespondtoreplacementpatch) | **PATCH** /order/{orderId}/items/{itemId}/respond-to-replacement | Respond to a suggested item replacement|
@@ -460,6 +461,64 @@ const { status, data } = await apiInstance.orderIdStatusPatch(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | The updated order. |  -  |
+|**404** | Order not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **orderIdVerifyPickupPost**
+> orderIdVerifyPickupPost(orderIdVerifyPickupPostRequest, )
+
+Allows a vendor or their staff to verify an order for pickup by providing a 6-digit OTP. Upon successful verification, the order status is automatically transitioned. - If `deliveryMethod` is `customer_pickup`, status changes from `ready_for_pickup` to `picked_up_by_customer`. - If `deliveryMethod` is `delivery_person`, status changes from `ready_for_delivery` to `en_route`. 
+
+### Example
+
+```typescript
+import {
+    OrderApi,
+    Configuration,
+    OrderIdVerifyPickupPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new OrderApi(configuration);
+
+let orderIdVerifyPickupPostRequest: OrderIdVerifyPickupPostRequest; //
+let id: string; //The ID of the order to verify. (default to undefined)
+
+const { status, data } = await apiInstance.orderIdVerifyPickupPost(
+    orderIdVerifyPickupPostRequest,
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **orderIdVerifyPickupPostRequest** | **OrderIdVerifyPickupPostRequest**|  | |
+| **id** | [**string**] | The ID of the order to verify. | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The updated order after successful verification. |  -  |
+|**400** | Invalid OTP or order not in a verifiable state. |  -  |
+|**403** | User not authorized to perform this action. |  -  |
 |**404** | Order not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

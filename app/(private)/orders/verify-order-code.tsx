@@ -1,16 +1,23 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { OrderApi } from '@/api';
+import { apiConfig } from '@/api/config';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ellipse, Path, Rect, Svg } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
 import { Button } from '../../../components/ui/Button';
 
@@ -21,20 +28,41 @@ interface OTPInputProps {
 }
 
 const OrderOTPInput: React.FC<OTPInputProps> = ({ length, value, onChange }) => {
-  const filledValues = ['2', '3', '5', '']; // From the design
+  const inputs = useRef<(TextInput | null)[]>([]);
+
+  const handleChange = (text: string, index: number) => {
+    const newOtp = [...value];
+    newOtp[index] = text;
+    onChange(newOtp);
+
+    if (text && index < length - 1) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && !value[index] && index > 0) {
+      inputs.current[index - 1]?.focus();
+    }
+  };
 
   return (
     <View style={styles.otpContainer}>
       {Array.from({ length }).map((_, index) => (
-        <View
+        <TextInput
           key={index}
+          ref={(el) => { inputs.current[index] = el; }}
           style={[
             styles.otpInput,
-            filledValues[index] ? styles.otpInputFilled : styles.otpInputEmpty,
+            value[index] ? styles.otpInputFilled : styles.otpInputEmpty,
           ]}
-        >
-          <Text style={styles.otpText}>{filledValues[index]}</Text>
-        </View>
+          keyboardType="number-pad"
+          maxLength={1}
+          onChangeText={(text) => handleChange(text, index)}
+          onKeyPress={(e) => handleKeyPress(e, index)}
+          value={value[index]}
+          selectionColor="#06888C"
+        />
       ))}
     </View>
   );
@@ -123,17 +151,77 @@ const ProgressIndicator = () => (
 );
 
 export default function VerifyOrderCode() {
-  const [otpValues, setOtpValues] = useState(['', '', '', '']);
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const [otpValues, setOtpValues] = useState<string[]>(Array(6).fill(''));
+  const queryClient = useQueryClient();
+  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+
+  useEffect(() => {
+    console.log('Order data:', order);
+  }, [order]);
+
+
+  const verifyCodeMutation = useMutation({
+    mutationFn: (code: string) => {
+      if (!orderId) throw new Error('Order ID is missing');
+      return orderApi.orderIdVerifyPickupPost({ otp: code }, orderId);
+    },
+    onSuccess: () => {
+      toast.success('Order verified successfully!');
+      queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
+      router.push({
+        pathname: '/(private)/orders/order-verified',
+        params: { orderId },
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || 'Verification failed. Please check the code and try again.');
+    },
+  });
+
+  const itemsCount = useMemo(() => {
+    return order?.orderItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) ?? 0;
+  }, [order]);
 
   const handleBackPress = () => {
     router.back();
   };
 
   const handleVerifyOrder = () => {
-    // Handle order verification logic here
-    // After successful verification, navigate to order verified page
-    router.push('/(private)/orders/order-verified');
+    const otpCode = otpValues.join('');
+    console.log('Verifying OTP Code:', otpCode);
+    if (otpCode.length !== 6) {
+      toast.error('Please enter the complete 4-digit code.');
+      return;
+    }
+    verifyCodeMutation.mutate(otpCode);
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#06888C" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.errorText}>Error: {error?.message || 'Failed to load order details.'}</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.errorText}>Order not found.</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,17 +250,17 @@ export default function VerifyOrderCode() {
           <View style={styles.orderSummary}>
             <View style={styles.totalRow}>
               <Text style={styles.estimatedTotalLabel}>Estimated Total</Text>
-              <Text style={styles.totalAmount}>$120.60</Text>
+              <Text style={styles.totalAmount}>${order.totalAmount?.toFixed(2) ?? '0.00'}</Text>
             </View>
             
             <View style={styles.costBreakdown}>
               <View style={styles.costRow}>
                 <Text style={styles.costLabel}>Item Cost</Text>
-                <Text style={styles.costAmount}>$100.00</Text>
+                <Text style={styles.costAmount}>${order.subtotal?.toFixed(2) ?? '0.00'}</Text>
               </View>
               <View style={styles.costRow}>
                 <Text style={styles.costLabel}>Shopping Fee</Text>
-                <Text style={styles.costAmount}>$20.32</Text>
+                <Text style={styles.costAmount}>${order.shoppingFee?.toFixed(2) ?? '0.00'}</Text>
               </View>
             </View>
           </View>
@@ -181,32 +269,36 @@ export default function VerifyOrderCode() {
 
           {/* Progress and Route Info */}
           <View style={styles.routeSection}>
-            <Text style={styles.routeDistance}>4.5 Miles - 20 Items</Text>
+            <Text style={styles.routeDistance}>{order.vendor?.distance?.toFixed(2) ?? 'N/A'} Miles - {itemsCount} Items</Text>
             <View style={styles.progressContainer}>
               <ProgressIndicator />
             </View>
             
             <View style={styles.routeDetails}>
               <View style={styles.fromLocation}>
-                <Text style={styles.locationName}>Mr Damilare Adebanjo</Text>
+                <Text style={styles.locationName}>{order.user?.name ?? 'Customer'}</Text>
                 <View style={styles.timeInfo}>
                   <TimeIcon />
-                  <Text style={styles.timeText}>12:00pm</Text>
+                  <Text style={styles.timeText}>
+                    {order?.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  </Text>
                   <CalendarIcon />
-                  <Text style={styles.timeText}>03/2025</Text>
+                  <Text style={styles.timeText}>
+                    {order?.scheduledDeliveryTime ? new Date(order.scheduledDeliveryTime).toLocaleDateString() : ''}
+                  </Text>
                 </View>
               </View>
               
               <View style={styles.toLocation}>
-                <Text style={styles.locationName}>47 North Union Avenue</Text>
-                <Text style={styles.locationAddress}>Chicago Illiniou, 60612, US</Text>
+                <Text style={styles.locationName}>{order.deliveryAddress?.addressLine1}</Text>
+                <Text style={styles.locationAddress}>{order.deliveryAddress?.city}, {order.deliveryAddress?.state} {order.deliveryAddress?.postalCode}</Text>
               </View>
             </View>
           </View>
 
           {/* Order Code */}
           <View style={styles.orderCodeSection}>
-            <Text style={styles.orderCodeText}>Order code - 987BNTT43</Text>
+            <Text style={styles.orderCodeText}>Order code - {order.orderCode}</Text>
             <TouchableOpacity>
               <CopyIcon />
             </TouchableOpacity>
@@ -224,10 +316,10 @@ export default function VerifyOrderCode() {
           <View style={styles.personCard}>
             <View style={styles.personInfo}>
               <Image
-                source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/c91bce15e2114688cb19d13e673d86c47c9917ca?width=60' }}
+                source={{ uri: order.user?.image || 'https://via.placeholder.com/60' }}
                 style={styles.avatar}
               />
-              <Text style={styles.personName}>Mr Damilare Adebanjo</Text>
+              <Text style={styles.personName}>{order.user?.name ?? 'Customer'}</Text>
             </View>
             <View style={styles.contactActions}>
               <TouchableOpacity>
@@ -246,10 +338,10 @@ export default function VerifyOrderCode() {
           <View style={styles.personCard}>
             <View style={styles.personInfo}>
               <Image
-                source={{ uri: 'https://api.builder.io/api/v1/image/assets/TEMP/08cfd7893574997b1ad5b87c73f1e8643779a8cd?width=60' }}
+                source={{ uri: order.shopper?.image || 'https://via.placeholder.com/60' }}
                 style={styles.avatar}
               />
-              <Text style={styles.personName}>Mr Kelvin Goodswil</Text>
+              <Text style={styles.personName}>{order.shopper?.name ?? 'Not Assigned'}</Text>
             </View>
             <View style={styles.contactActions}>
               <TouchableOpacity>
@@ -270,7 +362,7 @@ export default function VerifyOrderCode() {
           </Text>
           
           <OrderOTPInput 
-            length={4} 
+            length={6} 
             value={otpValues} 
             onChange={setOtpValues} 
           />
@@ -283,6 +375,8 @@ export default function VerifyOrderCode() {
             onPress={handleVerifyOrder}
             variant="primary"
             size="large"
+            loading={verifyCodeMutation.isPending}
+            disabled={verifyCodeMutation.isPending}
             fullWidth
           />
         </View>
@@ -295,6 +389,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
   },
   
   header: {
@@ -577,18 +676,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 20,
+    gap: 10,
   },
   
   otpInput: {
-    width: 49,
-    height: 49,
-    borderRadius: 6.5,
+    width: 44,
+    height: 44,
+    borderRadius: 5,
     borderWidth: 1.6,
+    textAlign: 'center',
+    fontSize: 22,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  
+  },  
   otpInputFilled: {
     borderColor: '#0085FF',
     backgroundColor: '#FFFFFF',

@@ -44,6 +44,7 @@ export interface Order {
       'userId'?: string;
       'vendorId'?: string;
       'totalAmount'?: number;
+      'subtotal'?: number;
       'deliveryFee'?: number | null;
       'serviceFee'?: number | null;
       'shoppingFee'?: number | null;
@@ -55,6 +56,7 @@ export interface Order {
       'shoppingMethod'?: ShoppingMethod;
       'deliveryMethod'?: DeliveryMethod;
       'scheduledShoppingStartTime'?: string | null;
+      'scheduledDeliveryTime'?: string | null;
       'shoppingHandlerId'?: string | null;
       'deliveryPersonId'?: string | null;
       'reasonForDecline'?: string | null;
@@ -67,6 +69,7 @@ export interface Order {
       'shopper'?: User;
       'deliverer'?: User;
 }
+
 
 export const OrderPaymentStatusEnum = {
     Pending: 'pending',

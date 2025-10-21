@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -17,7 +18,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
+import Svg, { Path } from 'react-native-svg';
+import { ArrowBackSVG } from '../../../components/icons';
 
 export default function AddStaffScreen() {
   const params = useLocalSearchParams<{ storeId?: string | string[] }>();
@@ -41,14 +43,27 @@ export default function AddStaffScreen() {
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | undefined>();
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const roleOptions = useMemo(() => [
+    { label: 'Store Admin', value: Role.StoreAdmin },
+    { label: 'Store Shopper', value: Role.StoreShopper },
+  ], []);
+
+  const selectedRoleName = useMemo(() => {
+    return roleOptions.find(r => r.value === selectedRole)?.label ?? 'Select a role';
+  }, [roleOptions, selectedRole]);
 
   const createMutation = useMutation({
     mutationFn: async (payload: StaffPostRequest & { role: Role }) => {
       return staffApi.staffPost(payload as any);
     },
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ['staff', storeIdFromParam] });
-      router.replace({ pathname: '/(private)/home/my-staff', params: { storeId: storeIdFromParam } } as any);
+      await qc.invalidateQueries({ queryKey: ['staff', storeIdFromParam] }); // Invalidate staff for the specific store
+      await qc.invalidateQueries({ queryKey: ['staff'] }); // Invalidate general staff list
+      router.back();
     },
     onError: (e: any) => {
       setError(e?.message ?? 'Failed to add staff');
@@ -56,10 +71,8 @@ export default function AddStaffScreen() {
   });
 
   const handleGoBack = () => router.back();
-  const handleNotifications = () => router.push('/(private)/shared/notifications' as any);
-  
 
-  const canSubmit = name.trim().length > 0 && email.trim().length > 0 && mobileNumber.trim().length > 0 && !!storeIdFromParam;
+  const canSubmit = name.trim().length > 0 && email.trim().length > 0 && mobileNumber.trim().length > 0 && !!storeIdFromParam && !!selectedRole;
 
   const handleCreate = () => {
     setError(null);
@@ -72,7 +85,7 @@ export default function AddStaffScreen() {
       email: email.trim(),
       mobileNumber: mobileNumber.trim(),
       vendorId: storeIdFromParam!,
-      role: Role.StoreShopper,
+      role: selectedRole!,
     } as any;
     createMutation.mutate(payload);
   };
@@ -86,11 +99,7 @@ export default function AddStaffScreen() {
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Staff</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
-            <NotificationSVG width={24} height={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        <View style={{ width: 30 }} />
       </View>
 
       <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
@@ -103,6 +112,18 @@ export default function AddStaffScreen() {
                   {vendor ? vendor.name : vendorLoading ? 'Loading store...' : (storeIdFromParam || 'No store selected')}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Role</Text>
+              <TouchableOpacity style={styles.selectField} onPress={() => setIsModalVisible(true)}>
+                <Text style={styles.selectFieldText}>
+                  {selectedRoleName}
+                </Text>
+                <Svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                  <Path d="M1 1.5L6 6.5L11 1.5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.fieldGroup}>
@@ -126,6 +147,28 @@ export default function AddStaffScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal transparent visible={isModalVisible} animationType="fade" onRequestClose={() => setIsModalVisible(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsModalVisible(false)}>
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select a Role</Text>
+            <ScrollView>
+              {roleOptions.map((opt) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.optionItem, selectedRole === opt.value && styles.selectedOption]}
+                  onPress={() => {
+                    setSelectedRole(opt.value);
+                    setIsModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.optionText, selectedRole === opt.value && styles.selectedOptionText]}>{opt.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -204,6 +247,25 @@ const styles = StyleSheet.create({
     color: '#000',
     lineHeight: 13,
   },
+  selectField: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FFF',
+    height: 50,
+  },
+  selectFieldText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#000',
+    lineHeight: 13,
+  },
   errorText: {
     fontSize: 14,
     fontWeight: '600',
@@ -212,5 +274,46 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxHeight: '60%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#111827',
+    fontFamily: 'Open Sans',
+  },
+  selectedOption: {
+    backgroundColor: '#06888C',
+  },
+  selectedOptionText: {
+    color: '#FFF',
+    fontWeight: '600',
   },
 });

@@ -86,6 +86,7 @@ docs/NotificationType.md
 docs/NotificationsReadAllPatch200Response.md
 docs/Order.md
 docs/OrderApi.md
+docs/OrderIdVerifyPickupPostRequest.md
 docs/OrderItem.md
 docs/OrderItemPayload.md
 docs/OrderItemStatus.md
@@ -274,6 +275,7 @@ models/message.ts
 models/notification-type.ts
 models/notification.ts
 models/notifications-read-all-patch200-response.ts
+models/order-id-verify-pickup-post-request.ts
 models/order-item-payload.ts
 models/order-item-status.ts
 models/order-item-with-relations.ts
