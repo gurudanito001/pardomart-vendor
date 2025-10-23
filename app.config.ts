@@ -47,6 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: 'The app accesses your camera to let you take profile pictures and upload documents.',
       },
     ],
+    "expo-barcode-scanner",
   ],
   experiments: {
     typedRoutes: true,
@@ -54,7 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     env: process.env.NODE_ENV || 'development',
     eas: {
-      projectId: 'your-project-id', // Replace with actual EAS project ID
+      projectId: '81714e2e-35d4-430c-9db0-c6ad48f3280c',
     },
   },
 });

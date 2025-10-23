@@ -37,6 +37,14 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "env": "development",
+      "router": {},
+      "eas": {
+        "projectId": "81714e2e-35d4-430c-9db0-c6ad48f3280c"
+      }
+    },
+    "owner": "danielnwokocha"
   }
 }
