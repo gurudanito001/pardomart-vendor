@@ -47,7 +47,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: 'The app accesses your camera to let you take profile pictures and upload documents.',
       },
     ],
-    "expo-barcode-scanner",
   ],
   experiments: {
     typedRoutes: true,
