@@ -15,8 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Path, Svg } from "react-native-svg";
 import { toast } from "sonner-native";
 import type { Vendor, VendorWithDetails } from "../../../api/models";
+import { Role } from "../../../api/models";
 import { CustomersSVG } from "../../../components/icons";
 import { SettingsSVG } from "../../../components/icons/SettingsSVG";
+import { useAuth } from "../../../context/AppProvider";
 import { useVendor } from "../../../hooks/api/useVendors";
 
 const parseNumericValue = (value: unknown): number | undefined => {
@@ -121,7 +123,10 @@ type ActionDefinition = {
   highlighted?: boolean;
 };
 
-export default function SettingUpStoreScreen() {
+export default function StoreHomepage() {
+  const { state: authState } = useAuth();
+  const userRole = authState.user?.role;
+
   const { getVendorById } = useVendor();
   const params = useLocalSearchParams<{
     storeId?: string | string[];
@@ -218,7 +223,29 @@ export default function SettingUpStoreScreen() {
   };
 
   const actions = React.useMemo<ActionDefinition[]>(() => {
-    const baseActions: ActionDefinition[] = [
+    let availableActions: ActionKey[] = [];
+
+    if (userRole === Role.StoreAdmin) {
+      availableActions = [
+        "store-products",
+        "store-orders",
+        "store-staff",
+        "store-customers",
+        "store-transactions",
+        "store-settings",
+      ];
+    } else if (userRole === Role.StoreShopper) {
+      availableActions = [
+        "store-products",
+        "store-orders",
+      ];
+    } else {
+      // Default for Vendor or other roles (though they shouldn't see this page)
+      // includes all actions for completeness.
+      availableActions = ["store-profile", "store-documents", "store-products", "store-orders", "store-transactions", "store-staff", "store-customers", "store-settings"];
+    }
+
+    const allActions: ActionDefinition[] = [
       {
         key: "store-profile",
         title: "Store Profile",
@@ -328,19 +355,16 @@ export default function SettingUpStoreScreen() {
       },
     ];
 
-    return baseActions
-      .slice()
+    return allActions.filter(action => availableActions.includes(action.key))
       .sort((a, b) => a.priority - b.priority)
-      .map((action) => {
-        if (action.key === "store-products") {
-          return { ...action, highlighted: isStoreProductsIncomplete };
+      .map((action) => { // <-- Added return statement here
+        let highlighted = false;
+        if (action.key === "store-products" && isStoreProductsIncomplete) {
+          highlighted = true;
+        } else if (action.key === "store-documents" && isStoreDocumentsIncomplete) {
+          highlighted = true;
         }
-
-        if (action.key === "store-documents") {
-          return { ...action, highlighted: isStoreDocumentsIncomplete };
-        }
-
-        return { ...action, highlighted: false };
+        return { ...action, highlighted };
       });
   }, [isStoreDocumentsIncomplete, isStoreProductsIncomplete]);
 

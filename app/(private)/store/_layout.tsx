@@ -5,7 +5,7 @@ export default function StoreLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       
-      <Stack.Screen name="add-products" />
+      <Stack.Screen name="add-product" />
       <Stack.Screen name="add-staff" />
       <Stack.Screen name="add-store" />
       <Stack.Screen name="document-verification" />

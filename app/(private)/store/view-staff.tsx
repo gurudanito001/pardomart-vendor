@@ -185,7 +185,7 @@ export default function ViewShopperScreen() {
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>View Shopper</Text>
+        <Text style={styles.headerTitle}>View Staff</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
             <NotificationBell from="/(private)/shared/view-shopper" />
@@ -223,7 +223,7 @@ export default function ViewShopperScreen() {
                 />
                 <View style={styles.shopperDetails}>
                   <View style={styles.shopperNameRow}>
-                    <Text style={styles.shopperName}>{shopper?.name ?? 'Unknown'}</Text>
+                    <Text style={styles.shopperName}>{shopper?.name ?? 'N/A'}</Text>
                     <View style={[styles.statusBadge, shopper?.active ? styles.availableBadge : styles.unavailableBadge]}>
                       <Text style={[styles.statusText, shopper?.active ? styles.availableText : styles.unavailableText]}>
                         {shopper?.active ? 'Active' : 'Disabled'}
@@ -331,13 +331,12 @@ export default function ViewShopperScreen() {
             </View>
 
             <TouchableOpacity
-              style={[
-                styles.toggleStatusButton,
-                shopper?.active ? styles.deactivateButton : styles.activateButton,
-              ]}
+              style={[styles.toggleStatusButton, shopper?.active ? styles.deactivateButton : styles.activateButton]}
               onPress={handleToggleStaffStatus}
             >
-              <Text style={styles.toggleStatusButtonText}>{shopper?.active ? 'Deactivate Staff' : 'Activate Staff'}</Text>
+              <Text style={styles.toggleStatusButtonText}>
+                {shopper?.active ? 'Deactivate Staff' : 'Activate Staff'}
+              </Text>
             </TouchableOpacity>
           </>
         )}
@@ -378,8 +377,7 @@ export default function ViewShopperScreen() {
                   style={[styles.optionItem, selectedRole === opt.value && styles.selectedOption]}
                   onPress={() => {
                     setSelectedRole(opt.value);
-                    // The save button will appear, no need to close modal immediately
-                    // setIsRoleSelectModalVisible(false);
+                    setIsRoleSelectModalVisible(false);
                   }}
                 >
                   <Text style={[styles.optionText, selectedRole === opt.value && styles.selectedOptionText]}>{opt.label}</Text>
@@ -392,14 +390,14 @@ export default function ViewShopperScreen() {
 
       {/* Confirmation Modal */}
       <Modal transparent visible={confirmToggleStatusOpen} animationType="fade" onRequestClose={() => setConfirmToggleStatusOpen(false)}>
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setConfirmToggleStatusOpen(false)}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{shopper?.active ? 'Deactivate Staff?' : 'Activate Staff?'}</Text>
             <Text style={styles.modalMessage}>
               {shopper?.active ? 'This will revoke their access. Are you sure?' : 'This will restore their access. Are you sure?'}
             </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#E5E7EB' }]} onPress={() => setConfirmToggleStatusOpen(false)}>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#E5E7EB' }]} onPress={() => setConfirmToggleStatusOpen(false)} disabled={updateMutation.isPending}>
                 <Text style={[styles.modalButtonText, { color: '#111827' }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -409,7 +407,7 @@ export default function ViewShopperScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
@@ -494,7 +492,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     fontFamily: 'Open Sans',
-    color: '#000',
+    color: '#000', // Adjusted for consistency
     lineHeight: 16,
   },
   statusBadge: {
@@ -609,7 +607,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 9,
     elevation: 2,
-  },
+  }, // End of editButton
   deactivateButton: {
     backgroundColor: '#C70000',
   },
@@ -670,6 +668,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     backgroundColor: '#FFF',
+    alignItems: 'center',
     padding: 16,
   },
   storeSelectModalContent: {
@@ -683,11 +682,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   modalMessage: {
     fontSize: 13,
     color: '#374151',
+    textAlign: 'center',
     marginBottom: 16,
   },
   modalActions: {

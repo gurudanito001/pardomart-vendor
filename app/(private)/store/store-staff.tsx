@@ -1,6 +1,8 @@
-import { User } from '@/api/models';
+import { Role, User } from '@/api/models';
 import { MyShoppersSVG } from '@/components/icons/MyShoppersSVG';
 import { useStaff } from '@/hooks/api/useStaff'; // Assuming this hook exists
+import { useVendor } from '@/hooks/api/useVendors';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React from 'react';
@@ -17,14 +19,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 export default function MyShoppersScreen() {
-  const { storeId } = useLocalSearchParams<{ storeId?: string }>();
+  const params = useLocalSearchParams<{ storeId?: string | string[] }>();
+  const storeId = Array.isArray(params.storeId) ? params.storeId[0] : params.storeId;
+
+  const { getVendorById } = useVendor();
+  const { data: currentStore, isLoading: isLoadingCurrentStore } = useQuery({
+    queryKey: ['vendor', storeId],
+    queryFn: () => getVendorById(storeId!),
+    enabled: !!storeId,
+  });
 
   // Fetch shoppers based on the selected store
-  const {
-    data: shoppers,
-    isLoading: isLoadingShoppers,
-    refetch,
-  } = useStaff(storeId);
+  const { data: shoppers, isLoading: isLoadingShoppers, refetch } = useStaff(storeId);
 
   const handleGoBack = () => {
     router.back();
@@ -39,15 +45,29 @@ export default function MyShoppersScreen() {
     });
   };
 
+  const roleOptions = React.useMemo(() => [
+    { label: 'Store Admin', value: Role.StoreAdmin },
+    { label: 'Store Shopper', value: Role.StoreShopper },
+  ], []);
+
+  const getRoleName = (role?: Role) => {
+    if (!role) return 'No Role';
+    return roleOptions.find(r => r.value === role)?.label ?? 'Unknown Role';
+  };
+
+  const getStoreName = (vendorId?: string | null) => {
+    if (!vendorId || !currentStore) return 'No Store Assigned';
+    return currentStore.name ?? 'No Store Assigned';
+  };
+
   const displayedShoppers: User[] = Array.isArray(shoppers) ? shoppers : [];
-  const totalIsLoading = isLoadingShoppers;
+  const totalIsLoading = isLoadingShoppers || isLoadingCurrentStore;
 
   const ShopperCard = ({ shopper }: { shopper: User }) => (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => handleViewDetails(shopper.id)}>
       <View style={styles.cardContent}>
         <View style={styles.cardLeft}>
           <Image
-             
             source={
               shopper.image
                 ? { uri: shopper.image }
@@ -56,21 +76,19 @@ export default function MyShoppersScreen() {
             style={styles.avatar}
           />
           <View style={styles.info}>
-            <Text style={styles.name}>{shopper.name}</Text>
-            <Text style={styles.detailText}>{shopper.email}</Text>
-            <Text style={styles.detailText}>{shopper.mobileNumber}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{shopper.name}</Text>
+            </View>
+            <Text style={styles.detailText}>{getStoreName(shopper?.vendorId)}</Text>
           </View>
         </View>
         <View style={styles.cardRight}>
-          <TouchableOpacity
-            style={styles.viewDetailsButton}
-            onPress={() => handleViewDetails(shopper.id)}
-          >
-            <Text style={styles.viewDetailsText}>View</Text>
-          </TouchableOpacity>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{getRoleName(shopper.role as Role)}</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -90,7 +108,7 @@ export default function MyShoppersScreen() {
                   />
                 </Svg>
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Store Staff</Text>
+              <Text style={styles.headerTitle}>{currentStore?.name ? `${currentStore.name} Staff` : 'Store Staff'}</Text>
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity
@@ -150,6 +168,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     gap: 20,
   },
+  // Header styles (already present, ensuring consistency)
   headerContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -168,6 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // Header title (already present, ensuring consistency)
   headerTitle: {
     color: '#FFF',
     fontSize: 18,
@@ -175,6 +195,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
   },
   headerRight: {
+    // Added for consistency with my-staff.tsx
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -183,52 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-  overlayContainer: {
-    paddingHorizontal: 20,
-  },
-  dropdownWrapper: {
-    position: 'relative',
-    zIndex: 10,
-  },
-  dropdownHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  dropdownHeaderText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: 'Raleway',
-  },
-  dropdownList: {
-    position: 'absolute',
-    top: '110%',
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  dropdownItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    fontFamily: 'Open Sans',
-  },
+  // Dropdown styles removed as they are not needed for store-staff.tsx
   contentWrapper: {
     flex: 1,
     paddingHorizontal: 22,
@@ -268,6 +244,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingBottom: 20,
   },
+  // Card styles (copied from my-staff.tsx)
   card: {
     padding: 16,
     borderRadius: 16,
@@ -295,6 +272,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  nameRow: {
+    // Added for consistency
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   name: {
     fontSize: 14,
     fontWeight: '700',
@@ -321,5 +304,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  roleBadge: {
+    backgroundColor: 'rgba(6, 136, 140, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  roleText: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#06888C',
   },
 });

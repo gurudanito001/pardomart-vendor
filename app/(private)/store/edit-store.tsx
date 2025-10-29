@@ -5,7 +5,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useVendor } from '@/hooks/api/useVendors';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { GooglePlacesSuggestion } from '@/utils/googleMapsLocation';
-import toast from '@/utils/toast';
+import { toast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -29,7 +29,7 @@ export default function EditStoreScreen() {
   const { getVendorById, updateVendor } = useVendor();
 
   // Data fetching
-  const { data: vendor, isLoading: isLoadingVendor, isError } = useQuery({
+  const { data: vendor, isLoading: isLoadingVendor } = useQuery({
     queryKey: ['vendor', storeId],
     queryFn: () => getVendorById(storeId!),
     enabled: !!storeId,
@@ -51,7 +51,6 @@ export default function EditStoreScreen() {
     isLoading: imageLoading,
     error: imageError,
     pickFromGallery,
-    clearImage,
   } = useImagePicker({ base64: true });
 
   // Populate form with fetched data
@@ -70,13 +69,6 @@ export default function EditStoreScreen() {
 
   const handleBack = () => {
     router.back();
-  };
-
-  const handleNotifications = () => {};
-
-  const handleThumbnailPress = () => {
-    console.log('Change store thumbnail');
-    // Add image picker logic here
   };
 
   const handleSaveChanges = async () => {

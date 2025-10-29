@@ -1,5 +1,4 @@
-import type { Vendor } from '@/api/models';
-import { User } from '@/api/models';
+import { Role, User, type Vendor } from '@/api/models';
 import { MyShoppersSVG } from '@/components/icons/MyShoppersSVG';
 import { useAuth } from '@/context/AppProvider';
 import { useStaff } from '@/hooks/api/useStaff'; // Assuming this hook exists
@@ -36,12 +35,7 @@ export default function MyStaffScreen() {
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled: !!userId,
   });
-  // Ensure stores is always an array of Vendor
-  const stores: Vendor[] = Array.isArray(vendors)
-    ? vendors
-    : Array.isArray((vendors as any)?.data)
-      ? (vendors as any).data
-      : [];
+  const stores: Vendor[] = vendors?.data ?? [];
 
   // Fetch shoppers based on the selected store
   const {
@@ -68,12 +62,26 @@ export default function MyStaffScreen() {
   const selectedStoreName =
     stores.find((s: Vendor) => s.id === selectedStoreId)?.name || 'All Stores';
 
+  const roleOptions = React.useMemo(() => [
+    { label: 'Store Admin', value: Role.StoreAdmin },
+    { label: 'Store Shopper', value: Role.StoreShopper },
+  ], []);
+
+  const getRoleName = (role?: Role) => {
+    if (!role) return 'No Role';
+    return roleOptions.find(r => r.value === role)?.label ?? 'Unknown Role';
+  };
+
+  const getStoreName = (vendorId?: string | null) => {
+    if (!vendorId) return 'No Store Assigned';
+    return stores.find(s => s.id === vendorId)?.name ?? 'No Store Assigned';
+  };
+
   const ShopperCard = ({ shopper }: { shopper: User }) => (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={() => handleViewDetails(shopper.id)}>
       <View style={styles.cardContent}>
         <View style={styles.cardLeft}>
           <Image
-             
             source={
               shopper.image
                 ? { uri: shopper.image }
@@ -82,21 +90,19 @@ export default function MyStaffScreen() {
             style={styles.avatar}
           />
           <View style={styles.info}>
-            <Text style={styles.name}>{shopper.name}</Text>
-            <Text style={styles.detailText}>{shopper.email}</Text>
-            <Text style={styles.detailText}>{shopper.mobileNumber}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{shopper.name}</Text>
+            </View>
+            <Text style={styles.detailText}>{getStoreName(shopper?.vendorId)}</Text>
           </View>
         </View>
         <View style={styles.cardRight}>
-          <TouchableOpacity
-            style={styles.viewDetailsButton}
-            onPress={() => handleViewDetails(shopper.id)}
-          >
-            <Text style={styles.viewDetailsText}>View</Text>
-          </TouchableOpacity>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{getRoleName(shopper.role as Role)}</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -350,13 +356,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   info: {
     flex: 1,
     gap: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   name: {
     fontSize: 14,
@@ -369,6 +380,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: 'Open Sans',
     color: '#555',
+  },
+  roleBadge: {
+    backgroundColor: 'rgba(6, 136, 140, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  roleText: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#06888C',
   },
   cardRight: {
     alignItems: 'flex-end',

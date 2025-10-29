@@ -1,3 +1,4 @@
+import { Role } from '@/api/models';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppProvider, useAuth } from '@/context/AppProvider';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -30,10 +31,21 @@ function RootLayout() {
     const inAuthGroup = segments[0] === 'auth'; // e.g. /auth/sign-in
     const inAppGroup = segments[0] === '(private)';
 
-    if (state.isAuthenticated && !inAppGroup) {
-      // If the user is authenticated and tries to access an auth screen,
-      // or is not in the main app group, redirect them to the home screen.
-      router.replace('/(private)/home');
+    if (state.isAuthenticated) {
+      const userRole = state.user?.role;
+      if (!inAppGroup) { // If authenticated but not in the app group, redirect.
+        if (userRole === Role.StoreAdmin || userRole === Role.StoreShopper) {
+          const storeId = state.user?.vendorId;
+          router.replace(`/(private)/home?storeId=${storeId}`);
+          /* if (storeId) {
+            router.replace(`/(private)/store/store-homepage?storeId=${storeId}`);
+          } else {
+            router.replace('/(private)/home'); // Fallback if no storeId
+          } */
+        } else { // For 'vendor' and any other roles
+          router.replace('/(private)/home');
+        }
+      }
     } else if (!state.isAuthenticated && inAppGroup) {
       // If the user is not authenticated and is trying to access a private screen,
       // redirect them to the sign-in screen. This is the primary protection.
@@ -45,7 +57,7 @@ function RootLayout() {
       SplashScreen.hideAsync();
     }
 
-  }, [state.isReady, state.isAuthenticated, segments, router]);
+  }, [state.isReady, state.isAuthenticated, segments, router, state]);
 
   // Render nothing until the auth state is determined and redirection is complete.
   // This prevents a flash of the wrong screen.
