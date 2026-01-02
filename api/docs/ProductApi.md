@@ -4,10 +4,14 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**productAdminAllGet**](#productadminallget) | **GET** /product/admin/all | Get all base products with filtering and pagination (Admin)|
+|[**productAdminOverviewGet**](#productadminoverviewget) | **GET** /product/admin/overview | Get an overview of product data (Admin)|
+|[**productAdminProductIdVendorProductsGet**](#productadminproductidvendorproductsget) | **GET** /product/admin/{productId}/vendor-products | Get all vendor products for a specific base product (Admin)|
 |[**productBarcodeGet**](#productbarcodeget) | **GET** /product/barcode | Get a base product by its barcode|
 |[**productGet**](#productget) | **GET** /product | Get all base products|
 |[**productIdDelete**](#productiddelete) | **DELETE** /product/{id} | Delete a base product|
 |[**productIdPatch**](#productidpatch) | **PATCH** /product/{id} | Update a base product|
+|[**productIdStatusPatch**](#productidstatuspatch) | **PATCH** /product/{id}/status | Update a base product\&#39;s active status (Admin)|
 |[**productPost**](#productpost) | **POST** /product | Create a base product|
 |[**productTagsIdsGet**](#producttagsidsget) | **GET** /product/tags/ids | Get base products by tag IDs|
 |[**productUserUserIdGet**](#productuseruseridget) | **GET** /product/user/{userId} | Get all products from all vendors belonging to a user|
@@ -23,6 +27,174 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**productVendorTagsIdsGet**](#productvendortagsidsget) | **GET** /product/vendor/tags/ids | Get vendor products by tag IDs|
 |[**productVendorTransferPost**](#productvendortransferpost) | **POST** /product/vendor/transfer | Transfer a product listing from one store to others|
 |[**productVendorTrendingGet**](#productvendortrendingget) | **GET** /product/vendor/trending | Get trending vendor products|
+
+# **productAdminAllGet**
+> productAdminAllGet()
+
+Retrieves a paginated list of all base products in the system. Each product includes a count of how many vendors are selling it.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let name: string; //Filter by product name (case-insensitive contains). (optional) (default to undefined)
+let categoryId: string; //Filter by a specific category ID. (optional) (default to undefined)
+let isAlcohol: boolean; //Filter for products that are alcoholic. (optional) (default to undefined)
+let isAgeRestricted: boolean; //Filter for products that are age-restricted. (optional) (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.productAdminAllGet(
+    name,
+    categoryId,
+    isAlcohol,
+    isAgeRestricted,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **name** | [**string**] | Filter by product name (case-insensitive contains). | (optional) defaults to undefined|
+| **categoryId** | [**string**] | Filter by a specific category ID. | (optional) defaults to undefined|
+| **isAlcohol** | [**boolean**] | Filter for products that are alcoholic. | (optional) defaults to undefined|
+| **isAgeRestricted** | [**boolean**] | Filter for products that are age-restricted. | (optional) defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of base products. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productAdminOverviewGet**
+> ProductOverview productAdminOverviewGet()
+
+Retrieves aggregate data about products, such as the total number of base products and vendor product listings.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+const { status, data } = await apiInstance.productAdminOverviewGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**ProductOverview**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The product overview data. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productAdminProductIdVendorProductsGet**
+> productAdminProductIdVendorProductsGet()
+
+Retrieves a paginated list of all vendor-specific listings for a given base product ID.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let productId: string; //The ID of the base product. (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.productAdminProductIdVendorProductsGet(
+    productId,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **productId** | [**string**] | The ID of the base product. | defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of vendor products. |  -  |
+|**404** | Base product not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **productBarcodeGet**
 > ProductWithRelations productBarcodeGet()
@@ -221,6 +393,62 @@ const { status, data } = await apiInstance.productIdPatch(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | The updated product. |  -  |
+|**404** | Product not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **productIdStatusPatch**
+> productIdStatusPatch(productIdStatusPatchRequest, )
+
+Allows an admin to enable or disable a base product by setting its `isActive` flag.
+
+### Example
+
+```typescript
+import {
+    ProductApi,
+    Configuration,
+    ProductIdStatusPatchRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ProductApi(configuration);
+
+let productIdStatusPatchRequest: ProductIdStatusPatchRequest; //
+let id: string; //The ID of the base product to update. (default to undefined)
+
+const { status, data } = await apiInstance.productIdStatusPatch(
+    productIdStatusPatchRequest,
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **productIdStatusPatchRequest** | **ProductIdStatusPatchRequest**|  | |
+| **id** | [**string**] | The ID of the base product to update. | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The updated product with the new status. |  -  |
 |**404** | Product not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

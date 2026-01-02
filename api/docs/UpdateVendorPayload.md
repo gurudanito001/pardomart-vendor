@@ -15,6 +15,9 @@ Name | Type | Description | Notes
 **latitude** | **number** |  | [optional] [default to undefined]
 **isVerified** | **boolean** |  | [optional] [default to undefined]
 **meta** | **{ [key: string]: any; }** |  | [optional] [default to undefined]
+**mobileNumber** | **string** |  | [optional] [default to undefined]
+**mobileVerified** | **boolean** |  | [optional] [default to undefined]
+**availableForShopping** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -32,6 +35,9 @@ const instance: UpdateVendorPayload = {
     latitude,
     isVerified,
     meta,
+    mobileNumber,
+    mobileVerified,
+    availableForShopping,
 };
 ```
 

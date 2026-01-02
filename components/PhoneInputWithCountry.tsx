@@ -20,7 +20,7 @@ interface PhoneInputWithCountryProps {
   autoFocus?: boolean;
 }
 
-const DEFAULT_COUNTRY: Country = { name: 'Nigeria', iso2: 'NG', dialCode: '+234', flagPng: 'https://flagcdn.com/w320/ng.png', flagSvg: 'https://flagcdn.com/ng.svg' };
+const DEFAULT_COUNTRY: Country = { name: 'United States', iso2: 'US', dialCode: '+1', flagPng: 'https://flagcdn.com/w320/us.png', flagSvg: 'https://flagcdn.com/us.svg' };
 
 const DIAL_PRIMARY: Record<string, string> = {
   '+1': 'US',
@@ -242,8 +242,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   containerFocused: {
-    borderColor: '#F48022',
-    ...(Platform.OS === 'web' ? { boxShadow: '0 0 0 3px rgba(244, 129, 34, 0.18)' } : ({} as any)),
+    borderColor: '#b4bed4',
   },
   disabled: {
     opacity: 0.6,

@@ -23,6 +23,10 @@ Name | Type | Description | Notes
 **meta** | **object** |  | [optional] [default to undefined]
 **createdAt** | **string** |  | [optional] [default to undefined]
 **updatedAt** | **string** |  | [optional] [default to undefined]
+**mobileNumber** | **string** |  | [optional] [default to undefined]
+**mobileVerified** | **boolean** |  | [optional] [default to undefined]
+**isPublished** | **boolean** |  | [optional] [default to undefined]
+**availableForShopping** | **boolean** |  | [optional] [default to undefined]
 **cartItemCount** | **number** | Number of items in the user\&#39;s cart for this vendor. Only present if user is authenticated. | [optional] [default to undefined]
 
 ## Example
@@ -49,6 +53,10 @@ const instance: VendorListItem = {
     meta,
     createdAt,
     updatedAt,
+    mobileNumber,
+    mobileVerified,
+    isPublished,
+    availableForShopping,
     cartItemCount,
 };
 ```

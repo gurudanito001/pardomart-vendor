@@ -4,12 +4,237 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**transactionsAdminAllGet**](#transactionsadminallget) | **GET** /transactions/admin/all | Get a paginated list of all transactions (Admin)|
+|[**transactionsAdminOverviewGet**](#transactionsadminoverviewget) | **GET** /transactions/admin/overview | Get platform-wide transaction overview (Admin)|
+|[**transactionsAdminTransactionIdGet**](#transactionsadmintransactionidget) | **GET** /transactions/admin/{transactionId} | Get a single transaction by ID (Admin)|
+|[**transactionsAdminTransactionIdSendReceiptPost**](#transactionsadmintransactionidsendreceiptpost) | **POST** /transactions/admin/{transactionId}/send-receipt | Generate and send a receipt for a transaction (Admin)|
 |[**transactionsCreatePaymentIntentPost**](#transactionscreatepaymentintentpost) | **POST** /transactions/create-payment-intent | Create a Payment Intent for an order|
 |[**transactionsMeGet**](#transactionsmeget) | **GET** /transactions/me | Get my transaction history|
 |[**transactionsMePaymentMethodsGet**](#transactionsmepaymentmethodsget) | **GET** /transactions/me/payment-methods | Get my saved payment methods|
 |[**transactionsMePaymentMethodsPaymentMethodIdDelete**](#transactionsmepaymentmethodspaymentmethodiddelete) | **DELETE** /transactions/me/payment-methods/{paymentMethodId} | Delete a saved payment method|
 |[**transactionsSetupIntentPost**](#transactionssetupintentpost) | **POST** /transactions/setup-intent | Create a Setup Intent to save a new payment method|
+|[**transactionsSimulatePaymentPost**](#transactionssimulatepaymentpost) | **POST** /transactions/simulate-payment | Simulate a payment (Dev/Test)|
 |[**transactionsVendorGet**](#transactionsvendorget) | **GET** /transactions/vendor | Get payment transactions for a vendor user|
+
+# **transactionsAdminAllGet**
+> transactionsAdminAllGet()
+
+Retrieves a paginated list of all transactions on the platform. Allows filtering by orderCode, customer name, status, and creation date. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let orderCode: string; //Filter by order code. (optional) (default to undefined)
+let customerName: string; //Filter by customer\'s name (case-insensitive). (optional) (default to undefined)
+let status: TransactionStatus; //Filter by transaction status. (optional) (default to undefined)
+let createdAtStart: string; //Filter transactions created on or after this date. (optional) (default to undefined)
+let createdAtEnd: string; //Filter transactions created on or before this date. (optional) (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.transactionsAdminAllGet(
+    orderCode,
+    customerName,
+    status,
+    createdAtStart,
+    createdAtEnd,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **orderCode** | [**string**] | Filter by order code. | (optional) defaults to undefined|
+| **customerName** | [**string**] | Filter by customer\&#39;s name (case-insensitive). | (optional) defaults to undefined|
+| **status** | **TransactionStatus** | Filter by transaction status. | (optional) defaults to undefined|
+| **createdAtStart** | [**string**] | Filter transactions created on or after this date. | (optional) defaults to undefined|
+| **createdAtEnd** | [**string**] | Filter transactions created on or before this date. | (optional) defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of transactions. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsAdminOverviewGet**
+> TransactionsAdminOverviewGet200Response transactionsAdminOverviewGet()
+
+Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+const { status, data } = await apiInstance.transactionsAdminOverviewGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**TransactionsAdminOverviewGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | An object containing the financial overview data. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsAdminTransactionIdGet**
+> TransactionWithRelations transactionsAdminTransactionIdGet()
+
+Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let transactionId: string; //The ID of the transaction to retrieve. (default to undefined)
+
+const { status, data } = await apiInstance.transactionsAdminTransactionIdGet(
+    transactionId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **transactionId** | [**string**] | The ID of the transaction to retrieve. | defaults to undefined|
+
+
+### Return type
+
+**TransactionWithRelations**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The requested transaction details. |  -  |
+|**404** | Transaction not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsAdminTransactionIdSendReceiptPost**
+> transactionsAdminTransactionIdSendReceiptPost()
+
+Retrieves the details for a transaction, generates an HTML receipt, and sends it to the customer\'s email address. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let transactionId: string; //The ID of the transaction to send a receipt for. (default to undefined)
+
+const { status, data } = await apiInstance.transactionsAdminTransactionIdSendReceiptPost(
+    transactionId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **transactionId** | [**string**] | The ID of the transaction to send a receipt for. | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Receipt sent successfully. |  -  |
+|**400** | Bad request (e.g., transaction not linked to an order). |  -  |
+|**404** | Transaction or related data not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **transactionsCreatePaymentIntentPost**
 > TransactionsCreatePaymentIntentPost200Response transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest)
@@ -246,6 +471,59 @@ This endpoint does not have any parameters.
 |**200** | Setup Intent created successfully. |  -  |
 |**401** | Unauthorized. |  -  |
 |**404** | User not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsSimulatePaymentPost**
+> transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest)
+
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration,
+    TransactionsCreatePaymentIntentPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest; //
+
+const { status, data } = await apiInstance.transactionsSimulatePaymentPost(
+    transactionsCreatePaymentIntentPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **transactionsCreatePaymentIntentPostRequest** | **TransactionsCreatePaymentIntentPostRequest**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Payment simulated successfully. |  -  |
+|**400** | Bad request. |  -  |
+|**404** | Order not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -8,6 +8,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View
@@ -17,6 +18,7 @@ import { Path, Svg } from 'react-native-svg';
 // import { CreateVendorPayload } from '../../../api/models';
 import { CreateVendorPayload } from '@/api';
 import AddressAutocompleteEnhanced from '../../../components/AddressAutocompleteEnhanced';
+import PhoneInputWithCountry from '../../../components/PhoneInputWithCountry';
 import { Input } from '../../../components/ui/Input';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 import { useVendors } from '../../../hooks/api/useVendors';
@@ -31,6 +33,8 @@ export default function AddStoreScreen() {
   const [longitude, setLongitude] = useState<number | null>(null);
   
   const [email, setEmail] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [availableForShopping, setAvailableForShopping] = useState(true);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -67,17 +71,19 @@ export default function AddStoreScreen() {
     setSubmitting(true);
 
     try {
-  const payload: CreateVendorPayload = {
-    name,
-    email,
-    tagline,
-    details,
-    address: storeAddress,
-    latitude,
-    longitude,
-    image: selectedImage?.base64,
-  };
-  console.log('Prepared vendor payload', payload);
+      const payload: CreateVendorPayload = {
+        name: name.trim(),
+        email: email.trim(),
+        mobileNumber: mobileNumber.trim(),
+        availableForShopping: availableForShopping,
+        tagline: tagline.trim(),
+        details: details.trim(),
+        address: storeAddress,
+        latitude: latitude === null ? undefined : latitude,
+        longitude: longitude === null ? undefined : longitude,
+        image: selectedImage?.base64,
+      };
+      console.log('Prepared vendor payload', payload);
       const newVendor = await createVendor(payload);
       toast.success('Store created successfully!');
       if (newVendor?.id) {
@@ -244,6 +250,16 @@ export default function AddStoreScreen() {
                 />
               </View>
 
+              {/* Store Mobile Number - zIndex 3 */}
+              <View style={[styles.fieldContainer, { zIndex: 3 }]}>
+                <Text style={styles.fieldLabel}>Store Mobile Number</Text>
+                <PhoneInputWithCountry
+                  placeholder="Enter store's mobile number"
+                  value={mobileNumber}
+                  onChangeText={setMobileNumber}
+                />
+              </View>
+
               {/* Store Tagline - zIndex 2 */}
               <View style={[styles.fieldContainer, { zIndex: 2 }]}>
                 <Text style={styles.fieldLabel}>Store Tagline</Text>
@@ -272,6 +288,18 @@ export default function AddStoreScreen() {
                   numberOfLines={4}
                   textAlignVertical="top"
                   inputStyle={{ ...styles.inputText, height: 100, paddingTop: 16 }}
+                />
+              </View>
+
+              {/* Available For Shopping - zIndex 1 */}
+              <View style={[styles.fieldContainer, styles.switchContainer, { zIndex: 1 }]}>
+                <Text style={styles.fieldLabel}>Available for Shopping</Text>
+                <Switch
+                  trackColor={{ false: "#767577", true: "#06888C" }}
+                  thumbColor={availableForShopping ? "#f4f3f4" : "#f4f3f4"}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={setAvailableForShopping}
+                  value={availableForShopping}
                 />
               </View>
             </View>
@@ -363,6 +391,11 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     marginBottom: 21,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   inputContainer: {
     marginBottom: 0,

@@ -24,6 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { Category } from '../models';
 // @ts-ignore
+import type { CategoryOverview } from '../models';
+// @ts-ignore
 import type { CreateCategoriesBulkPayload } from '../models';
 // @ts-ignore
 import type { CreateCategoryPayload } from '../models';
@@ -34,6 +36,40 @@ import type { UpdateCategoryPayload } from '../models';
  */
 export const CategoryApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves aggregate data about categories, such as the total number of parent and sub-categories.
+         * @summary Get an overview of category data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/category/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Create multiple categories in bulk
@@ -192,8 +228,8 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * 
-         * @summary Update a category
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
          * @param {*} [options] Override http request option.
@@ -236,8 +272,38 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * 
-         * @summary Create a new category
+         * Retrieves a list of all top-level categories (those without a parent).
+         * @summary Get all parent categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryParentsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/category/parents`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -275,6 +341,36 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Retrieves a list of all categories that are children of another category (i.e., their parentId is not null).
+         * @summary Get all sub-categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categorySubCategoriesGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/category/sub-categories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -284,6 +380,18 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
 export const CategoryApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CategoryApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Retrieves aggregate data about categories, such as the total number of parent and sub-categories.
+         * @summary Get an overview of category data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryAdminOverviewGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CategoryOverview>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryAdminOverviewGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CategoryApi.categoryAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * 
          * @summary Create multiple categories in bulk
@@ -339,8 +447,8 @@ export const CategoryApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Update a category
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
          * @param {*} [options] Override http request option.
@@ -353,8 +461,20 @@ export const CategoryApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Create a new category
+         * Retrieves a list of all top-level categories (those without a parent).
+         * @summary Get all parent categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categoryParentsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Category>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categoryParentsGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CategoryApi.categoryParentsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -363,6 +483,18 @@ export const CategoryApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.categoryPost(createCategoryPayload, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CategoryApi.categoryPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a list of all categories that are children of another category (i.e., their parentId is not null).
+         * @summary Get all sub-categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async categorySubCategoriesGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Category>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.categorySubCategoriesGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CategoryApi.categorySubCategoriesGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -374,6 +506,15 @@ export const CategoryApiFp = function(configuration?: Configuration) {
 export const CategoryApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = CategoryApiFp(configuration)
     return {
+        /**
+         * Retrieves aggregate data about categories, such as the total number of parent and sub-categories.
+         * @summary Get an overview of category data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<CategoryOverview> {
+            return localVarFp.categoryAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @summary Create multiple categories in bulk
@@ -417,8 +558,8 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.categoryIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Update a category
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
          * @param {*} [options] Override http request option.
@@ -428,14 +569,32 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.categoryIdPut(updateCategoryPayload, id, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Create a new category
+         * Retrieves a list of all top-level categories (those without a parent).
+         * @summary Get all parent categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categoryParentsGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<Category>> {
+            return localVarFp.categoryParentsGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         categoryPost(createCategoryPayload: CreateCategoryPayload, options?: RawAxiosRequestConfig): AxiosPromise<Category> {
             return localVarFp.categoryPost(createCategoryPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of all categories that are children of another category (i.e., their parentId is not null).
+         * @summary Get all sub-categories
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        categorySubCategoriesGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<Category>> {
+            return localVarFp.categorySubCategoriesGet(options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -444,6 +603,16 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
  * CategoryApi - object-oriented interface
  */
 export class CategoryApi extends BaseAPI {
+    /**
+     * Retrieves aggregate data about categories, such as the total number of parent and sub-categories.
+     * @summary Get an overview of category data (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public categoryAdminOverviewGet(options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create multiple categories in bulk
@@ -491,8 +660,8 @@ export class CategoryApi extends BaseAPI {
     }
 
     /**
-     * 
-     * @summary Update a category
+     * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+     * @summary Update a category (Admin)
      * @param {UpdateCategoryPayload} updateCategoryPayload 
      * @param {string} id The ID of the category to update.
      * @param {*} [options] Override http request option.
@@ -503,14 +672,34 @@ export class CategoryApi extends BaseAPI {
     }
 
     /**
-     * 
-     * @summary Create a new category
+     * Retrieves a list of all top-level categories (those without a parent).
+     * @summary Get all parent categories
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public categoryParentsGet(options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categoryParentsGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+     * @summary Create a new category (Admin)
      * @param {CreateCategoryPayload} createCategoryPayload 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public categoryPost(createCategoryPayload: CreateCategoryPayload, options?: RawAxiosRequestConfig) {
         return CategoryApiFp(this.configuration).categoryPost(createCategoryPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all categories that are children of another category (i.e., their parentId is not null).
+     * @summary Get all sub-categories
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public categorySubCategoriesGet(options?: RawAxiosRequestConfig) {
+        return CategoryApiFp(this.configuration).categorySubCategoriesGet(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

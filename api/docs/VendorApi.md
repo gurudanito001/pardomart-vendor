@@ -19,12 +19,15 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**vendorsGet**](#vendorsget) | **GET** /vendors | Get a paginated list of vendors|
 |[**vendorsGetvendorsbyUserIdGet**](#vendorsgetvendorsbyuseridget) | **GET** /vendors/getvendorsby/userId | Get all vendors for the authenticated user|
 |[**vendorsIdApprovePatch**](#vendorsidapprovepatch) | **PATCH** /vendors/{id}/approve | Approve a vendor\&#39;s store (Admin)|
+|[**vendorsIdAvailabilityPatch**](#vendorsidavailabilitypatch) | **PATCH** /vendors/{id}/availability | Set a vendor\&#39;s shopping availability|
 |[**vendorsIdDelete**](#vendorsiddelete) | **DELETE** /vendors/{id} | Delete a vendor|
 |[**vendorsIdGet**](#vendorsidget) | **GET** /vendors/{id} | Get a vendor by its ID|
 |[**vendorsIdPatch**](#vendorsidpatch) | **PATCH** /vendors/{id} | Update a vendor\&#39;s details|
 |[**vendorsIdPublishPatch**](#vendorsidpublishpatch) | **PATCH** /vendors/{id}/publish | Publish a vendor\&#39;s store|
 |[**vendorsIncompleteSetupsGet**](#vendorsincompletesetupsget) | **GET** /vendors/incomplete-setups | Find vendors with incomplete setup|
+|[**vendorsOverviewGet**](#vendorsoverviewget) | **GET** /vendors/overview | Get platform overview data (Admin)|
 |[**vendorsPost**](#vendorspost) | **POST** /vendors | Create a new vendor|
+|[**vendorsUsersUserIdGet**](#vendorsusersuseridget) | **GET** /vendors/users/{userId} | Get a single vendor user by their User ID (Admin)|
 
 # **earningsGet**
 > Array<Transaction> earningsGet()
@@ -698,6 +701,10 @@ let name: string; //Filter vendors by name (case-insensitive search). (optional)
 let latitude: number; //User\'s current latitude to sort vendors by distance. (optional) (default to undefined)
 let longitude: number; //User\'s current longitude to sort vendors by distance. (optional) (default to undefined)
 let userId: string; //Filter vendors by the user who owns them. (optional) (default to undefined)
+let isVerified: boolean; //Filter vendors by their verification status. (optional) (default to undefined)
+let isPublished: boolean; //Filter vendors by their published status. (optional) (default to undefined)
+let createdAtStart: string; //Filter vendors created on or after this date (ISO 8601 format). (optional) (default to undefined)
+let createdAtEnd: string; //Filter vendors created on or before this date (ISO 8601 format). (optional) (default to undefined)
 let page: number; //Page number for pagination. (optional) (default to 1)
 let size: number; //Number of items per page. (optional) (default to 20)
 
@@ -706,6 +713,10 @@ const { status, data } = await apiInstance.vendorsGet(
     latitude,
     longitude,
     userId,
+    isVerified,
+    isPublished,
+    createdAtStart,
+    createdAtEnd,
     page,
     size
 );
@@ -719,6 +730,10 @@ const { status, data } = await apiInstance.vendorsGet(
 | **latitude** | [**number**] | User\&#39;s current latitude to sort vendors by distance. | (optional) defaults to undefined|
 | **longitude** | [**number**] | User\&#39;s current longitude to sort vendors by distance. | (optional) defaults to undefined|
 | **userId** | [**string**] | Filter vendors by the user who owns them. | (optional) defaults to undefined|
+| **isVerified** | [**boolean**] | Filter vendors by their verification status. | (optional) defaults to undefined|
+| **isPublished** | [**boolean**] | Filter vendors by their published status. | (optional) defaults to undefined|
+| **createdAtStart** | [**string**] | Filter vendors created on or after this date (ISO 8601 format). | (optional) defaults to undefined|
+| **createdAtEnd** | [**string**] | Filter vendors created on or before this date (ISO 8601 format). | (optional) defaults to undefined|
 | **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
 | **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
 
@@ -840,6 +855,63 @@ const { status, data } = await apiInstance.vendorsIdApprovePatch(
 |**200** | The successfully approved vendor. |  -  |
 |**404** | Vendor not found. |  -  |
 |**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vendorsIdAvailabilityPatch**
+> vendorsIdAvailabilityPatch(vendorsIdAvailabilityPatchRequest, )
+
+Marks a vendor\'s store as available or unavailable for shopping by setting `availableForShopping`. Only the user who owns the vendor can perform this action. 
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration,
+    VendorsIdAvailabilityPatchRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let vendorsIdAvailabilityPatchRequest: VendorsIdAvailabilityPatchRequest; //
+let id: string; //The ID of the vendor to update. (default to undefined)
+
+const { status, data } = await apiInstance.vendorsIdAvailabilityPatch(
+    vendorsIdAvailabilityPatchRequest,
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **vendorsIdAvailabilityPatchRequest** | **VendorsIdAvailabilityPatchRequest**|  | |
+| **id** | [**string**] | The ID of the vendor to update. | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The updated vendor with the new availability status. |  -  |
+|**403** | Forbidden. User does not own this vendor. |  -  |
+|**404** | Vendor not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1108,6 +1180,51 @@ This endpoint does not have any parameters.
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **vendorsOverviewGet**
+> VendorsOverviewGet200Response vendorsOverviewGet()
+
+Retrieves aggregate data about the platform, such as the total number of vendor users, stores, and staff members. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+const { status, data } = await apiInstance.vendorsOverviewGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**VendorsOverviewGet200Response**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | An object containing the overview data. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **vendorsPost**
 > VendorWithRelations vendorsPost(createVendorPayload)
 
@@ -1157,6 +1274,59 @@ const { status, data } = await apiInstance.vendorsPost(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** | The created vendor with default opening hours. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **vendorsUsersUserIdGet**
+> vendorsUsersUserIdGet()
+
+Retrieves the details of a specific user who has the \'vendor\' role. Intended for admin use.
+
+### Example
+
+```typescript
+import {
+    VendorApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new VendorApi(configuration);
+
+let userId: string; //The ID of the vendor user to retrieve. (default to undefined)
+
+const { status, data } = await apiInstance.vendorsUsersUserIdGet(
+    userId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **userId** | [**string**] | The ID of the vendor user to retrieve. | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | The requested vendor user\&#39;s details. |  -  |
+|**404** | Vendor user not found or user is not a vendor. |  -  |
 |**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

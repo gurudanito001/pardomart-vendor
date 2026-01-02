@@ -14,10 +14,10 @@
 
 
 
-export interface ApiV1OrderOrderIdMessagesReadPatch200Response {
-    /**
-     * The number of messages updated.
-     */
-    'count'?: number;
+export interface DeliveryPersonsAdminOverviewGet200Response {
+    'totalDeliveryPersons'?: number;
+    'newDeliveryPersons'?: number;
+    'totalDeliveries'?: number;
+    'totalReturns'?: number;
 }
 

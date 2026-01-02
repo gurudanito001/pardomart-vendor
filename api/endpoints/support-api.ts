@@ -26,7 +26,11 @@ import type { CreateSupportTicketPayload } from '../models';
 // @ts-ignore
 import type { PaginatedSupportTickets } from '../models';
 // @ts-ignore
+import type { SupportAdminOverviewGet200Response } from '../models';
+// @ts-ignore
 import type { SupportTicket } from '../models';
+// @ts-ignore
+import type { TicketStatus } from '../models';
 // @ts-ignore
 import type { UpdateSupportTicketStatusPayload } from '../models';
 /**
@@ -35,15 +39,13 @@ import type { UpdateSupportTicketStatusPayload } from '../models';
 export const SupportApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieves a paginated list of all support tickets. Requires admin privileges.
-         * @summary Get all support tickets (Admin)
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsGet: async (page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/support/tickets`;
+        supportAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/support/admin/overview`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -58,6 +60,66 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
             // authentication bearerAuth required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a paginated list of all support tickets. Requires admin privileges.
+         * @summary Get all support tickets (Admin)
+         * @param {string} [customerName] Filter by customer name (case-insensitive).
+         * @param {TicketStatus} [status] Filter by ticket status.
+         * @param {string} [createdAtStart] Filter tickets created on or after this date.
+         * @param {string} [createdAtEnd] Filter tickets created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsGet: async (customerName?: string, status?: TicketStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/support/tickets`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (customerName !== undefined) {
+                localVarQueryParameter['customerName'] = customerName;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
 
             if (page !== undefined) {
                 localVarQueryParameter['page'] = page;
@@ -84,8 +146,8 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsMeGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/support/tickets/me`;
+        supportTicketsMeGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/support/tickets/me`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -119,10 +181,10 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsPost: async (createSupportTicketPayload: CreateSupportTicketPayload, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        supportTicketsPost: async (createSupportTicketPayload: CreateSupportTicketPayload, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'createSupportTicketPayload' is not null or undefined
-            assertParamExists('apiV1SupportTicketsPost', 'createSupportTicketPayload', createSupportTicketPayload)
-            const localVarPath = `/api/v1/support/tickets`;
+            assertParamExists('supportTicketsPost', 'createSupportTicketPayload', createSupportTicketPayload)
+            const localVarPath = `/support/tickets`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -153,6 +215,44 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Retrieves the details of a specific support ticket. Accessible by the user who created the ticket or an admin.
+         * @summary Get a single support ticket by ID
+         * @param {string} ticketId The ID of the support ticket to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsTicketIdGet: async (ticketId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'ticketId' is not null or undefined
+            assertParamExists('supportTicketsTicketIdGet', 'ticketId', ticketId)
+            const localVarPath = `/support/tickets/{ticketId}`
+                .replace(`{${"ticketId"}}`, encodeURIComponent(String(ticketId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Updates the status of a specific support ticket. Requires admin privileges.
          * @summary Update a support ticket\'s status (Admin)
          * @param {UpdateSupportTicketStatusPayload} updateSupportTicketStatusPayload 
@@ -160,12 +260,12 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsTicketIdStatusPatch: async (updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        supportTicketsTicketIdStatusPatch: async (updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'updateSupportTicketStatusPayload' is not null or undefined
-            assertParamExists('apiV1SupportTicketsTicketIdStatusPatch', 'updateSupportTicketStatusPayload', updateSupportTicketStatusPayload)
+            assertParamExists('supportTicketsTicketIdStatusPatch', 'updateSupportTicketStatusPayload', updateSupportTicketStatusPayload)
             // verify required parameter 'ticketId' is not null or undefined
-            assertParamExists('apiV1SupportTicketsTicketIdStatusPatch', 'ticketId', ticketId)
-            const localVarPath = `/api/v1/support/tickets/{ticketId}/status`
+            assertParamExists('supportTicketsTicketIdStatusPatch', 'ticketId', ticketId)
+            const localVarPath = `/support/tickets/{ticketId}/status`
                 .replace(`{${"ticketId"}}`, encodeURIComponent(String(ticketId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -206,17 +306,33 @@ export const SupportApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SupportApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieves a paginated list of all support tickets. Requires admin privileges.
-         * @summary Get all support tickets (Admin)
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1SupportTicketsGet(page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedSupportTickets>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1SupportTicketsGet(page, size, options);
+        async supportAdminOverviewGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportAdminOverviewGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportAdminOverviewGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SupportApi.apiV1SupportTicketsGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a paginated list of all support tickets. Requires admin privileges.
+         * @summary Get all support tickets (Admin)
+         * @param {string} [customerName] Filter by customer name (case-insensitive).
+         * @param {TicketStatus} [status] Filter by ticket status.
+         * @param {string} [createdAtStart] Filter tickets created on or after this date.
+         * @param {string} [createdAtEnd] Filter tickets created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async supportTicketsGet(customerName?: string, status?: TicketStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PaginatedSupportTickets>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsGet(customerName, status, createdAtStart, createdAtEnd, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -225,10 +341,10 @@ export const SupportApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1SupportTicketsMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SupportTicket>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1SupportTicketsMeGet(options);
+        async supportTicketsMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SupportTicket>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsMeGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SupportApi.apiV1SupportTicketsMeGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsMeGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -238,10 +354,23 @@ export const SupportApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1SupportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1SupportTicketsPost(createSupportTicketPayload, options);
+        async supportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsPost(createSupportTicketPayload, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SupportApi.apiV1SupportTicketsPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves the details of a specific support ticket. Accessible by the user who created the ticket or an admin.
+         * @summary Get a single support ticket by ID
+         * @param {string} ticketId The ID of the support ticket to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async supportTicketsTicketIdGet(ticketId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsTicketIdGet(ticketId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsTicketIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -252,10 +381,10 @@ export const SupportApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options);
+        async supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SupportApi.apiV1SupportTicketsTicketIdStatusPatch']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsTicketIdStatusPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -268,15 +397,28 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = SupportApiFp(configuration)
     return {
         /**
-         * Retrieves a paginated list of all support tickets. Requires admin privileges.
-         * @summary Get all support tickets (Admin)
-         * @param {number} [page] 
-         * @param {number} [size] 
+         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsGet(page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedSupportTickets> {
-            return localVarFp.apiV1SupportTicketsGet(page, size, options).then((request) => request(axios, basePath));
+        supportAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<SupportAdminOverviewGet200Response> {
+            return localVarFp.supportAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a paginated list of all support tickets. Requires admin privileges.
+         * @summary Get all support tickets (Admin)
+         * @param {string} [customerName] Filter by customer name (case-insensitive).
+         * @param {TicketStatus} [status] Filter by ticket status.
+         * @param {string} [createdAtStart] Filter tickets created on or after this date.
+         * @param {string} [createdAtEnd] Filter tickets created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsGet(customerName?: string, status?: TicketStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<PaginatedSupportTickets> {
+            return localVarFp.supportTicketsGet(customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves all support tickets submitted by the authenticated user.
@@ -284,8 +426,8 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsMeGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<SupportTicket>> {
-            return localVarFp.apiV1SupportTicketsMeGet(options).then((request) => request(axios, basePath));
+        supportTicketsMeGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<SupportTicket>> {
+            return localVarFp.supportTicketsMeGet(options).then((request) => request(axios, basePath));
         },
         /**
          * Allows an authenticated user (customer, vendor, etc.) to submit a support ticket for issues or bugs.
@@ -294,8 +436,18 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
-            return localVarFp.apiV1SupportTicketsPost(createSupportTicketPayload, options).then((request) => request(axios, basePath));
+        supportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
+            return localVarFp.supportTicketsPost(createSupportTicketPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves the details of a specific support ticket. Accessible by the user who created the ticket or an admin.
+         * @summary Get a single support ticket by ID
+         * @param {string} ticketId The ID of the support ticket to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsTicketIdGet(ticketId: string, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
+            return localVarFp.supportTicketsTicketIdGet(ticketId, options).then((request) => request(axios, basePath));
         },
         /**
          * Updates the status of a specific support ticket. Requires admin privileges.
@@ -305,8 +457,8 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
-            return localVarFp.apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options).then((request) => request(axios, basePath));
+        supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
+            return localVarFp.supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -316,15 +468,29 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
  */
 export class SupportApi extends BaseAPI {
     /**
-     * Retrieves a paginated list of all support tickets. Requires admin privileges.
-     * @summary Get all support tickets (Admin)
-     * @param {number} [page] 
-     * @param {number} [size] 
+     * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+     * @summary Get platform-wide support ticket overview (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1SupportTicketsGet(page?: number, size?: number, options?: RawAxiosRequestConfig) {
-        return SupportApiFp(this.configuration).apiV1SupportTicketsGet(page, size, options).then((request) => request(this.axios, this.basePath));
+    public supportAdminOverviewGet(options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a paginated list of all support tickets. Requires admin privileges.
+     * @summary Get all support tickets (Admin)
+     * @param {string} [customerName] Filter by customer name (case-insensitive).
+     * @param {TicketStatus} [status] Filter by ticket status.
+     * @param {string} [createdAtStart] Filter tickets created on or after this date.
+     * @param {string} [createdAtEnd] Filter tickets created on or before this date.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public supportTicketsGet(customerName?: string, status?: TicketStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsGet(customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -333,8 +499,8 @@ export class SupportApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1SupportTicketsMeGet(options?: RawAxiosRequestConfig) {
-        return SupportApiFp(this.configuration).apiV1SupportTicketsMeGet(options).then((request) => request(this.axios, this.basePath));
+    public supportTicketsMeGet(options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsMeGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -344,8 +510,19 @@ export class SupportApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1SupportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig) {
-        return SupportApiFp(this.configuration).apiV1SupportTicketsPost(createSupportTicketPayload, options).then((request) => request(this.axios, this.basePath));
+    public supportTicketsPost(createSupportTicketPayload: CreateSupportTicketPayload, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsPost(createSupportTicketPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the details of a specific support ticket. Accessible by the user who created the ticket or an admin.
+     * @summary Get a single support ticket by ID
+     * @param {string} ticketId The ID of the support ticket to retrieve.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public supportTicketsTicketIdGet(ticketId: string, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsTicketIdGet(ticketId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -356,8 +533,8 @@ export class SupportApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig) {
-        return SupportApiFp(this.configuration).apiV1SupportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options).then((request) => request(this.axios, this.basePath));
+    public supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload: UpdateSupportTicketStatusPayload, ticketId: string, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsTicketIdStatusPatch(updateSupportTicketStatusPayload, ticketId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

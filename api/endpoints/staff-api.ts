@@ -31,6 +31,82 @@ import type { StaffStaffIdPatchRequest } from '../models';
 export const StaffApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Retrieves the details of a specific staff member by their user ID. Only accessible by admins.
+         * @summary Get a single staff member by ID (Admin)
+         * @param {string} staffId The user ID of the staff member.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        staffAdminStaffIdGet: async (staffId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'staffId' is not null or undefined
+            assertParamExists('staffAdminStaffIdGet', 'staffId', staffId)
+            const localVarPath = `/staff/admin/{staffId}`
+                .replace(`{${"staffId"}}`, encodeURIComponent(String(staffId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a list of all staff members (store_admin, store_shopper) for a given store ID. Only accessible by admins.
+         * @summary List all staff for a specific store (Admin)
+         * @param {string} vendorId The ID of the store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        staffAdminStoreVendorIdGet: async (vendorId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'vendorId' is not null or undefined
+            assertParamExists('staffAdminStoreVendorIdGet', 'vendorId', vendorId)
+            const localVarPath = `/staff/admin/store/{vendorId}`
+                .replace(`{${"vendorId"}}`, encodeURIComponent(String(vendorId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
          * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
@@ -321,6 +397,32 @@ export const StaffApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = StaffApiAxiosParamCreator(configuration)
     return {
         /**
+         * Retrieves the details of a specific staff member by their user ID. Only accessible by admins.
+         * @summary Get a single staff member by ID (Admin)
+         * @param {string} staffId The user ID of the staff member.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async staffAdminStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffAdminStaffIdGet(staffId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffAdminStaffIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a list of all staff members (store_admin, store_shopper) for a given store ID. Only accessible by admins.
+         * @summary List all staff for a specific store (Admin)
+         * @param {string} vendorId The ID of the store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async staffAdminStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.staffAdminStoreVendorIdGet(vendorId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['StaffApi.staffAdminStoreVendorIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
          * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
@@ -423,6 +525,26 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = StaffApiFp(configuration)
     return {
         /**
+         * Retrieves the details of a specific staff member by their user ID. Only accessible by admins.
+         * @summary Get a single staff member by ID (Admin)
+         * @param {string} staffId The user ID of the staff member.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        staffAdminStaffIdGet(staffId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffAdminStaffIdGet(staffId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a list of all staff members (store_admin, store_shopper) for a given store ID. Only accessible by admins.
+         * @summary List all staff for a specific store (Admin)
+         * @param {string} vendorId The ID of the store.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        staffAdminStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.staffAdminStoreVendorIdGet(vendorId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
          * @summary List staff members based on user role
          * @param {string} [vendorId] Optional. For Vendors, filters staff by a specific store ID. Ignored for other roles.
@@ -501,6 +623,28 @@ export const StaffApiFactory = function (configuration?: Configuration, basePath
  * StaffApi - object-oriented interface
  */
 export class StaffApi extends BaseAPI {
+    /**
+     * Retrieves the details of a specific staff member by their user ID. Only accessible by admins.
+     * @summary Get a single staff member by ID (Admin)
+     * @param {string} staffId The user ID of the staff member.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public staffAdminStaffIdGet(staffId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffAdminStaffIdGet(staffId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a list of all staff members (store_admin, store_shopper) for a given store ID. Only accessible by admins.
+     * @summary List all staff for a specific store (Admin)
+     * @param {string} vendorId The ID of the store.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public staffAdminStoreVendorIdGet(vendorId: string, options?: RawAxiosRequestConfig) {
+        return StaffApiFp(this.configuration).staffAdminStoreVendorIdGet(vendorId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Retrieves a list of staff members with role-based access control: - **Vendor**: Can see all staff members across all of their stores. Can filter by a specific `vendorId` they own. - **Store Admin**: Can only see staff members from their assigned store. The `vendorId` filter is ignored. - **Store Shopper**: Not authorized to use this endpoint. 
      * @summary List staff members based on user role

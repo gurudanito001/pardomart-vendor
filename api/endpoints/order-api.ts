@@ -22,10 +22,6 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
-import type { ApiV1OrderOrderIdMessagesPostRequest } from '../models';
-// @ts-ignore
-import type { ApiV1OrderOrderIdMessagesReadPatch200Response } from '../models';
-// @ts-ignore
 import type { CalculateFeesPayload } from '../models';
 // @ts-ignore
 import type { CalculateFeesResponse } from '../models';
@@ -44,9 +40,15 @@ import type { MessageWithRelations } from '../models';
 // @ts-ignore
 import type { Order } from '../models';
 // @ts-ignore
+import type { OrderAdminOverviewGet200Response } from '../models';
+// @ts-ignore
 import type { OrderIdVerifyPickupPostRequest } from '../models';
 // @ts-ignore
 import type { OrderItemWithRelations } from '../models';
+// @ts-ignore
+import type { OrderOrderIdMessagesPostRequest } from '../models';
+// @ts-ignore
+import type { OrderOrderIdMessagesReadPatch200Response } from '../models';
 // @ts-ignore
 import type { OrderStatus } from '../models';
 // @ts-ignore
@@ -68,126 +70,6 @@ import type { VendorOrder } from '../models';
  */
 export const OrderApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
-        /**
-         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
-         * @summary Get messages for an order
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesGet: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'orderId' is not null or undefined
-            assertParamExists('apiV1OrderOrderIdMessagesGet', 'orderId', orderId)
-            const localVarPath = `/api/v1/order/{orderId}/messages`
-                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
-         * @summary Send a message related to an order
-         * @param {ApiV1OrderOrderIdMessagesPostRequest} apiV1OrderOrderIdMessagesPostRequest 
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesPost: async (apiV1OrderOrderIdMessagesPostRequest: ApiV1OrderOrderIdMessagesPostRequest, orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'apiV1OrderOrderIdMessagesPostRequest' is not null or undefined
-            assertParamExists('apiV1OrderOrderIdMessagesPost', 'apiV1OrderOrderIdMessagesPostRequest', apiV1OrderOrderIdMessagesPostRequest)
-            // verify required parameter 'orderId' is not null or undefined
-            assertParamExists('apiV1OrderOrderIdMessagesPost', 'orderId', orderId)
-            const localVarPath = `/api/v1/order/{orderId}/messages`
-                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(apiV1OrderOrderIdMessagesPostRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
-         * @summary Mark messages as read
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesReadPatch: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'orderId' is not null or undefined
-            assertParamExists('apiV1OrderOrderIdMessagesReadPatch', 'orderId', orderId)
-            const localVarPath = `/api/v1/order/{orderId}/messages/read`
-                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
         /**
          * 
          * @summary Calculate the total estimated cost for an order
@@ -222,6 +104,195 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(calculateFeesPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * @summary Get a paginated list of all orders (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {string} [createdAtStart] Filter orders created on or after this date.
+         * @param {string} [createdAtEnd] Filter orders created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminAllGet: async (orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/order/admin/all`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (orderCode !== undefined) {
+                localVarQueryParameter['orderCode'] = orderCode;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (customerName !== undefined) {
+                localVarQueryParameter['customerName'] = customerName;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves the complete conversation history for a specific order. Only accessible by admins.
+         * @summary Get all messages for an order (Admin)
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOrderIdMessagesGet: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('orderAdminOrderIdMessagesGet', 'orderId', orderId)
+            const localVarPath = `/order/admin/{orderId}/messages`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows an admin to update specific fields of an order to resolve issues or \"un-stuck\" it. Fields that can be updated include `orderStatus`, `paymentStatus`, `shopperId`, `deliveryPersonId`, etc. **Warning**: Changing `orderStatus` to `delivered` will trigger payout logic. 
+         * @summary Update an order\'s details (Admin)
+         * @param {UpdateOrderPayload} updateOrderPayload 
+         * @param {string} orderId The ID of the order to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOrderIdPatch: async (updateOrderPayload: UpdateOrderPayload, orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateOrderPayload' is not null or undefined
+            assertParamExists('orderAdminOrderIdPatch', 'updateOrderPayload', updateOrderPayload)
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('orderAdminOrderIdPatch', 'orderId', orderId)
+            const localVarPath = `/order/admin/{orderId}`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateOrderPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * @summary Get platform-wide order overview data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/order/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -623,6 +694,126 @@ export const OrderApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
+         * @summary Get messages for an order
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesGet: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('orderOrderIdMessagesGet', 'orderId', orderId)
+            const localVarPath = `/order/{orderId}/messages`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
+         * @summary Send a message related to an order
+         * @param {OrderOrderIdMessagesPostRequest} orderOrderIdMessagesPostRequest 
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesPost: async (orderOrderIdMessagesPostRequest: OrderOrderIdMessagesPostRequest, orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderOrderIdMessagesPostRequest' is not null or undefined
+            assertParamExists('orderOrderIdMessagesPost', 'orderOrderIdMessagesPostRequest', orderOrderIdMessagesPostRequest)
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('orderOrderIdMessagesPost', 'orderId', orderId)
+            const localVarPath = `/order/{orderId}/messages`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(orderOrderIdMessagesPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
+         * @summary Mark messages as read
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesReadPatch: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('orderOrderIdMessagesReadPatch', 'orderId', orderId)
+            const localVarPath = `/order/{orderId}/messages/read`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Mark an order as \'currently shopping\'
          * @param {string} orderId The ID of the order to start shopping for.
@@ -953,46 +1144,6 @@ export const OrderApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = OrderApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
-         * @summary Get messages for an order
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async apiV1OrderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MessageWithRelations>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1OrderOrderIdMessagesGet(orderId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrderApi.apiV1OrderOrderIdMessagesGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
-         * @summary Send a message related to an order
-         * @param {ApiV1OrderOrderIdMessagesPostRequest} apiV1OrderOrderIdMessagesPostRequest 
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest: ApiV1OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageWithRelations>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest, orderId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrderApi.apiV1OrderOrderIdMessagesPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
-         * @summary Mark messages as read
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async apiV1OrderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiV1OrderOrderIdMessagesReadPatch200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiV1OrderOrderIdMessagesReadPatch(orderId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['OrderApi.apiV1OrderOrderIdMessagesReadPatch']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * 
          * @summary Calculate the total estimated cost for an order
          * @param {CalculateFeesPayload} calculateFeesPayload 
@@ -1003,6 +1154,64 @@ export const OrderApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.feesCalculateFeesPost(calculateFeesPayload, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrderApi.feesCalculateFeesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * @summary Get a paginated list of all orders (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {string} [createdAtStart] Filter orders created on or after this date.
+         * @param {string} [createdAtEnd] Filter orders created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderAdminAllGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves the complete conversation history for a specific order. Only accessible by admins.
+         * @summary Get all messages for an order (Admin)
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderAdminOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MessageWithRelations>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderAdminOrderIdMessagesGet(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderAdminOrderIdMessagesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Allows an admin to update specific fields of an order to resolve issues or \"un-stuck\" it. Fields that can be updated include `orderStatus`, `paymentStatus`, `shopperId`, `deliveryPersonId`, etc. **Warning**: Changing `orderStatus` to `delivered` will trigger payout logic. 
+         * @summary Update an order\'s details (Admin)
+         * @param {UpdateOrderPayload} updateOrderPayload 
+         * @param {string} orderId The ID of the order to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderAdminOrderIdPatch(updateOrderPayload: UpdateOrderPayload, orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderAdminOrderIdPatch(updateOrderPayload, orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderAdminOrderIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * @summary Get platform-wide order overview data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderAdminOverviewGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrderAdminOverviewGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderAdminOverviewGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1132,6 +1341,46 @@ export const OrderApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
+         * @summary Get messages for an order
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MessageWithRelations>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderOrderIdMessagesGet(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderOrderIdMessagesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
+         * @summary Send a message related to an order
+         * @param {OrderOrderIdMessagesPostRequest} orderOrderIdMessagesPostRequest 
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest: OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageWithRelations>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest, orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderOrderIdMessagesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
+         * @summary Mark messages as read
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async orderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrderOrderIdMessagesReadPatch200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.orderOrderIdMessagesReadPatch(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrderApi.orderOrderIdMessagesReadPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Mark an order as \'currently shopping\'
          * @param {string} orderId The ID of the order to start shopping for.
@@ -1247,37 +1496,6 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = OrderApiFp(configuration)
     return {
         /**
-         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
-         * @summary Get messages for an order
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<MessageWithRelations>> {
-            return localVarFp.apiV1OrderOrderIdMessagesGet(orderId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
-         * @summary Send a message related to an order
-         * @param {ApiV1OrderOrderIdMessagesPostRequest} apiV1OrderOrderIdMessagesPostRequest 
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest: ApiV1OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageWithRelations> {
-            return localVarFp.apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest, orderId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
-         * @summary Mark messages as read
-         * @param {string} orderId The ID of the order.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiV1OrderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<ApiV1OrderOrderIdMessagesReadPatch200Response> {
-            return localVarFp.apiV1OrderOrderIdMessagesReadPatch(orderId, options).then((request) => request(axios, basePath));
-        },
-        /**
          * 
          * @summary Calculate the total estimated cost for an order
          * @param {CalculateFeesPayload} calculateFeesPayload 
@@ -1286,6 +1504,52 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
          */
         feesCalculateFeesPost(calculateFeesPayload: CalculateFeesPayload, options?: RawAxiosRequestConfig): AxiosPromise<CalculateFeesResponse> {
             return localVarFp.feesCalculateFeesPost(calculateFeesPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * @summary Get a paginated list of all orders (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {string} [createdAtStart] Filter orders created on or after this date.
+         * @param {string} [createdAtEnd] Filter orders created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves the complete conversation history for a specific order. Only accessible by admins.
+         * @summary Get all messages for an order (Admin)
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<MessageWithRelations>> {
+            return localVarFp.orderAdminOrderIdMessagesGet(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Allows an admin to update specific fields of an order to resolve issues or \"un-stuck\" it. Fields that can be updated include `orderStatus`, `paymentStatus`, `shopperId`, `deliveryPersonId`, etc. **Warning**: Changing `orderStatus` to `delivered` will trigger payout logic. 
+         * @summary Update an order\'s details (Admin)
+         * @param {UpdateOrderPayload} updateOrderPayload 
+         * @param {string} orderId The ID of the order to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOrderIdPatch(updateOrderPayload: UpdateOrderPayload, orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.orderAdminOrderIdPatch(updateOrderPayload, orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * @summary Get platform-wide order overview data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<OrderAdminOverviewGet200Response> {
+            return localVarFp.orderAdminOverviewGet(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1387,6 +1651,37 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload, orderId, itemId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
+         * @summary Get messages for an order
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<MessageWithRelations>> {
+            return localVarFp.orderOrderIdMessagesGet(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
+         * @summary Send a message related to an order
+         * @param {OrderOrderIdMessagesPostRequest} orderOrderIdMessagesPostRequest 
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest: OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageWithRelations> {
+            return localVarFp.orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest, orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
+         * @summary Mark messages as read
+         * @param {string} orderId The ID of the order.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        orderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<OrderOrderIdMessagesReadPatch200Response> {
+            return localVarFp.orderOrderIdMessagesReadPatch(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Mark an order as \'currently shopping\'
          * @param {string} orderId The ID of the order to start shopping for.
@@ -1476,40 +1771,6 @@ export const OrderApiFactory = function (configuration?: Configuration, basePath
  */
 export class OrderApi extends BaseAPI {
     /**
-     * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
-     * @summary Get messages for an order
-     * @param {string} orderId The ID of the order.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public apiV1OrderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig) {
-        return OrderApiFp(this.configuration).apiV1OrderOrderIdMessagesGet(orderId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
-     * @summary Send a message related to an order
-     * @param {ApiV1OrderOrderIdMessagesPostRequest} apiV1OrderOrderIdMessagesPostRequest 
-     * @param {string} orderId The ID of the order.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest: ApiV1OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig) {
-        return OrderApiFp(this.configuration).apiV1OrderOrderIdMessagesPost(apiV1OrderOrderIdMessagesPostRequest, orderId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
-     * @summary Mark messages as read
-     * @param {string} orderId The ID of the order.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public apiV1OrderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig) {
-        return OrderApiFp(this.configuration).apiV1OrderOrderIdMessagesReadPatch(orderId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * 
      * @summary Calculate the total estimated cost for an order
      * @param {CalculateFeesPayload} calculateFeesPayload 
@@ -1518,6 +1779,56 @@ export class OrderApi extends BaseAPI {
      */
     public feesCalculateFeesPost(calculateFeesPayload: CalculateFeesPayload, options?: RawAxiosRequestConfig) {
         return OrderApiFp(this.configuration).feesCalculateFeesPost(calculateFeesPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+     * @summary Get a paginated list of all orders (Admin)
+     * @param {string} [orderCode] Filter by order code.
+     * @param {OrderStatus} [status] Filter by order status.
+     * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+     * @param {string} [createdAtStart] Filter orders created on or after this date.
+     * @param {string} [createdAtEnd] Filter orders created on or before this date.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the complete conversation history for a specific order. Only accessible by admins.
+     * @summary Get all messages for an order (Admin)
+     * @param {string} orderId The ID of the order.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderAdminOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderAdminOrderIdMessagesGet(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows an admin to update specific fields of an order to resolve issues or \"un-stuck\" it. Fields that can be updated include `orderStatus`, `paymentStatus`, `shopperId`, `deliveryPersonId`, etc. **Warning**: Changing `orderStatus` to `delivered` will trigger payout logic. 
+     * @summary Update an order\'s details (Admin)
+     * @param {UpdateOrderPayload} updateOrderPayload 
+     * @param {string} orderId The ID of the order to update.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderAdminOrderIdPatch(updateOrderPayload: UpdateOrderPayload, orderId: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderAdminOrderIdPatch(updateOrderPayload, orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+     * @summary Get platform-wide order overview data (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderAdminOverviewGet(options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1626,6 +1937,40 @@ export class OrderApi extends BaseAPI {
      */
     public orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload: UpdateOrderItemShoppingStatusPayload, orderId: string, itemId: string, options?: RawAxiosRequestConfig) {
         return OrderApiFp(this.configuration).orderOrderIdItemsItemIdUpdateShoppingStatusPatch(updateOrderItemShoppingStatusPayload, orderId, itemId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the conversation history for a specific order. The user must be a participant in the order (customer, shopper, or delivery person).
+     * @summary Get messages for an order
+     * @param {string} orderId The ID of the order.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderOrderIdMessagesGet(orderId: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderOrderIdMessagesGet(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Sends a message from the authenticated user to another participant (customer, shopper, or delivery person) of the order.
+     * @summary Send a message related to an order
+     * @param {OrderOrderIdMessagesPostRequest} orderOrderIdMessagesPostRequest 
+     * @param {string} orderId The ID of the order.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest: OrderOrderIdMessagesPostRequest, orderId: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderOrderIdMessagesPost(orderOrderIdMessagesPostRequest, orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Marks all unread messages for the authenticated user within a specific order as read. This is typically called when the user opens the chat screen.
+     * @summary Mark messages as read
+     * @param {string} orderId The ID of the order.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public orderOrderIdMessagesReadPatch(orderId: string, options?: RawAxiosRequestConfig) {
+        return OrderApiFp(this.configuration).orderOrderIdMessagesReadPatch(orderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

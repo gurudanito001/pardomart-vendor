@@ -1,15 +1,15 @@
-import { UpdateVendorProductPayload, VendorProduct } from '@/api';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { useCategories } from '@/hooks/api/useCategories';
 import { useProducts } from '@/hooks/api/useProducts';
 import { useTags } from '@/hooks/api/useTags';
-import { useImagePicker } from '@/hooks/useImagePicker';
 import { useQuery } from '@tanstack/react-query';
-import { Camera, CameraView } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
@@ -33,37 +33,30 @@ export default function EditProductScreen() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const [barcode, setBarcode] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [discountedPrice, setDiscountedPrice] = useState('');
   const [stock, setStock] = useState('');
-  const [sku, setSku] = useState('');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [isAvailable, setIsAvailable] = useState(true);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [isScannerVisible, setIsScannerVisible] = useState(false);
-
-  const { selectedImages, pickFromGallery, removeImage, isLoading: imageLoading } = useImagePicker({ base64: true, multiple: true });
-
-  useEffect(() => {
-    const getCameraPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-
-    getCameraPermissions();
-  }, []);
+  const [published, setPublished] = useState(false);
+  const [isAlcohol, setIsAlcohol] = useState(false);
+  const [isAgeRestricted, setIsAgeRestricted] = useState(false);
+  const [weight, setWeight] = useState('');
+  const [weightUnit, setWeightUnit] = useState('');
+  const [imageLoading, setImageLoading] = useState(false);
+  const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] = useState(false);
+  const weightUnits = ['lb', 'oz', 'g', 'kg', 'gal', 'fl oz', 'l', 'ml', 'ct'];
+  const [images, setImages] = useState<{ id: string; uri: string; base64?: string; isExisting: boolean }[]>([]);
+  const imagesLoadedRef = React.useRef(false);
 
   const { data: productData, isLoading: isLoadingProduct } = useQuery({
     queryKey: ['vendorProduct', productId],
     queryFn: async () => {
       const res = await getProductById(productId!);
-      return res as VendorProduct;
+      return res;
     },
     enabled: !!productId,
   });
@@ -75,9 +68,11 @@ export default function EditProductScreen() {
     setPrice(productData.price != null ? String(productData.price) : '');
     setDiscountedPrice(productData.discountedPrice != null ? String(productData.discountedPrice) : '');
     setIsAvailable(productData.isAvailable ?? true);
-    // productData.categoryIds may be null; prefer to fetch the product list by name
-    // and extract categories from the returned item (see API sample in request).
-    setCategoryIds(productData.categoryIds || []);
+    setPublished(productData.published ?? false);
+    setIsAlcohol(productData.isAlcohol ?? false);
+    setIsAgeRestricted(productData.isAgeRestricted ?? false);
+    setWeight(productData.weight != null ? String(productData.weight) : '');
+    setWeightUnit(productData.weightUnit || '');
     (async () => {
       try {
         if (fetchProductsByStore && productData.name) {
@@ -100,30 +95,56 @@ export default function EditProductScreen() {
         console.warn('fetchProductsByStore failed', err);
       }
     })();
-    setExistingImages(productData.images || []);
+    
+    if (!imagesLoadedRef.current && productData.images && Array.isArray(productData.images)) {
+      setImages(productData.images.map((url, index) => ({
+        id: `existing-${index}-${url}`,
+        uri: url,
+        isExisting: true
+      })));
+      imagesLoadedRef.current = true;
+    }
     // Prefill common editable fields when available on the fetched product
-    setBarcode(productData.barcode || '');
-    setSku(productData.sku || '');
     setStock(productData.stock != null ? String(productData.stock) : '');
     // tags might be named tagIds or tags depending on API shape
-    setTagIds((productData as any).tagIds || (productData as any).tags || []);
+    const rawTags = (productData as any).tagIds || (productData as any).tags || [];
+    const initialTagIds = Array.isArray(rawTags) ? rawTags.map((t: any) => (typeof t === 'object' ? t.id : t)) : [];
+    setTagIds(initialTagIds);
   }, [productData, fetchProductsByStore, storeId]);
+
+  const pickImages = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        // setImageLoading(true); // Set loading state before picking images
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        base64: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        const newImages = result.assets.map((asset) => ({
+          id: asset.uri,
+          uri: asset.uri,
+          base64: asset.base64 || undefined,
+          isExisting: false,
+        }));
+        setImages((prev) => [...prev, ...newImages]);
+        // setImageLoading(false); // Reset loading state after picking images
+      }
+    } catch (error) {
+      // setImageLoading(false); // Reset loading state on error
+      toast.error('Failed to pick images');
+    }
+  };
+
+  const removeImage = (id: string) => {
+    setImages((prev) => prev.filter((img) => img.id !== id));
+  };
 
   const handleGoBack = () => router.back();
   const handleNotifications = () => {};
   const handleCancel = () => router.back();
-
-  const handleScanBarcode = async () => {
-    if (hasPermission === null) {
-      toast.info('Requesting for camera permission...');
-      return;
-    }
-    if (hasPermission === false) {
-      toast.error('No access to camera. Please enable it in your settings.');
-      return;
-    }
-    setIsScannerVisible(true);
-  };
 
   const handleSave = async () => {
     if (!productId) {
@@ -135,21 +156,24 @@ export default function EditProductScreen() {
     if (!price) return toast.error('Price is required.');
     if (categoryIds.length === 0) return toast.error('At least one Category is required.');
 
-    const payload: UpdateVendorProductPayload = {
+    const payload: any = {
       name: name.trim(),
       description: description.trim() || null,
       price: parseFloat(price),
       discountedPrice: discountedPrice ? parseFloat(discountedPrice) : null,
-      sku: sku.trim() || null,
       stock: stock ? parseInt(stock, 10) : null,
       isAvailable,
-      categoryIds,
-      tagIds,
+      published,
+      isAlcohol,
+      isAgeRestricted,
+      weight: weight ? parseFloat(weight) : null,
+      weightUnit: weightUnit.trim() || null,
+      categoryIds: categoryIds.map((c: any) => (typeof c === 'object' ? c.id || c.value : c)),
+      tags: tagIds.map((t: any) => (typeof t === 'object' ? t.id || t.value : t)),
+      images: images.map(img => img.isExisting ? img.uri : img.base64).filter((val): val is string => !!val),
     };
 
-    const newImages = selectedImages.map(img => img.base64).filter((b64): b64 is string => !!b64);
-    if (newImages.length > 0) payload.images = newImages;
-
+    console.log('Updating product with payload:', payload);
     const updated = await updateProduct(productId, payload);
     if (updated) {
       const targetStoreId = storeId ?? (productData as any)?.vendorId ?? (productData as any)?.storeId;
@@ -157,29 +181,27 @@ export default function EditProductScreen() {
     }
   };
 
+  const renderImageItem = ({ item, drag, isActive }: RenderItemParams<{ id: string; uri: string; base64?: string; isExisting: boolean }>) => {
+    return (
+      <ScaleDecorator>
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          style={[styles.imageThumbnail, { opacity: isActive ? 0.5 : 1 }]}
+        >
+          <Image source={{ uri: item.uri }} style={styles.previewImage} />
+          <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(item.id)}>
+            <Text style={styles.removeImageText}>✕</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
+  };
+
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Modal
-        visible={isScannerVisible}
-        animationType="slide"
-        onRequestClose={() => setIsScannerVisible(false)}
-      >
-        <View style={styles.scannerContainer}>
-          <CameraView
-            style={StyleSheet.absoluteFillObject}
-            onBarcodeScanned={(scanningResult) => {
-              if (scanningResult.data) {
-                setIsScannerVisible(false);
-                setBarcode(scanningResult.data);
-                toast.success(`Barcode Scanned: ${scanningResult.data}`);
-              }
-            }}
-            barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "qr", "code128"] }}
-          />
-          <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setIsScannerVisible(false)}><Text style={styles.scannerCloseText}>Cancel</Text></TouchableOpacity>
-        </View>
-      </Modal>
         <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
         <View style={styles.header}>
@@ -206,47 +228,29 @@ export default function EditProductScreen() {
 
           <View style={styles.imageSection}>
             <Text style={styles.fieldLabel}>Product Images</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.imageThumbnails}>
-                {existingImages.map((uri, index) => (
-                  <View key={`exist-${index}`} style={styles.imageThumbnail}>
-                    <Image source={{ uri }} style={styles.previewImage} />
-                  </View>
-                ))}
-                {selectedImages.map((image, index) => (
-                  <View key={`new-${index}`} style={styles.imageThumbnail}>
-                    <Image source={{ uri: image.uri }} style={styles.previewImage} />
-                    <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
-                      <Text style={styles.removeImageText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                <TouchableOpacity style={styles.addImageButton} onPress={() => pickFromGallery()}>
+            <View style={{ height: 100 }}>
+              <DraggableFlatList
+                data={images}
+                onDragEnd={({ data }) => setImages(data)}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={renderImageItem}
+                containerStyle={{ flexGrow: 0 }}
+                contentContainerStyle={styles.imageThumbnails}
+                ListFooterComponent={
+                <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
                   <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
                     <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
                   </Svg>
                   <Text style={styles.addImageText}>Add Image</Text>
                 </TouchableOpacity>
-              </View>
-            </ScrollView>
+                }
+              />
+            </View>
           </View>
 
           <View style={styles.formSection}>
-            <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>Barcode</Text>
-              <View style={styles.barcodeContainer}>
-                <TextInput
-                  style={[styles.textInput, styles.barcodeInput]}
-                  placeholder="Enter or scan barcode"
-                  placeholderTextColor="#7C8BA0"
-                  value={barcode}
-                  onChangeText={setBarcode}
-                />
-                <TouchableOpacity style={styles.scanButton} onPress={handleScanBarcode}>
-                  <Text style={styles.scanButtonText}>Scan</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             <View style={styles.fieldContainer}>
               <Text style={styles.fieldLabel}>Product Name*</Text>
@@ -283,10 +287,23 @@ export default function EditProductScreen() {
                   <TextInput style={styles.textInput} placeholder="e.g., 100" placeholderTextColor="#7C8BA0" value={stock} onChangeText={setStock} keyboardType="number-pad" />
                 </View>
               </View>
+            </View>
+
+            <View style={styles.row}>
               <View style={[styles.fieldContainer, { flex: 1 }]}>
-                <Text style={styles.fieldLabel}>SKU</Text>
+                <Text style={styles.fieldLabel}>Weight</Text>
                 <View style={styles.inputContainer}>
-                  <TextInput style={styles.textInput} placeholder="e.g., SKU123" placeholderTextColor="#7C8BA0" value={sku} onChangeText={setSku} />
+                  <TextInput style={styles.textInput} placeholder="e.g., 0.5" placeholderTextColor="#7C8BA0" value={weight} onChangeText={setWeight} keyboardType="numeric" />
+                </View>
+              </View>
+              <View style={[styles.fieldContainer, { flex: 1 }]}>
+                <Text style={styles.fieldLabel}>Unit</Text>
+                <View style={styles.inputContainer}>
+                  <TouchableOpacity onPress={() => setIsWeightUnitModalVisible(true)}>
+                    <Text style={[styles.textInput, !weightUnit && { color: '#7C8BA0' }]}>
+                      {weightUnit || "Select Unit"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -305,6 +322,18 @@ export default function EditProductScreen() {
               <Text style={styles.fieldLabel}>Is Available?</Text>
               <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isAvailable ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsAvailable} value={isAvailable} />
             </View>
+            <View style={styles.switchContainer}>
+              <Text style={styles.fieldLabel}>Published?</Text>
+              <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={published ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setPublished} value={published} />
+            </View>
+            <View style={styles.switchContainer}>
+              <Text style={styles.fieldLabel}>Alcohol?</Text>
+              <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isAlcohol ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsAlcohol} value={isAlcohol} />
+            </View>
+            <View style={styles.switchContainer}>
+              <Text style={styles.fieldLabel}>Age Restricted?</Text>
+              <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isAgeRestricted ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsAgeRestricted} value={isAgeRestricted} />
+            </View>
           </View>
 
           <View style={styles.bottomActions}>
@@ -316,9 +345,32 @@ export default function EditProductScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        <Modal transparent visible={isWeightUnitModalVisible} animationType="fade" onRequestClose={() => setIsWeightUnitModalVisible(false)}>
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsWeightUnitModalVisible(false)}>
+            <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+              <Text style={styles.modalTitle}>Select Unit</Text>
+              <ScrollView>
+                {weightUnits.map((unit) => (
+                  <TouchableOpacity
+                    key={unit}
+                    style={[styles.optionItem, weightUnit === unit && styles.selectedOption]}
+                    onPress={() => {
+                      setWeightUnit(unit);
+                      setIsWeightUnitModalVisible(false);
+                    }}
+                  >
+                    <Text style={[styles.optionText, weightUnit === unit && styles.selectedOptionText]}>{unit}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
         {(isSubmitting || imageLoading || isLoadingProduct) && <LoadingSpinner overlay message={isSubmitting ? 'Saving product...' : 'Loading product...'} />}
       </SafeAreaView>
     </KeyboardAvoidingView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -407,11 +459,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    paddingRight: 20,
   },
   imageThumbnail: {
     width: 100,
     height: 99,
     borderRadius: 8,
+    marginRight: 12,
   },
   previewImage: {
     width: '100%',
@@ -570,22 +624,45 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 25,
   },
-  scannerContainer: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    padding: 24,
   },
-  scannerCloseButton: {
-    position: 'absolute',
-    bottom: 50,
+  modalContent: {
+    width: '100%',
+    maxHeight: '60%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  optionItem: {
     paddingVertical: 12,
-    paddingHorizontal: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    borderRadius: 8,
+    marginVertical: 2,
   },
-  scannerCloseText: {
-    color: '#000',
-    fontSize: 16,
+  optionText: {
+    fontSize: 14,
+    color: '#111827',
+    fontFamily: 'Open Sans',
+  },
+  selectedOption: {
+    backgroundColor: '#06888C',
+  },
+  selectedOptionText: {
+    color: '#FFF',
+    fontWeight: '600',
   },
 });

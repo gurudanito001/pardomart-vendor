@@ -15,15 +15,21 @@
 
 
 export * from './endpoints/admin-api';
+export * from './endpoints/ads-api';
+export * from './endpoints/announcement-api';
 export * from './endpoints/auth-api';
 export * from './endpoints/bug-report-api';
 export * from './endpoints/cart-api';
 export * from './endpoints/cart-item-api';
 export * from './endpoints/category-api';
+export * from './endpoints/content-api';
 export * from './endpoints/customers-api';
 export * from './endpoints/delivery-api';
 export * from './endpoints/delivery-address-api';
+export * from './endpoints/delivery-persons-api';
 export * from './endpoints/earnings-api';
+export * from './endpoints/error-logs-api';
+export * from './endpoints/faqapi';
 export * from './endpoints/fee-api';
 export * from './endpoints/general-api';
 export * from './endpoints/general-search-api';
@@ -40,6 +46,7 @@ export * from './endpoints/tag-api';
 export * from './endpoints/transaction-api';
 export * from './endpoints/transactions-api';
 export * from './endpoints/user-api';
+export * from './endpoints/users-api';
 export * from './endpoints/vendor-api';
 export * from './endpoints/vendor-opening-hours-api';
 export * from './endpoints/wallet-api';

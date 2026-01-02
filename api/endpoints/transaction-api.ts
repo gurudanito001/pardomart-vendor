@@ -24,7 +24,11 @@ import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError
 // @ts-ignore
 import type { SavedPaymentMethod } from '../models';
 // @ts-ignore
+import type { TransactionStatus } from '../models';
+// @ts-ignore
 import type { TransactionWithRelations } from '../models';
+// @ts-ignore
+import type { TransactionsAdminOverviewGet200Response } from '../models';
 // @ts-ignore
 import type { TransactionsCreatePaymentIntentPost200Response } from '../models';
 // @ts-ignore
@@ -34,6 +38,191 @@ import type { TransactionsCreatePaymentIntentPostRequest } from '../models';
  */
 export const TransactionApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves a paginated list of all transactions on the platform. Allows filtering by orderCode, customer name, status, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all transactions (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {TransactionStatus} [status] Filter by transaction status.
+         * @param {string} [createdAtStart] Filter transactions created on or after this date.
+         * @param {string} [createdAtEnd] Filter transactions created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminAllGet: async (orderCode?: string, customerName?: string, status?: TransactionStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/admin/all`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (orderCode !== undefined) {
+                localVarQueryParameter['orderCode'] = orderCode;
+            }
+
+            if (customerName !== undefined) {
+                localVarQueryParameter['customerName'] = customerName;
+            }
+
+            if (status !== undefined) {
+                for (const [key, value] of Object.entries(status)) {
+                    localVarQueryParameter[key] = value;
+                }
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * @summary Get platform-wide transaction overview (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
+         * @summary Get a single transaction by ID (Admin)
+         * @param {string} transactionId The ID of the transaction to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdGet: async (transactionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionId' is not null or undefined
+            assertParamExists('transactionsAdminTransactionIdGet', 'transactionId', transactionId)
+            const localVarPath = `/transactions/admin/{transactionId}`
+                .replace(`{${"transactionId"}}`, encodeURIComponent(String(transactionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves the details for a transaction, generates an HTML receipt, and sends it to the customer\'s email address. Only accessible by admins.
+         * @summary Generate and send a receipt for a transaction (Admin)
+         * @param {string} transactionId The ID of the transaction to send a receipt for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdSendReceiptPost: async (transactionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionId' is not null or undefined
+            assertParamExists('transactionsAdminTransactionIdSendReceiptPost', 'transactionId', transactionId)
+            const localVarPath = `/transactions/admin/{transactionId}/send-receipt`
+                .replace(`{${"transactionId"}}`, encodeURIComponent(String(transactionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Create a Payment Intent for an order
@@ -215,6 +404,46 @@ export const TransactionApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * 
+         * @summary Simulate a payment (Dev/Test)
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsSimulatePaymentPost: async (transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionsCreatePaymentIntentPostRequest' is not null or undefined
+            assertParamExists('transactionsSimulatePaymentPost', 'transactionsCreatePaymentIntentPostRequest', transactionsCreatePaymentIntentPostRequest)
+            const localVarPath = `/transactions/simulate-payment`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(transactionsCreatePaymentIntentPostRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
@@ -262,6 +491,63 @@ export const TransactionApiAxiosParamCreator = function (configuration?: Configu
 export const TransactionApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = TransactionApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Retrieves a paginated list of all transactions on the platform. Allows filtering by orderCode, customer name, status, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all transactions (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {TransactionStatus} [status] Filter by transaction status.
+         * @param {string} [createdAtStart] Filter transactions created on or after this date.
+         * @param {string} [createdAtEnd] Filter transactions created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminAllGet(orderCode?: string, customerName?: string, status?: TransactionStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminAllGet(orderCode, customerName, status, createdAtStart, createdAtEnd, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminAllGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * @summary Get platform-wide transaction overview (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminOverviewGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TransactionsAdminOverviewGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminOverviewGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
+         * @summary Get a single transaction by ID (Admin)
+         * @param {string} transactionId The ID of the transaction to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminTransactionIdGet(transactionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TransactionWithRelations>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminTransactionIdGet(transactionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminTransactionIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves the details for a transaction, generates an HTML receipt, and sends it to the customer\'s email address. Only accessible by admins.
+         * @summary Generate and send a receipt for a transaction (Admin)
+         * @param {string} transactionId The ID of the transaction to send a receipt for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminTransactionIdSendReceiptPost(transactionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminTransactionIdSendReceiptPost(transactionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminTransactionIdSendReceiptPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * 
          * @summary Create a Payment Intent for an order
@@ -325,6 +611,19 @@ export const TransactionApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * 
+         * @summary Simulate a payment (Dev/Test)
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsSimulatePaymentPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
@@ -346,6 +645,51 @@ export const TransactionApiFp = function(configuration?: Configuration) {
 export const TransactionApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = TransactionApiFp(configuration)
     return {
+        /**
+         * Retrieves a paginated list of all transactions on the platform. Allows filtering by orderCode, customer name, status, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all transactions (Admin)
+         * @param {string} [orderCode] Filter by order code.
+         * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+         * @param {TransactionStatus} [status] Filter by transaction status.
+         * @param {string} [createdAtStart] Filter transactions created on or after this date.
+         * @param {string} [createdAtEnd] Filter transactions created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminAllGet(orderCode?: string, customerName?: string, status?: TransactionStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsAdminAllGet(orderCode, customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * @summary Get platform-wide transaction overview (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<TransactionsAdminOverviewGet200Response> {
+            return localVarFp.transactionsAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
+         * @summary Get a single transaction by ID (Admin)
+         * @param {string} transactionId The ID of the transaction to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdGet(transactionId: string, options?: RawAxiosRequestConfig): AxiosPromise<TransactionWithRelations> {
+            return localVarFp.transactionsAdminTransactionIdGet(transactionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves the details for a transaction, generates an HTML receipt, and sends it to the customer\'s email address. Only accessible by admins.
+         * @summary Generate and send a receipt for a transaction (Admin)
+         * @param {string} transactionId The ID of the transaction to send a receipt for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdSendReceiptPost(transactionId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsAdminTransactionIdSendReceiptPost(transactionId, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @summary Create a Payment Intent for an order
@@ -394,6 +738,16 @@ export const TransactionApiFactory = function (configuration?: Configuration, ba
             return localVarFp.transactionsSetupIntentPost(options).then((request) => request(axios, basePath));
         },
         /**
+         * 
+         * @summary Simulate a payment (Dev/Test)
+         * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a list of all payment-related transactions for stores owned by the authenticated vendor user. Can be filtered by a specific store.
          * @summary Get payment transactions for a vendor user
          * @param {string} [vendorId] Optional. The ID of a specific store (vendor) to filter payments for.
@@ -410,6 +764,55 @@ export const TransactionApiFactory = function (configuration?: Configuration, ba
  * TransactionApi - object-oriented interface
  */
 export class TransactionApi extends BaseAPI {
+    /**
+     * Retrieves a paginated list of all transactions on the platform. Allows filtering by orderCode, customer name, status, and creation date. Only accessible by admins.
+     * @summary Get a paginated list of all transactions (Admin)
+     * @param {string} [orderCode] Filter by order code.
+     * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
+     * @param {TransactionStatus} [status] Filter by transaction status.
+     * @param {string} [createdAtStart] Filter transactions created on or after this date.
+     * @param {string} [createdAtEnd] Filter transactions created on or before this date.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminAllGet(orderCode?: string, customerName?: string, status?: TransactionStatus, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminAllGet(orderCode, customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+     * @summary Get platform-wide transaction overview (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminOverviewGet(options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
+     * @summary Get a single transaction by ID (Admin)
+     * @param {string} transactionId The ID of the transaction to retrieve.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminTransactionIdGet(transactionId: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminTransactionIdGet(transactionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves the details for a transaction, generates an HTML receipt, and sends it to the customer\'s email address. Only accessible by admins.
+     * @summary Generate and send a receipt for a transaction (Admin)
+     * @param {string} transactionId The ID of the transaction to send a receipt for.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminTransactionIdSendReceiptPost(transactionId: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminTransactionIdSendReceiptPost(transactionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @summary Create a Payment Intent for an order
@@ -460,6 +863,17 @@ export class TransactionApi extends BaseAPI {
      */
     public transactionsSetupIntentPost(options?: RawAxiosRequestConfig) {
         return TransactionApiFp(this.configuration).transactionsSetupIntentPost(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Simulate a payment (Dev/Test)
+     * @param {TransactionsCreatePaymentIntentPostRequest} transactionsCreatePaymentIntentPostRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsSimulatePaymentPost(transactionsCreatePaymentIntentPostRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

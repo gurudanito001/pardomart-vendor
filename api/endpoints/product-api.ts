@@ -34,6 +34,10 @@ import type { PaginatedVendorProducts } from '../models';
 // @ts-ignore
 import type { Product } from '../models';
 // @ts-ignore
+import type { ProductIdStatusPatchRequest } from '../models';
+// @ts-ignore
+import type { ProductOverview } from '../models';
+// @ts-ignore
 import type { ProductVendorMyProductsGet200Response } from '../models';
 // @ts-ignore
 import type { ProductVendorTransferPost200Response } from '../models';
@@ -54,6 +58,152 @@ import type { VendorProductWithRelations } from '../models';
  */
 export const ProductApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves a paginated list of all base products in the system. Each product includes a count of how many vendors are selling it.
+         * @summary Get all base products with filtering and pagination (Admin)
+         * @param {string} [name] Filter by product name (case-insensitive contains).
+         * @param {string} [categoryId] Filter by a specific category ID.
+         * @param {boolean} [isAlcohol] Filter for products that are alcoholic.
+         * @param {boolean} [isAgeRestricted] Filter for products that are age-restricted.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminAllGet: async (name?: string, categoryId?: string, isAlcohol?: boolean, isAgeRestricted?: boolean, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/product/admin/all`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+            if (categoryId !== undefined) {
+                localVarQueryParameter['categoryId'] = categoryId;
+            }
+
+            if (isAlcohol !== undefined) {
+                localVarQueryParameter['isAlcohol'] = isAlcohol;
+            }
+
+            if (isAgeRestricted !== undefined) {
+                localVarQueryParameter['isAgeRestricted'] = isAgeRestricted;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about products, such as the total number of base products and vendor product listings.
+         * @summary Get an overview of product data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/product/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a paginated list of all vendor-specific listings for a given base product ID.
+         * @summary Get all vendor products for a specific base product (Admin)
+         * @param {string} productId The ID of the base product.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminProductIdVendorProductsGet: async (productId: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'productId' is not null or undefined
+            assertParamExists('productAdminProductIdVendorProductsGet', 'productId', productId)
+            const localVarPath = `/product/admin/{productId}/vendor-products`
+                .replace(`{${"productId"}}`, encodeURIComponent(String(productId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @summary Get a base product by its barcode
@@ -197,6 +347,50 @@ export const ProductApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(updateProductBasePayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows an admin to enable or disable a base product by setting its `isActive` flag.
+         * @summary Update a base product\'s active status (Admin)
+         * @param {ProductIdStatusPatchRequest} productIdStatusPatchRequest 
+         * @param {string} id The ID of the base product to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productIdStatusPatch: async (productIdStatusPatchRequest: ProductIdStatusPatchRequest, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'productIdStatusPatchRequest' is not null or undefined
+            assertParamExists('productIdStatusPatch', 'productIdStatusPatchRequest', productIdStatusPatchRequest)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('productIdStatusPatch', 'id', id)
+            const localVarPath = `/product/{id}/status`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(productIdStatusPatchRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -848,6 +1042,51 @@ export const ProductApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ProductApiAxiosParamCreator(configuration)
     return {
         /**
+         * Retrieves a paginated list of all base products in the system. Each product includes a count of how many vendors are selling it.
+         * @summary Get all base products with filtering and pagination (Admin)
+         * @param {string} [name] Filter by product name (case-insensitive contains).
+         * @param {string} [categoryId] Filter by a specific category ID.
+         * @param {boolean} [isAlcohol] Filter for products that are alcoholic.
+         * @param {boolean} [isAgeRestricted] Filter for products that are age-restricted.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productAdminAllGet(name?: string, categoryId?: string, isAlcohol?: boolean, isAgeRestricted?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productAdminAllGet(name, categoryId, isAlcohol, isAgeRestricted, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productAdminAllGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about products, such as the total number of base products and vendor product listings.
+         * @summary Get an overview of product data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productAdminOverviewGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProductOverview>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productAdminOverviewGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a paginated list of all vendor-specific listings for a given base product ID.
+         * @summary Get all vendor products for a specific base product (Admin)
+         * @param {string} productId The ID of the base product.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productAdminProductIdVendorProductsGet(productId: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productAdminProductIdVendorProductsGet(productId, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productAdminProductIdVendorProductsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Get a base product by its barcode
          * @param {string} barcode The barcode of the product to find.
@@ -897,6 +1136,20 @@ export const ProductApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.productIdPatch(updateProductBasePayload, id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ProductApi.productIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Allows an admin to enable or disable a base product by setting its `isActive` flag.
+         * @summary Update a base product\'s active status (Admin)
+         * @param {ProductIdStatusPatchRequest} productIdStatusPatchRequest 
+         * @param {string} id The ID of the base product to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productIdStatusPatch(productIdStatusPatchRequest: ProductIdStatusPatchRequest, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productIdStatusPatch(productIdStatusPatchRequest, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProductApi.productIdStatusPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -1117,6 +1370,42 @@ export const ProductApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = ProductApiFp(configuration)
     return {
         /**
+         * Retrieves a paginated list of all base products in the system. Each product includes a count of how many vendors are selling it.
+         * @summary Get all base products with filtering and pagination (Admin)
+         * @param {string} [name] Filter by product name (case-insensitive contains).
+         * @param {string} [categoryId] Filter by a specific category ID.
+         * @param {boolean} [isAlcohol] Filter for products that are alcoholic.
+         * @param {boolean} [isAgeRestricted] Filter for products that are age-restricted.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminAllGet(name?: string, categoryId?: string, isAlcohol?: boolean, isAgeRestricted?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.productAdminAllGet(name, categoryId, isAlcohol, isAgeRestricted, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about products, such as the total number of base products and vendor product listings.
+         * @summary Get an overview of product data (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<ProductOverview> {
+            return localVarFp.productAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a paginated list of all vendor-specific listings for a given base product ID.
+         * @summary Get all vendor products for a specific base product (Admin)
+         * @param {string} productId The ID of the base product.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productAdminProductIdVendorProductsGet(productId: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.productAdminProductIdVendorProductsGet(productId, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Get a base product by its barcode
          * @param {string} barcode The barcode of the product to find.
@@ -1155,6 +1444,17 @@ export const ProductApiFactory = function (configuration?: Configuration, basePa
          */
         productIdPatch(updateProductBasePayload: UpdateProductBasePayload, id: string, options?: RawAxiosRequestConfig): AxiosPromise<ProductWithRelations> {
             return localVarFp.productIdPatch(updateProductBasePayload, id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Allows an admin to enable or disable a base product by setting its `isActive` flag.
+         * @summary Update a base product\'s active status (Admin)
+         * @param {ProductIdStatusPatchRequest} productIdStatusPatchRequest 
+         * @param {string} id The ID of the base product to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productIdStatusPatch(productIdStatusPatchRequest: ProductIdStatusPatchRequest, id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.productIdStatusPatch(productIdStatusPatchRequest, id, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a new base product in the system. This is the generic version of a product, not tied to a specific vendor.
@@ -1327,6 +1627,45 @@ export const ProductApiFactory = function (configuration?: Configuration, basePa
  */
 export class ProductApi extends BaseAPI {
     /**
+     * Retrieves a paginated list of all base products in the system. Each product includes a count of how many vendors are selling it.
+     * @summary Get all base products with filtering and pagination (Admin)
+     * @param {string} [name] Filter by product name (case-insensitive contains).
+     * @param {string} [categoryId] Filter by a specific category ID.
+     * @param {boolean} [isAlcohol] Filter for products that are alcoholic.
+     * @param {boolean} [isAgeRestricted] Filter for products that are age-restricted.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productAdminAllGet(name?: string, categoryId?: string, isAlcohol?: boolean, isAgeRestricted?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productAdminAllGet(name, categoryId, isAlcohol, isAgeRestricted, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about products, such as the total number of base products and vendor product listings.
+     * @summary Get an overview of product data (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productAdminOverviewGet(options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a paginated list of all vendor-specific listings for a given base product ID.
+     * @summary Get all vendor products for a specific base product (Admin)
+     * @param {string} productId The ID of the base product.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productAdminProductIdVendorProductsGet(productId: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productAdminProductIdVendorProductsGet(productId, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Get a base product by its barcode
      * @param {string} barcode The barcode of the product to find.
@@ -1368,6 +1707,18 @@ export class ProductApi extends BaseAPI {
      */
     public productIdPatch(updateProductBasePayload: UpdateProductBasePayload, id: string, options?: RawAxiosRequestConfig) {
         return ProductApiFp(this.configuration).productIdPatch(updateProductBasePayload, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows an admin to enable or disable a base product by setting its `isActive` flag.
+     * @summary Update a base product\'s active status (Admin)
+     * @param {ProductIdStatusPatchRequest} productIdStatusPatchRequest 
+     * @param {string} id The ID of the base product to update.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productIdStatusPatch(productIdStatusPatchRequest: ProductIdStatusPatchRequest, id: string, options?: RawAxiosRequestConfig) {
+        return ProductApiFp(this.configuration).productIdStatusPatch(productIdStatusPatchRequest, id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

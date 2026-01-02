@@ -1,5 +1,6 @@
 import { UpdateVendorPayload } from '@/api';
 import AddressAutocompleteEnhanced from '@/components/AddressAutocompleteEnhanced';
+import PhoneInputWithCountry from '@/components/PhoneInputWithCountry';
 import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useVendor } from '@/hooks/api/useVendors';
@@ -17,6 +18,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -38,6 +40,8 @@ export default function EditStoreScreen() {
   // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [availableForShopping, setAvailableForShopping] = useState(true);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [addressSearch, setAddressSearch] = useState('');
@@ -58,6 +62,8 @@ export default function EditStoreScreen() {
     if (vendor) {
       setName(vendor.name || '');
       setEmail(vendor.email || '');
+      setMobileNumber(vendor.mobileNumber || '');
+      setAvailableForShopping(vendor.availableForShopping ?? true);
       setTagline(vendor.tagline || '');
       setDetails(vendor.details || '');
       setStoreAddress(vendor.address || '');
@@ -87,6 +93,8 @@ export default function EditStoreScreen() {
       const payload: Partial<UpdateVendorPayload> = {
         name,
         email,
+        mobileNumber,
+        availableForShopping,
         tagline,
         details,
         address: storeAddress,
@@ -212,6 +220,16 @@ export default function EditStoreScreen() {
                 />
               </View>
 
+              {/* Store Mobile Number */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Mobile Number</Text>
+                <PhoneInputWithCountry
+                  placeholder="Enter store's mobile number"
+                  value={mobileNumber}
+                  onChangeText={setMobileNumber}
+                />
+              </View>
+
               {/* Store Tagline */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Store Tagline</Text>
@@ -229,6 +247,18 @@ export default function EditStoreScreen() {
                   numberOfLines={4}
                   textAlignVertical="top"
                   inputStyle={{ height: 100, paddingTop: 16 }}
+                />
+              </View>
+
+              {/* Available For Shopping */}
+              <View style={[styles.inputGroup, styles.switchContainer]}>
+                <Text style={styles.inputLabel}>Available for Shopping</Text>
+                <Switch
+                  trackColor={{ false: "#767577", true: "#06888C" }}
+                  thumbColor={availableForShopping ? "#f4f3f4" : "#f4f3f4"}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={setAvailableForShopping}
+                  value={availableForShopping}
                 />
               </View>
             </View>
@@ -310,6 +340,11 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     gap: 9,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   inputLabel: {
     fontSize: 14,

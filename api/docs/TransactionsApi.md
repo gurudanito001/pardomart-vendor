@@ -4,9 +4,69 @@ All URIs are relative to *http://localhost:5000/api/v1*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**customersAdminCustomerIdTransactionsGet**](#customersadmincustomeridtransactionsget) | **GET** /customers/admin/{customerId}/transactions | Get a paginated list of a customer\&#39;s transactions (Admin)|
 |[**customersCustomerIdTransactionsGet**](#customerscustomeridtransactionsget) | **GET** /customers/{customerId}/transactions | List all transactions for a specific customer|
 |[**staffTransactionsGet**](#stafftransactionsget) | **GET** /staff/transactions | List all transactions for a vendor\&#39;s staff|
 |[**transactionsGet**](#transactionsget) | **GET** /transactions | List transactions based on user role|
+
+# **customersAdminCustomerIdTransactionsGet**
+> customersAdminCustomerIdTransactionsGet()
+
+Retrieves a paginated list of all transactions for a specific customer. Only accessible by admins.
+
+### Example
+
+```typescript
+import {
+    TransactionsApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionsApi(configuration);
+
+let customerId: string; //The ID of the customer. (default to undefined)
+let page: number; //Page number for pagination. (optional) (default to 1)
+let size: number; //Number of items per page. (optional) (default to 20)
+
+const { status, data } = await apiInstance.customersAdminCustomerIdTransactionsGet(
+    customerId,
+    page,
+    size
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **customerId** | [**string**] | The ID of the customer. | defaults to undefined|
+| **page** | [**number**] | Page number for pagination. | (optional) defaults to 1|
+| **size** | [**number**] | Number of items per page. | (optional) defaults to 20|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | A paginated list of the customer\&#39;s transactions. |  -  |
+|**404** | Customer not found. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **customersCustomerIdTransactionsGet**
 > Array<Transaction> customersCustomerIdTransactionsGet()

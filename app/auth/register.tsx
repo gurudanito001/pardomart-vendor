@@ -61,7 +61,8 @@ export default function RegisterScreen() {
         params: { identifier: phone, fromScreen: 'register', role: 'vendor' },
       });
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during registration.';
+      // Correctly access the nested error message from our custom ApiError
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.errors[0]?.msg || 'An unexpected error occurred during registration.';
       toast.error(errorMessage);
     }
   };
@@ -122,7 +123,7 @@ export default function RegisterScreen() {
               value={phone}
               onChangeText={setPhone}
               editable={!state.isLoading}
-              placeholder="e.g. +234 801 234 5678"
+              placeholder="e.g. +1 801 234 5678"
             />
           </View>
 

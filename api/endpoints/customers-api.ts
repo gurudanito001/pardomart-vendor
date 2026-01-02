@@ -22,7 +22,11 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { CustomersAdminOverviewGet200Response } from '../models';
+// @ts-ignore
 import type { Transaction } from '../models';
+// @ts-ignore
+import type { UpdateUserPayload } from '../models';
 // @ts-ignore
 import type { UserSummary } from '../models';
 /**
@@ -30,6 +34,253 @@ import type { UserSummary } from '../models';
  */
 export const CustomersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all customers (Admin)
+         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {boolean} [status] Filter by active status (true/false).
+         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
+         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
+         * @param {string} [createdAtStart] Filter customers created on or after this date.
+         * @param {string} [createdAtEnd] Filter customers created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminAllGet: async (name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/customers/admin/all`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (minAmountSpent !== undefined) {
+                localVarQueryParameter['minAmountSpent'] = minAmountSpent;
+            }
+
+            if (maxAmountSpent !== undefined) {
+                localVarQueryParameter['maxAmountSpent'] = maxAmountSpent;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves detailed information for a specific customer, including their profile and order statistics (total, completed, cancelled). Only accessible by admins.
+         * @summary Get a single customer\'s details (Admin)
+         * @param {string} customerId The ID of the customer to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdGet: async (customerId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'customerId' is not null or undefined
+            assertParamExists('customersAdminCustomerIdGet', 'customerId', customerId)
+            const localVarPath = `/customers/admin/{customerId}`
+                .replace(`{${"customerId"}}`, encodeURIComponent(String(customerId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows an admin to update a customer\'s profile details. This is primarily used to suspend or reactivate an account by setting the `active` field to `false` or `true`. Other fields like `name`, `email`, etc., can also be updated. 
+         * @summary Update a customer\'s profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} customerId The ID of the customer to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdPatch: async (updateUserPayload: UpdateUserPayload, customerId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateUserPayload' is not null or undefined
+            assertParamExists('customersAdminCustomerIdPatch', 'updateUserPayload', updateUserPayload)
+            // verify required parameter 'customerId' is not null or undefined
+            assertParamExists('customersAdminCustomerIdPatch', 'customerId', customerId)
+            const localVarPath = `/customers/admin/{customerId}`
+                .replace(`{${"customerId"}}`, encodeURIComponent(String(customerId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateUserPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves a paginated list of all transactions for a specific customer. Only accessible by admins.
+         * @summary Get a paginated list of a customer\'s transactions (Admin)
+         * @param {string} customerId The ID of the customer.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdTransactionsGet: async (customerId: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'customerId' is not null or undefined
+            assertParamExists('customersAdminCustomerIdTransactionsGet', 'customerId', customerId)
+            const localVarPath = `/customers/admin/{customerId}/transactions`
+                .replace(`{${"customerId"}}`, encodeURIComponent(String(customerId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * @summary Get platform-wide customer overview data (Admin)
+         * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminOverviewGet: async (days?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/customers/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (days !== undefined) {
+                localVarQueryParameter['days'] = days;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
          * @summary List all transactions for a specific customer
@@ -122,6 +373,81 @@ export const CustomersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CustomersApiAxiosParamCreator(configuration)
     return {
         /**
+         * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all customers (Admin)
+         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {boolean} [status] Filter by active status (true/false).
+         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
+         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
+         * @param {string} [createdAtStart] Filter customers created on or after this date.
+         * @param {string} [createdAtEnd] Filter customers created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersAdminAllGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves detailed information for a specific customer, including their profile and order statistics (total, completed, cancelled). Only accessible by admins.
+         * @summary Get a single customer\'s details (Admin)
+         * @param {string} customerId The ID of the customer to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminCustomerIdGet(customerId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminCustomerIdGet(customerId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersAdminCustomerIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Allows an admin to update a customer\'s profile details. This is primarily used to suspend or reactivate an account by setting the `active` field to `false` or `true`. Other fields like `name`, `email`, etc., can also be updated. 
+         * @summary Update a customer\'s profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} customerId The ID of the customer to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminCustomerIdPatch(updateUserPayload: UpdateUserPayload, customerId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminCustomerIdPatch(updateUserPayload, customerId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersAdminCustomerIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves a paginated list of all transactions for a specific customer. Only accessible by admins.
+         * @summary Get a paginated list of a customer\'s transactions (Admin)
+         * @param {string} customerId The ID of the customer.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminCustomerIdTransactionsGet(customerId: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminCustomerIdTransactionsGet(customerId, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersAdminCustomerIdTransactionsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * @summary Get platform-wide customer overview data (Admin)
+         * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminOverviewGet(days?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CustomersAdminOverviewGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminOverviewGet(days, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CustomersApi.customersAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
          * @summary List all transactions for a specific customer
          * @param {string} customerId The ID of the customer.
@@ -158,6 +484,66 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
     const localVarFp = CustomersApiFp(configuration)
     return {
         /**
+         * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
+         * @summary Get a paginated list of all customers (Admin)
+         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {boolean} [status] Filter by active status (true/false).
+         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
+         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
+         * @param {string} [createdAtStart] Filter customers created on or after this date.
+         * @param {string} [createdAtEnd] Filter customers created on or before this date.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves detailed information for a specific customer, including their profile and order statistics (total, completed, cancelled). Only accessible by admins.
+         * @summary Get a single customer\'s details (Admin)
+         * @param {string} customerId The ID of the customer to retrieve.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdGet(customerId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminCustomerIdGet(customerId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Allows an admin to update a customer\'s profile details. This is primarily used to suspend or reactivate an account by setting the `active` field to `false` or `true`. Other fields like `name`, `email`, etc., can also be updated. 
+         * @summary Update a customer\'s profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} customerId The ID of the customer to update.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdPatch(updateUserPayload: UpdateUserPayload, customerId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminCustomerIdPatch(updateUserPayload, customerId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves a paginated list of all transactions for a specific customer. Only accessible by admins.
+         * @summary Get a paginated list of a customer\'s transactions (Admin)
+         * @param {string} customerId The ID of the customer.
+         * @param {number} [page] Page number for pagination.
+         * @param {number} [size] Number of items per page.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminCustomerIdTransactionsGet(customerId: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminCustomerIdTransactionsGet(customerId, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * @summary Get platform-wide customer overview data (Admin)
+         * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminOverviewGet(days?: number, options?: RawAxiosRequestConfig): AxiosPromise<CustomersAdminOverviewGet200Response> {
+            return localVarFp.customersAdminOverviewGet(days, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
          * @summary List all transactions for a specific customer
          * @param {string} customerId The ID of the customer.
@@ -185,6 +571,71 @@ export const CustomersApiFactory = function (configuration?: Configuration, base
  * CustomersApi - object-oriented interface
  */
 export class CustomersApi extends BaseAPI {
+    /**
+     * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
+     * @summary Get a paginated list of all customers (Admin)
+     * @param {string} [name] Filter by customer name (case-insensitive).
+     * @param {boolean} [status] Filter by active status (true/false).
+     * @param {number} [minAmountSpent] Filter by minimum total amount spent.
+     * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
+     * @param {string} [createdAtStart] Filter customers created on or after this date.
+     * @param {string} [createdAtEnd] Filter customers created on or before this date.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves detailed information for a specific customer, including their profile and order statistics (total, completed, cancelled). Only accessible by admins.
+     * @summary Get a single customer\'s details (Admin)
+     * @param {string} customerId The ID of the customer to retrieve.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminCustomerIdGet(customerId: string, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersAdminCustomerIdGet(customerId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows an admin to update a customer\'s profile details. This is primarily used to suspend or reactivate an account by setting the `active` field to `false` or `true`. Other fields like `name`, `email`, etc., can also be updated. 
+     * @summary Update a customer\'s profile (Admin)
+     * @param {UpdateUserPayload} updateUserPayload 
+     * @param {string} customerId The ID of the customer to update.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminCustomerIdPatch(updateUserPayload: UpdateUserPayload, customerId: string, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersAdminCustomerIdPatch(updateUserPayload, customerId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves a paginated list of all transactions for a specific customer. Only accessible by admins.
+     * @summary Get a paginated list of a customer\'s transactions (Admin)
+     * @param {string} customerId The ID of the customer.
+     * @param {number} [page] Page number for pagination.
+     * @param {number} [size] Number of items per page.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminCustomerIdTransactionsGet(customerId: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersAdminCustomerIdTransactionsGet(customerId, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+     * @summary Get platform-wide customer overview data (Admin)
+     * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminOverviewGet(days?: number, options?: RawAxiosRequestConfig) {
+        return CustomersApiFp(this.configuration).customersAdminOverviewGet(days, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Retrieves a list of all transactions for a given customer, with role-based access: - **Vendor**: Can view all transactions for the customer across all their stores. Can optionally filter by a specific `vendorId` (store ID). - **Store Admin**: Can only view transactions for the customer within their assigned store. The `vendorId` filter is ignored. 
      * @summary List all transactions for a specific customer

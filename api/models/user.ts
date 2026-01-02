@@ -1,5 +1,5 @@
 /* tslint:disable */
- 
+/* eslint-disable */
 /**
  * PardoMart Node API
  * API documentation for the PardoMart Node.js application.
@@ -19,7 +19,6 @@ import type { Role } from './role';
 
 export interface User {
     'id'?: string;
-    'image'?: string | null;
     'name'?: string | null;
     'email'?: string | null;
     'mobileNumber'?: string;

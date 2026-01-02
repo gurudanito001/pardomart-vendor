@@ -15,13 +15,13 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { CartItem } from './cart-item';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { DeliveryAddress } from './delivery-address';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { DeliveryMethod } from './delivery-method';
-import { OrderItem } from './order-item';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { OrderStatus } from './order-status';
@@ -40,36 +40,32 @@ import type { Vendor } from './vendor';
 
 export interface Order {
     'id'?: string;
-      'orderCode'?: string;
-      'userId'?: string;
-      'vendorId'?: string;
-      'totalAmount'?: number;
-      'subtotal'?: number;
-      'deliveryFee'?: number | null;
-      'serviceFee'?: number | null;
-      'shoppingFee'?: number | null;
-      'paymentMethod'?: PaymentMethods;
-      'paymentStatus'?: OrderPaymentStatusEnum;
-      'orderStatus'?: OrderStatus;
-      'deliveryAddressId'?: string | null;
-      'deliveryInstructions'?: string | null;
-      'shoppingMethod'?: ShoppingMethod;
-      'deliveryMethod'?: DeliveryMethod;
-      'scheduledShoppingStartTime'?: string | null;
-      'scheduledDeliveryTime'?: string | null;
-      'shoppingHandlerId'?: string | null;
-      'deliveryPersonId'?: string | null;
-      'reasonForDecline'?: string | null;
-      'createdAt'?: string;
-      'updatedAt'?: string;
-      'orderItems'?: Array<OrderItem>;
-      'user'?: User;
-      'vendor'?: Vendor;
-      'deliveryAddress'?: DeliveryAddress;
-      'shopper'?: User;
-      'deliverer'?: User;
+    'userId'?: string;
+    'vendorId'?: string;
+    'totalAmount'?: number;
+    'deliveryFee'?: number | null;
+    'serviceFee'?: number | null;
+    'shoppingFee'?: number | null;
+    'paymentMethod'?: PaymentMethods;
+    'paymentStatus'?: OrderPaymentStatusEnum;
+    'orderStatus'?: OrderStatus;
+    'deliveryAddressId'?: string | null;
+    'deliveryInstructions'?: string | null;
+    'shoppingMethod'?: ShoppingMethod;
+    'deliveryMethod'?: DeliveryMethod;
+    'scheduledShoppingStartTime'?: string | null;
+    'shoppingHandlerId'?: string | null;
+    'deliveryPersonId'?: string | null;
+    'reasonForDecline'?: string | null;
+    'createdAt'?: string;
+    'updatedAt'?: string;
+    'orderItems'?: Array<CartItem>;
+    'user'?: User;
+    'vendor'?: Vendor;
+    'deliveryAddress'?: DeliveryAddress;
+    'shopper'?: User;
+    'deliverer'?: User;
 }
-
 
 export const OrderPaymentStatusEnum = {
     Pending: 'pending',

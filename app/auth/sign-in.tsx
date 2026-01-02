@@ -46,7 +46,7 @@ export default function SignInScreen() {
       });
     } catch (err: any) {
       // Correctly access the nested error message from our custom ApiError
-      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during sign in.';
+      const errorMessage = err?.response?.data?.message || err?.response?.data?.errors[0]?.mgs || 'An unexpected error occurred during sign in.';
       toast.error(errorMessage);
     }
   };
@@ -105,7 +105,7 @@ export default function SignInScreen() {
             value={phone} // Keep controlled component behavior
             onChangeText={setPhone} // Pass setter function directly
             editable={!state.isLoading}
-            placeholder="e.g. +234 801 234 5678"
+            placeholder="e.g. +1 801 234 5678"
             autoFocus
           />
         </View>

@@ -14,14 +14,14 @@
 
 
 
-export interface ApiV1OrderOrderIdMessagesPostRequest {
+export interface CategoryOverview {
     /**
-     * The ID of the user who is the recipient of the message.
+     * The total number of top-level categories.
      */
-    'recipientId': string;
+    'totalParentCategories'?: number;
     /**
-     * The text content of the message.
+     * The total number of categories that are children of another category.
      */
-    'content': string;
+    'totalSubCategories'?: number;
 }
 

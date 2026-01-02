@@ -1,25 +1,21 @@
 import { toast } from "@/utils/toast";
+import * as DocumentPicker from "expo-document-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Path, Svg } from "react-native-svg";
 import { apiConfig } from "../../../api/config";
 import { MediaApi } from "../../../api/endpoints/media-api";
-import {
-  useDocumentPicker,
-  type ImagePickerResult,
-} from "../../../hooks/useImagePicker";
 
 interface UploadedFile {
   id: string;
@@ -29,47 +25,30 @@ interface UploadedFile {
   progress: number;
 }
 
-function guessMimeType(fileName?: string): string {
-  if (!fileName) return "image/jpeg";
-  const ext = fileName.split(".").pop()?.toLowerCase();
-  switch (ext) {
-    case "jpg":
-    case "jpeg":
-      return "image/jpeg";
-    case "png":
-      return "image/png";
-    case "webp":
-      return "image/webp";
-    case "gif":
-      return "image/gif";
-    default:
-      return "image/jpeg";
-  }
+interface PickedFile {
+  uri: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  base64?: string;
 }
 
 async function prepareUploadFile(
-  img: ImagePickerResult,
+  doc: PickedFile,
   fallbackName: string
 ): Promise<File | any> {
-  const name = img.fileName || fallbackName;
-  const type = guessMimeType(name);
+  const name = doc.fileName || fallbackName;
+  const type = doc.mimeType || "application/pdf";
 
   if (Platform.OS === "web") {
-    if (img.base64) {
-      const byteChars = atob(img.base64);
-      const byteNumbers = Array.from(byteChars, (char) => char.charCodeAt(0));
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type });
-      return new File([blob], name, { type });
-    }
-    const res = await fetch(img.uri);
+    const res = await fetch(doc.uri);
     const blob = await res.blob();
     // Ensure the file has a name and type
     return new File([blob], name, { type: blob.type || type, lastModified: Date.now() });
   }
 
   return {
-    uri: img.uri,
+    uri: doc.uri,
     name,
     type,
   } as any;
@@ -79,27 +58,16 @@ export default function UploadDocumentsScreen() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
 
   const [certificate, setCertificate] = useState<UploadedFile | null>(null);
-  const [certificateImage, setCertificateImage] =
-    useState<ImagePickerResult | null>(null);
-  const [idCard, setIdCard] = useState<UploadedFile | null>(null);
-  const [idCardImage, setIdCardImage] = useState<ImagePickerResult | null>(
+  const [certificateImage, setCertificateImage] = useState<PickedFile | null>(
     null
   );
+  const [idCard, setIdCard] = useState<UploadedFile | null>(null);
+  const [idCardImage, setIdCardImage] = useState<PickedFile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [certificateLoading, setCertificateLoading] = useState(false);
+  const [idCardLoading, setIdCardLoading] = useState(false);
 
   const mediaApi = useMemo(() => new MediaApi(apiConfig), []);
-
-  const storeCertificatePicker = useDocumentPicker({
-    showAlert: true,
-    alertTitle: "Upload Store Certificate",
-    alertMessage: "Choose how to upload your store certificate",
-  });
-
-  const idCardPicker = useDocumentPicker({
-    showAlert: true,
-    alertTitle: "Upload ID Card/Licence",
-    alertMessage: "Choose how to upload your ID card or licence",
-  });
 
   const handleGoBack = () => {
     router.back();
@@ -109,23 +77,77 @@ export default function UploadDocumentsScreen() {
     router.replace("/(private)/store" as any);
   };
 
-  const handleStoreCertificateUpload = () => {
-    storeCertificatePicker.showImagePicker();
+  const handleStoreCertificateUpload = async () => {
+    setCertificateLoading(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled === false && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        setCertificate({
+          id: `cert-${Date.now()}`,
+          name: asset.name,
+          uri: asset.uri,
+          fileSize: asset.size,
+          progress: 100,
+        });
+        setCertificateImage({
+          uri: asset.uri,
+          fileName: asset.name,
+          fileSize: asset.size,
+          mimeType: asset.mimeType,
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to pick document.");
+      console.error("Document picking error:", err);
+    } finally {
+      setCertificateLoading(false);
+    }
   };
 
-  const handleIdCardUpload = () => {
-    idCardPicker.showImagePicker();
+  const handleIdCardUpload = async () => {
+    setIdCardLoading(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled === false && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        setIdCard({
+          id: `id-${Date.now()}`,
+          name: asset.name,
+          uri: asset.uri,
+          fileSize: asset.size,
+          progress: 100,
+        });
+        setIdCardImage({
+          uri: asset.uri,
+          fileName: asset.name,
+          fileSize: asset.size,
+          mimeType: asset.mimeType,
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to pick document.");
+      console.error("Document picking error:", err);
+    } finally {
+      setIdCardLoading(false);
+    }
   };
 
   const handleRemoveFile = (type: "certificate" | "id") => {
     if (type === "certificate") {
       setCertificate(null);
       setCertificateImage(null);
-      storeCertificatePicker.clearImage();
     } else {
       setIdCard(null);
       setIdCardImage(null);
-      idCardPicker.clearImage();
     }
   };
 
@@ -135,38 +157,46 @@ export default function UploadDocumentsScreen() {
       return;
     }
     if (!certificateImage) {
-      toast.error("Please upload your Store Certificate.");
-      return;
-    }
-    if (!idCardImage) {
-      toast.error("Please upload your Identity Document.");
+      toast.error("Please upload your Business registration document.");
       return;
     }
 
     try {
       setIsSubmitting(true);
 
-      const certFile = await prepareUploadFile(
-        certificateImage,
-        "store-certificate.jpg"
-      );
-      const idFile = await prepareUploadFile(
-        idCardImage,
-        "identity-document.jpg"
-      );
+      const uploads = [];
 
-      await Promise.all([
-        mediaApi.mediaUploadPost({
-          file: certFile,
-          referenceId: String(storeId),
-          referenceType: "document",
-        }),
-        mediaApi.mediaUploadPost({
-          file: idFile,
-          referenceId: String(storeId),
-          referenceType: "document",
-        }),
-      ]);
+      if (certificateImage) {
+        const certFile = await prepareUploadFile(
+          certificateImage,
+          "store-certificate.pdf"
+        );
+        uploads.push(
+          mediaApi.mediaUploadPost(
+            certFile,
+            String(storeId),
+            "document",
+          )
+        );
+      }
+
+      if (idCardImage) {
+        const idFile = await prepareUploadFile(idCardImage, "identity-document.pdf");
+        uploads.push(
+          mediaApi.mediaUploadPost(
+            idFile,
+            String(storeId),
+            "document",
+          )
+        );
+      }
+
+      if (uploads.length === 0) {
+        toast.info("No documents to upload.");
+        return;
+      }
+
+      await Promise.all(uploads);
 
       toast.success("Documents uploaded successfully.");
       router.push("/(private)/store/document-verification" as any);
@@ -182,43 +212,18 @@ export default function UploadDocumentsScreen() {
     }
   };
 
-  React.useEffect(() => {
-    if (storeCertificatePicker.selectedImage) {
-      const s = storeCertificatePicker.selectedImage;
-      setCertificate({
-        id: `cert-${Date.now()}`,
-        name: s.fileName ?? "Store Certificate",
-        uri: s.uri,
-        fileSize: s.fileSize,
-        progress: 100,
-      });
-      setCertificateImage(s);
-      storeCertificatePicker.clearImage();
-    }
-  }, [storeCertificatePicker, storeCertificatePicker.selectedImage]);
-
-  React.useEffect(() => {
-    if (idCardPicker.selectedImage) {
-      const s = idCardPicker.selectedImage;
-      setIdCard({
-        id: "id-1",
-        name: s.fileName ?? "ID Card/Licence",
-        uri: s.uri,
-        fileSize: s.fileSize,
-        progress: 100,
-      });
-      setIdCardImage(s);
-      // Do not clear; we manage local copy
-      idCardPicker.clearImage();
-    }
-  }, [idCardPicker, idCardPicker.selectedImage]);
-
   const UploadIcon = () => (
     <Svg width="60" height="60" viewBox="0 0 60 60" fill="none">
       <Path
         d="M21.775 19.275L27.5 13.525V37.5C27.5 38.163 27.7634 38.7989 28.2322 39.2677C28.7011 39.7366 29.337 40 30 40C30.663 40 31.2989 39.7366 31.7678 39.2677C32.2366 38.7989 32.5 38.163 32.5 37.5V13.525L38.225 19.275C38.4574 19.5093 38.7339 19.6953 39.0386 19.8222C39.3432 19.9491 39.67 20.0145 40 20.0145C40.33 20.0145 40.6568 19.9491 40.9614 19.8222C41.2661 19.6953 41.5426 19.5093 41.775 19.275C42.0093 19.0426 42.1953 18.7661 42.3222 18.4614C42.4492 18.1568 42.5145 17.83 42.5145 17.5C42.5145 17.17 42.4492 16.8432 42.3222 16.5385C42.1953 16.2339 42.0093 15.9574 41.775 15.725L31.775 5.72499C31.5372 5.49738 31.2569 5.31897 30.95 5.19998C30.3413 4.94994 29.6587 4.94994 29.05 5.19998C28.7431 5.31897 28.4628 5.49738 28.225 5.72499L18.225 15.725C17.9919 15.9581 17.807 16.2348 17.6809 16.5394C17.5547 16.8439 17.4898 17.1703 17.4898 17.5C17.4898 17.8296 17.5547 18.1561 17.6809 18.4606C17.807 18.7652 17.9919 19.0419 18.225 19.275C18.4581 19.5081 18.7348 19.693 19.0394 19.8191C19.3439 19.9453 19.6704 20.0102 20 20.0102C20.3296 20.0102 20.6561 19.9453 20.9606 19.8191C21.2652 19.693 21.5419 19.5081 21.775 19.275ZM52.5 30C51.837 30 51.2011 30.2634 50.7322 30.7322C50.2634 31.2011 50 31.8369 50 32.5V47.5C50 48.163 49.7366 48.7989 49.2678 49.2678C48.7989 49.7366 48.163 50 47.5 50H12.5C11.837 50 11.2011 49.7366 10.7322 49.2678C10.2634 48.7989 10 48.163 10 47.5V32.5C10 31.8369 9.73661 31.2011 9.26777 30.7322C8.79893 30.2634 8.16304 30 7.5 30C6.83696 30 6.20107 30.2634 5.73223 30.7322C5.26339 31.2011 5 31.8369 5 32.5V47.5C5 49.4891 5.79018 51.3968 7.1967 52.8033C8.60322 54.2098 10.5109 55 12.5 55H47.5C49.4891 55 51.3968 54.2098 52.8033 52.8033C54.2098 51.3968 55 49.4891 55 47.5V32.5C55 31.8369 54.7366 31.2011 54.2678 30.7322C53.7989 30.2634 53.163 30 52.5 30Z"
         fill="#4B4E61"
       />
+    </Svg>
+  );
+
+  const PdfIcon = () => (
+    <Svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+      <Path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM9.5 14.5V12.5H14.5V14.5H9.5ZM9.5 17.5V15.5H14.5V17.5H9.5Z" fill="#DA5742"/>
     </Svg>
   );
 
@@ -254,11 +259,11 @@ export default function UploadDocumentsScreen() {
       <UploadIcon />
       <View style={styles.uploadTextContainer}>
         <Text style={styles.uploadText}>
-          Drop Your Images here or{" "}
-          <Text style={styles.browseText}>Click to browse</Text>
+          Attach your document here.{" "}
+          <Text style={styles.browseText}>Browse files</Text>
         </Text>
         <Text style={styles.fileTypesText}>
-          PNG, JPEG and GIF files are allowed
+          PDF format only. Max 20 MB.
         </Text>
       </View>
     </TouchableOpacity>
@@ -273,7 +278,7 @@ export default function UploadDocumentsScreen() {
   }) => (
     <View style={styles.uploadedFileCard}>
       <View style={styles.uploadedFileContent}>
-        <Image source={{ uri: file.uri }} style={styles.fileIcon} />
+        <PdfIcon />
         <View style={styles.fileInfo}>
           <Text style={styles.fileName}>{file.name}</Text>
           <View style={styles.progressContainer}>
@@ -344,7 +349,7 @@ export default function UploadDocumentsScreen() {
               <View style={styles.numberBadge}>
                 <Text style={styles.numberText}>1</Text>
               </View>
-              <Text style={styles.sectionTitle}>Store Certificate</Text>
+              <Text style={styles.sectionTitle}>Store/Business Registration document</Text>
             </View>
 
             {certificate ? (
@@ -357,14 +362,8 @@ export default function UploadDocumentsScreen() {
             {!certificate && (
               <UploadZone
                 onPress={handleStoreCertificateUpload}
-                isLoading={storeCertificatePicker.isLoading}
+                isLoading={certificateLoading}
               />
-            )}
-
-            {storeCertificatePicker.error && (
-              <Text style={styles.errorText}>
-                {storeCertificatePicker.error}
-              </Text>
             )}
           </View>
 
@@ -373,7 +372,7 @@ export default function UploadDocumentsScreen() {
               <View style={styles.numberBadge}>
                 <Text style={styles.numberText}>2</Text>
               </View>
-              <Text style={styles.sectionTitle}>ID card/Licence</Text>
+              <Text style={styles.sectionTitle}>Other Business documents</Text>
             </View>
 
             {idCard ? (
@@ -384,12 +383,8 @@ export default function UploadDocumentsScreen() {
             ) : (
               <UploadZone
                 onPress={handleIdCardUpload}
-                isLoading={idCardPicker.isLoading}
+                isLoading={idCardLoading}
               />
-            )}
-
-            {idCardPicker.error && (
-              <Text style={styles.errorText}>{idCardPicker.error}</Text>
             )}
           </View>
 
