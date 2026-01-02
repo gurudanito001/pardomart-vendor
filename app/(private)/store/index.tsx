@@ -103,7 +103,7 @@ export default function StoreScreen() {
 
   // Otherwise, render populated store content
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       {/* Header */}
@@ -124,7 +124,7 @@ export default function StoreScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Stores Count */}
           <Text style={styles.storesCount}>You have {totalStores} {totalStores === 1 ? 'store' : 'stores'} added</Text>

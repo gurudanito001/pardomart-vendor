@@ -91,7 +91,7 @@ export default function AddStaffScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       <View style={styles.header}>
@@ -102,7 +102,7 @@ export default function AddStaffScreen() {
         <View style={{ width: 30 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', android: undefined })} style={{ flex: 1, backgroundColor: '#FFF' }}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <View style={styles.fieldGroup}>

@@ -2,11 +2,11 @@ import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ConfettiSVG from '../../../assets/images/confetti_15552843 1.svg';
@@ -27,7 +27,7 @@ export default function SuccessScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]} edges={['top', 'left', 'right']}>
       <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
       
       {/* Header */}
@@ -44,6 +44,7 @@ export default function SuccessScreen() {
         </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Main Content */}
       <View style={styles.content}>
         {/* Celebration Icon */}
@@ -68,6 +69,7 @@ export default function SuccessScreen() {
           fullWidth
           style={styles.ordersButton}
         />
+      </View>
       </View>
     </SafeAreaView>
   );

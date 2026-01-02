@@ -92,7 +92,7 @@ export default function MyShoppersScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       {/* Header with Dropdown Filter */}
@@ -125,7 +125,7 @@ export default function MyShoppersScreen() {
       </View>
 
       {/* Content Body */}
-      <View style={styles.contentWrapper}>
+      <View style={[styles.contentWrapper, { backgroundColor: '#FFF' }]}>
         {totalIsLoading ? (
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color="#06888C" />

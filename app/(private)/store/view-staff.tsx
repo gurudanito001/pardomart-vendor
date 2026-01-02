@@ -179,7 +179,7 @@ export default function ViewShopperScreen() {
   const isBusy = isLoading || isFetching;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
@@ -194,7 +194,7 @@ export default function ViewShopperScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.content, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
         {isBusy ? (
           <View style={{flex:1,alignItems:'center',justifyContent:'center',paddingVertical:40}}>
             <ActivityIndicator size="large" color="#06888C" />

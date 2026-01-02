@@ -111,7 +111,7 @@ export default function SupportScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: "#06888C" }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       {/* Header */}
@@ -136,7 +136,7 @@ export default function SupportScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.content, { backgroundColor: "#FFF" }]} showsVerticalScrollIndicator={false}>
         {/* Help Section */}
         <View style={styles.helpSection}>
           <Text style={styles.helpTitle}>We are here to help</Text>

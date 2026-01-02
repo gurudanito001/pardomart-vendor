@@ -296,7 +296,7 @@ export default function UploadDocumentsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       <View style={styles.header}>
@@ -337,6 +337,7 @@ export default function UploadDocumentsScreen() {
 
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={{ backgroundColor: '#FFF', flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>

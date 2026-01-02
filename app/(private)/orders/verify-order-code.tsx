@@ -224,7 +224,7 @@ export default function VerifyOrderCode() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar backgroundColor="#06888C" barStyle="light-content" />
       
       {/* Header */}
@@ -244,6 +244,7 @@ export default function VerifyOrderCode() {
         </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Order Summary Card */}
         <View style={styles.orderCard}>
@@ -381,6 +382,7 @@ export default function VerifyOrderCode() {
           />
         </View>
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

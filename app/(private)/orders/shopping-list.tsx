@@ -177,7 +177,7 @@ export default function ShoppingListScreen() {
 
   if (order && (order.orderStatus === 'delivered' || order.orderStatus === 'picked_up_by_customer')) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: '#FFF' }]}>
         <CompletedOrdersSVG />
         <Text style={styles.successTitle}>Order Completed</Text>
         <Text style={styles.successMessage}>
@@ -200,14 +200,14 @@ export default function ShoppingListScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: '#FFF' }]}>
         <Text style={styles.errorText}>Error: {error?.message}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       {/* Header */}
@@ -227,6 +227,7 @@ export default function ShoppingListScreen() {
         </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       {/* Tab Bar */}
       <View style={styles.tabBar}>
         <TouchableOpacity
@@ -283,6 +284,7 @@ export default function ShoppingListScreen() {
             <Text style={styles.continueButtonText}>Continue Shopping</Text>
           </TouchableOpacity>
         )}
+      </View>
       </View>
     </SafeAreaView>
   );

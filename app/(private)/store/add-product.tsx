@@ -192,7 +192,7 @@ export default function AddProductScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <Modal
         visible={isScannerVisible}
         animationType="slide"
@@ -232,7 +232,7 @@ export default function AddProductScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} style={{ backgroundColor: '#FFF' }} showsVerticalScrollIndicator={false}>
         {/* Add Product Details Section */}
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Add Product details</Text>

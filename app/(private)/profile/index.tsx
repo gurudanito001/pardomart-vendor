@@ -10,6 +10,7 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -86,7 +87,8 @@ const ProfileScreen = () => {
 
   if (authLoading && !user) {
     return (
-      <SafeAreaView style={styles.container} edges={['top','left','right']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F48022" />
           <Text style={styles.loadingText}>Loading profile...</Text>
@@ -97,7 +99,8 @@ const ProfileScreen = () => {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container} edges={['top','left','right']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Unable to load profile. Please try again.</Text>
           <Pressable style={styles.retryButton} onPress={handleRefresh}>
@@ -109,7 +112,8 @@ const ProfileScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top','left','right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+      <StatusBar barStyle={isScrolled ? "dark-content" : "light-content"} backgroundColor={isScrolled ? "#FFF" : "#06888C"} />
       <View style={[
         styles.header, 
         isScrolled && styles.scrolledHeader,
@@ -118,13 +122,16 @@ const ProfileScreen = () => {
       ]}>
         <View style={styles.headerLeft}>
           <Pressable style={styles.backButton} onPress={handleGoBack}>
-            <Ionicons name="chevron-back" size={24} color="#100A37" />
+            <Ionicons name="chevron-back" size={24} color={isScrolled ? "#100A37" : "#FFF"} />
           </Pressable>
-          <Text style={styles.headerTitle}>Account</Text>
+          <Text style={[styles.headerTitle, { color: isScrolled ? "#000" : "#FFF" }]}>Account</Text>
         </View>
-        <NotificationBell from="/profile/profile" />
+        <View style={!isScrolled && { borderColor: '#FFF', borderWidth: 1, borderRadius: 20 }}>
+          <NotificationBell from="/profile/profile" color={isScrolled ? undefined : "#FFF"} />
+        </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -171,6 +178,7 @@ const ProfileScreen = () => {
           <MenuItem title="Logout" icon="log-out-outline" onPress={handleLogout} isLogout={true} />
         </MenuSection>
       </ScrollView>
+      </View>
 
       <Modal
         transparent

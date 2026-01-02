@@ -117,7 +117,7 @@ export default function StoreProductsScreen() {
   const showingCount = filteredProducts.length;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Extended Header Background */}
@@ -205,7 +205,7 @@ export default function StoreProductsScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           {/* Products Header */}
           <Text style={styles.productsHeader}>Products ({totalProducts})</Text>

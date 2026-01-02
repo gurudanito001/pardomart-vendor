@@ -201,7 +201,7 @@ export default function EditProductScreen() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
         <View style={styles.header}>
@@ -220,7 +220,7 @@ export default function EditProductScreen() {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.content} style={{ backgroundColor: '#FFF' }} showsVerticalScrollIndicator={false}>
           <View style={styles.detailsSection}>
             <Text style={styles.sectionTitle}>Edit Product details</Text>
             <Text style={styles.sectionSubtitle}>Update your product information</Text>

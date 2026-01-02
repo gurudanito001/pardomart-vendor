@@ -4,6 +4,7 @@ import React from 'react';
 import {
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -22,20 +23,22 @@ const PrivacyPolicy = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top','left','right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Pressable style={styles.backButton} onPress={handleGoBack}>
-            <Ionicons name="chevron-back" size={24} color="#100A37" />
+            <Ionicons name="chevron-back" size={24} color="#FFF" />
           </Pressable>
           <Text style={styles.headerTitle}>Privacy & Policy</Text>
         </View>
         <Pressable style={styles.notificationButton} onPress={handleNotifications}>
-          <Ionicons name="notifications-outline" size={24} color="#000" />
+          <Ionicons name="notifications-outline" size={24} color="#FFF" />
         </Pressable>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       {/* Content */}
       <ScrollView 
         style={styles.scrollView}
@@ -54,6 +57,7 @@ const PrivacyPolicy = () => {
           </Text>
         </View>
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 21,
     paddingTop: 20,
     paddingBottom: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: '#06888C',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -87,7 +91,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Raleway-Bold',
-    color: '#000',
+    color: '#FFF',
   },
   notificationButton: {
     width: 40,
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#B4BED4',
+    borderColor: '#FFF',
     backgroundColor: 'transparent',
   },
   scrollView: {

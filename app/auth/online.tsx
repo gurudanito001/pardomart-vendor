@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Image,
   ImageBackground,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,6 +22,7 @@ export default function OnlineScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       {/* Background Map Image */}
       <ImageBackground
         source={{

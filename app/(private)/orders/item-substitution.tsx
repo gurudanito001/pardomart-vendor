@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
@@ -69,10 +70,10 @@ export default function ItemSubstitutionScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       {/* Header Section */}
       <View style={styles.headerSection}>
-        <SafeAreaView style={styles.safeArea}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -86,9 +87,9 @@ export default function ItemSubstitutionScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Delivery Info Section */}
         <View style={styles.deliverySection}>
@@ -158,7 +159,8 @@ export default function ItemSubstitutionScreen() {
           <Text style={styles.scanButtonText}>Scan Item</Text>
         </TouchableOpacity>
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -169,9 +171,6 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     backgroundColor: '#06888C',
-  },
-  safeArea: {
-    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',

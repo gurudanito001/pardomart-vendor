@@ -135,8 +135,8 @@ export default function EditStoreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#06888C" />
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Header */}
       <View style={styles.header}>
@@ -156,7 +156,7 @@ export default function EditStoreScreen() {
       </View>
 
       {isLoadingVendor ? (
-        <View style={styles.centerContent}>
+        <View style={[styles.centerContent, { backgroundColor: '#FFF' }]}>
           <ActivityIndicator size="large" color="#06888C" />
           <Text style={styles.loadingText}>Loading Store Details...</Text>
         </View>
@@ -166,7 +166,7 @@ export default function EditStoreScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
             <View style={styles.formSection}>
               {/* Avatar Image upload */}
               <View style={styles.avatarSection}>

@@ -146,7 +146,7 @@ export default function TransactionsScreen() {
   const storeName = vendor?.name || 'Store Transactions';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
 

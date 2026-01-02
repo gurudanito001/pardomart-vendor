@@ -73,7 +73,7 @@ export default function CustomersScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       {/* Header */}
@@ -97,7 +97,7 @@ export default function CustomersScreen() {
       </View>
 
 
-      <View style={styles.contentWrapper}>
+      <View style={[styles.contentWrapper, { backgroundColor: '#FFF' }]}>
 
 
         {/* Customers List */}

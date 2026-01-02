@@ -1,26 +1,28 @@
 import React from 'react';
 import {
-    Dimensions,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import {
-    CompletedOrdersSVG,
-    CustomersSVG,
-    EarningsWalletSVG,
-    MyShoppersSVG,
-    NotificationSVG,
-    OrderSVG,
-    ResourcesSVG,
-    SettingsSVG,
-    StoreSVG,
-    TransactionsSVG
+  CompletedOrdersSVG,
+  CustomersSVG,
+  EarningsWalletSVG,
+  MyShoppersSVG,
+  NotificationSVG,
+  OrderSVG,
+  ResourcesSVG,
+  SettingsSVG,
+  StoreSVG,
+  TransactionsSVG
 } from '../../../components/icons';
 import DashboardCard from '../../../components/ui/DashboardCard';
 import { colors, shadows, spacing, typography } from '../../../styles/theme';
@@ -100,7 +102,8 @@ export default function FullySetUpStore() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       {/* Header area - green background (status bar intentionally omitted) */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -130,7 +133,7 @@ export default function FullySetUpStore() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} style={{ backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
         <TouchableOpacity activeOpacity={0.9} style={styles.requestsBanner}>
           <View style={styles.requestsLeft}>
             <View style={styles.requestsIconContainer}>
@@ -179,7 +182,7 @@ export default function FullySetUpStore() {
 
         <View style={{ height: 120 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

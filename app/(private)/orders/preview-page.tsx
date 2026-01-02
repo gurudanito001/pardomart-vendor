@@ -106,7 +106,7 @@ export default function PreviewPage() {
   const showCompletedBaggingButton = !postBaggingStatuses.includes(order?.orderStatus as OrderStatus);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
       
       {/* Header */}
@@ -134,6 +134,7 @@ export default function PreviewPage() {
         </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
       {isLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -190,6 +191,7 @@ export default function PreviewPage() {
           </TouchableOpacity>
         </View>
       )}
+      </View>
     </SafeAreaView>
   );
 }

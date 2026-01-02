@@ -414,7 +414,7 @@ export default function StoreHomepage() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
+      <SafeAreaView style={[styles.container, styles.centerContent, { backgroundColor: '#FFF' }]}>
         <ActivityIndicator size="large" color="#06888C" />
         <Text style={styles.loadingText}>Loading Store...</Text>
       </SafeAreaView>
@@ -423,15 +423,15 @@ export default function StoreHomepage() {
 
   if (!vendor) {
     return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
+      <SafeAreaView style={[styles.container, styles.centerContent, { backgroundColor: '#FFF' }]}>
         <Text style={styles.loadingText}>Store information unavailable.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
 
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -461,6 +461,7 @@ export default function StoreHomepage() {
 
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={{ backgroundColor: '#FFF', flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.titleSection}>

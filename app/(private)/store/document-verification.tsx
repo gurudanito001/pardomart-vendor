@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
@@ -70,7 +70,7 @@ export default function DocumentVerificationScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Header */}
@@ -94,7 +94,7 @@ export default function DocumentVerificationScreen() {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: '#FFF' }]}>
         <LoadingSpinner />
         
         <View style={styles.textContainer}>

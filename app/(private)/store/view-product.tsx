@@ -1,7 +1,8 @@
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
+import type { ListRenderItem } from "react-native";
 import {
   ActivityIndicator,
   Dimensions,
@@ -14,7 +15,6 @@ import {
   Text,
   View,
 } from "react-native";
-import type { ListRenderItem } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProducts } from "@/hooks/api/useProducts";
@@ -255,7 +255,7 @@ export default function ProductDetails() {
     );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.primary }]} edges={["top", "left", "right"]}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
       <View style={styles.headerWrapper}>
@@ -264,7 +264,7 @@ export default function ProductDetails() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={[styles.scrollViewContent, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.imageSection}>

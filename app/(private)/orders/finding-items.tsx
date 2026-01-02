@@ -8,6 +8,7 @@ import {
   Image,
   Modal,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -260,11 +261,10 @@ export default function FindingItemsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       {/* Header Section */}
       <View style={styles.headerSection}>
-        <SafeAreaView style={styles.safeArea}>
-
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -287,9 +287,9 @@ export default function FindingItemsScreen() {
             </View>
           </View>
           
-        </SafeAreaView>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
           <View style={[styles.customerCard, styles.customerCardOnHeader]}>
             <View style={styles.customerInfo}>
               <Image
@@ -434,6 +434,7 @@ export default function FindingItemsScreen() {
           )}
         </View>
       </ScrollView>
+      </View>
 
       {/* "Can't Find Item" Modal */}
       <Modal
@@ -541,7 +542,7 @@ export default function FindingItemsScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -578,9 +579,6 @@ const styles = StyleSheet.create({
   headerSection: {
     backgroundColor: '#06888C',
     paddingBottom: 85,
-  },
-  safeArea: {
-    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',

@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -41,7 +41,7 @@ export default function CompleteShoppingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]} edges={['top', 'left', 'right']}>
       <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
       
       {/* Header */}
@@ -59,6 +59,7 @@ export default function CompleteShoppingScreen() {
         </View>
       </View>
 
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Main Content */}
       <View style={styles.content}>
         {/* Delivery Icon */}
@@ -93,6 +94,7 @@ export default function CompleteShoppingScreen() {
           fullWidth
           style={styles.completeButton}
         />
+      </View>
       </View>
     </SafeAreaView>
   );

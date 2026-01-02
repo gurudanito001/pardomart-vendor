@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -139,7 +140,8 @@ export default function OrderDetailsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#06888C" />
@@ -320,7 +322,7 @@ export default function OrderDetailsScreen() {
       </ScrollView>
       </>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 

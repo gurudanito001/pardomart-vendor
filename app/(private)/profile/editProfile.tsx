@@ -10,6 +10,7 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -126,7 +127,8 @@ const EditProfile = () => {
 
   if (!state.user) {
     return (
-      <SafeAreaView style={styles.container} edges={['top','left','right']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F48022" />
           <Text style={styles.loadingText}>Loading profile...</Text>
@@ -136,13 +138,14 @@ const EditProfile = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top','left','right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top','left','right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Pressable style={styles.backButton} onPress={handleGoBack}>
             <Svg width="11" height="18" viewBox="0 0 11 18" fill="none">
-              <Path d="M10.6278 15.993C10.8661 16.2135 11 16.5125 11 16.8243C11 17.1361 10.8661 17.4352 10.6278 17.6556C10.3895 17.8761 10.0662 18 9.72918 18C9.39214 18 9.0689 17.8761 8.83058 17.6556L0.373128 9.83133C0.254859 9.7223 0.161019 9.59274 0.0969895 9.45008C0.0329598 9.30742 0 9.15447 0 9C0 8.84553 0.0329598 8.69258 0.0969895 8.54992C0.161019 8.40726 0.254859 8.2777 0.373128 8.16866L8.83058 0.344349C9.0689 0.123866 9.39214 -4.64634e-09 9.72918 0C10.0662 4.64634e-09 10.3895 0.123866 10.6278 0.34435C10.8661 0.564833 11 0.863872 11 1.17568C11 1.48749 10.8661 1.78653 10.6278 2.00702L3.07 8.99902L10.6278 15.993Z" fill="#100A37"/>
+              <Path d="M10.6278 15.993C10.8661 16.2135 11 16.5125 11 16.8243C11 17.1361 10.8661 17.4352 10.6278 17.6556C10.3895 17.8761 10.0662 18 9.72918 18C9.39214 18 9.0689 17.8761 8.83058 17.6556L0.373128 9.83133C0.254859 9.7223 0.161019 9.59274 0.0969895 9.45008C0.0329598 9.30742 0 9.15447 0 9C0 8.84553 0.0329598 8.69258 0.0969895 8.54992C0.161019 8.40726 0.254859 8.2777 0.373128 8.16866L8.83058 0.344349C9.0689 0.123866 9.39214 -4.64634e-09 9.72918 0C10.0662 4.64634e-09 10.3895 0.123866 10.6278 0.34435C10.8661 0.564833 11 0.863872 11 1.17568C11 1.48749 10.8661 1.78653 10.6278 2.00702L3.07 8.99902L10.6278 15.993Z" fill="#FFF"/>
             </Svg>
           </Pressable>
           <Text style={styles.headerTitle}>Account</Text>
@@ -155,6 +158,7 @@ const EditProfile = () => {
         </Pressable> */}
       </View>
 
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -194,6 +198,7 @@ const EditProfile = () => {
           )}
         </Pressable>
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -209,7 +214,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 21,
     paddingTop: 20,
-    backgroundColor: '#FFF',
+    backgroundColor: '#06888C',
+    paddingBottom: 15,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -226,7 +232,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     fontFamily: 'Raleway-Bold',
-    color: '#000',
+    color: '#FFF',
   },
   notificationButton: {
     width: 40,
@@ -346,6 +352,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFF',
   },
   loadingText: {
     marginTop: 16,
