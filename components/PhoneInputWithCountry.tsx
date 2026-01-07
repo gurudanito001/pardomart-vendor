@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
+import { parsePhoneNumberWithError } from 'libphonenumber-js';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
@@ -31,6 +33,23 @@ const DIAL_PRIMARY: Record<string, string> = {
 
 const parseInitial = (value: string, list: Country[]): { country: Country; local: string } => {
   const countries = list && list.length ? list : [DEFAULT_COUNTRY];
+
+  // 1. Try robust parsing with libphonenumber-js
+  if (value) {
+    try {
+      const input = value.trim().startsWith('+') ? value : `+${value.trim()}`;
+      const phoneNumber = parsePhoneNumberWithError(input);
+      if (phoneNumber.country) {
+        const found = countries.find((c) => c.iso2 === phoneNumber.country);
+        if (found) {
+          return { country: found, local: phoneNumber.nationalNumber as string };
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors (e.g. incomplete number), fall back to manual matching
+    }
+  }
+
   if (value && value.trim().startsWith('+')) {
     const clean = value.replace(/\s/g, '');
     const sorted = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
@@ -54,7 +73,11 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   placeholder = 'Phone Number',
   autoFocus = false,
 }) => {
-  const [list, setList] = useState<Country[]>([]);
+  const { data: list = [] } = useQuery({
+    queryKey: ['countries'],
+    queryFn: () => getCountries(),
+    staleTime: Infinity,
+  });
   const [selected, setSelected] = useState<Country>(DEFAULT_COUNTRY);
   const [localNumber, setLocalNumber] = useState<string>('');
   const [open, setOpen] = useState(false);
@@ -71,16 +94,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   const handleClose = useCallback(() => {
     setOpen(false);
     setTimeout(() => inputRef.current?.focus(), 120);
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    getCountries().then((c) => {
-      if (mounted && c && c.length) setList(c);
-    });
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   const composeFull = (c: Country, local: string) => `${c.dialCode}${local}`;
@@ -102,13 +115,6 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
       return () => clearTimeout(id);
     }
   }, [autoFocus]);
-
-  // Compose full E.164-like value when parts change
-  useEffect(() => {
-    const digitsOnly = localNumber; // already sanitized
-    const combined = `${selected.dialCode}${digitsOnly}`;
-    onChangeText(combined);
-  }, [selected, localNumber, onChangeText]);
 
   const data = useMemo(() => {
     const source = list.length ? list : [DEFAULT_COUNTRY];
@@ -145,7 +151,9 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
       <Pressable
         onPress={() => {
           setSelected(item);
-          setLocalNumber((prev) => normalizeLocal(item.iso2, prev));
+          const newLocal = normalizeLocal(item.iso2, localNumber);
+          setLocalNumber(newLocal);
+          onChangeText(`${item.dialCode}${newLocal}`);
           handleClose();
         }}
         style={[styles.itemRow, isSelected && styles.itemRowSelected]}
@@ -186,7 +194,11 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
           ref={inputRef}
           style={styles.input}
           value={localNumber}
-          onChangeText={(t) => setLocalNumber(normalizeLocal(selected.iso2, t))}
+          onChangeText={(t) => {
+            const newLocal = normalizeLocal(selected.iso2, t);
+            setLocalNumber(newLocal);
+            onChangeText(`${selected.dialCode}${newLocal}`);
+          }}
           keyboardType={Platform.select({ ios: 'number-pad', android: 'numeric', default: 'number-pad' })}
           placeholder={placeholder}
           placeholderTextColor="rgba(111, 115, 128, 0.5)"
@@ -222,6 +234,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
             keyExtractor={(item) => item.iso2}
             renderItem={renderItem}
             keyboardShouldPersistTaps="handled"
+            extraData={{ selected, localNumber }}
           />
         </View>
       </Modal>

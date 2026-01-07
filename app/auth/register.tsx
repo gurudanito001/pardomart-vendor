@@ -62,7 +62,12 @@ export default function RegisterScreen() {
       });
     } catch (err: any) {
       // Correctly access the nested error message from our custom ApiError
-      const errorMessage = err?.response?.data?.message || err?.response?.data?.errors[0]?.msg || 'An unexpected error occurred during registration.';
+      const errorMessage =
+        err?.response?.data?.error ||            // Handles 500 & 401 errors (e.g. "Internal server error")
+        err?.response?.data?.message ||          // Handles 409 & 404 errors (e.g. "User already exists")
+        err?.response?.data?.errors?.[0]?.msg || // Handles 400 Validation errors
+        'An unexpected error occurred during registration.';
+
       toast.error(errorMessage);
     }
   };
@@ -99,6 +104,7 @@ export default function RegisterScreen() {
               editable={!state.isLoading}
               onChangeText={setName}
               autoCapitalize="words"
+              autoFocus
             />
           </View>
 
@@ -258,7 +264,7 @@ const styles = StyleSheet.create({
   },
   termsContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 14,
     marginTop: 7,
   },

@@ -45,8 +45,11 @@ export default function SignInScreen() {
         params: { identifier: trimmedPhone, role: response.role },
       });
     } catch (err: any) {
-      // Correctly access the nested error message from our custom ApiError
-      const errorMessage = err?.response?.data?.message || err?.response?.data?.errors[0]?.mgs || 'An unexpected error occurred during sign in.';
+      const errorMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.errors?.[0]?.msg ||
+        err?.response?.data?.message ||
+        'An unexpected error occurred during sign in.';
       toast.error(errorMessage);
     }
   };

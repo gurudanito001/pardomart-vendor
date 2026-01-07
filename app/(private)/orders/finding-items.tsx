@@ -189,6 +189,7 @@ export default function FindingItemsScreen() {
       const payload = {
         status: 'REPLACED' as const,
         replacementBarcode: barcode,
+        quantityFound: currentItem?.quantity,
       };
       updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
         onSuccess: () => {

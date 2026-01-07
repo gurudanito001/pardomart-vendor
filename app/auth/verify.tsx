@@ -63,7 +63,12 @@ export default function VerifyScreen() {
         // to the main app stack automatically.
       }
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.error || 'An unexpected error occurred during verification.';
+      const errorMessage =
+        err?.response?.data?.error ||            // Handles logic errors (e.g., "Invalid verification code")
+        err?.response?.data?.errors?.[0]?.msg || // Handles validation errors (e.g., "Verification code must be 6 digits")
+        err?.response?.data?.message ||          // Handles generic messages (fallback)
+        'An unexpected error occurred during verification.';
+
       toast.error(errorMessage);
     }
   };

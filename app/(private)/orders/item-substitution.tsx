@@ -1,35 +1,24 @@
-import { router } from 'expo-router';
-import React from 'react';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useUpdateOrderItemStatus } from '@/hooks/api/useOrderMutations';
+import { Camera, CameraView } from 'expo-camera';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
+import { toast } from 'sonner-native';
 import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
-
-interface OrderedItem {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  quantityFound: number;
-  totalQuantity: number;
-}
-
-const MOCK_ORDERED_ITEM: OrderedItem = {
-  id: '1',
-  name: 'Ordered Item',
-  description: 'Valbest fully cooked chicken Nugget- frozen, 9g protein per 4 nugget serving, 24 0z (1.5lb)',
-  image: 'https://api.builder.io/api/v1/image/assets/TEMP/b15e90ad66573202e16cb0681e9db93877e30680?width=114',
-  quantityFound: 2,
-  totalQuantity: 3,
-};
 
 const ChatIcon = () => (
   <Svg width="23" height="22" viewBox="0 0 23 22" fill="none">
@@ -47,6 +36,35 @@ const ScanIcon = () => (
 );
 
 export default function ItemSubstitutionScreen() {
+  const { orderId, itemId } = useLocalSearchParams<{ orderId: string; itemId: string }>();
+  const { data: order, isLoading } = useOrderDetails(orderId);
+  const { mutate: updateItemStatus, isPending: isUpdating } = useUpdateOrderItemStatus();
+
+  const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const [quantity, setQuantity] = useState('');
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (currentItem && !initialized) {
+      setQuantity(String(currentItem.quantity || 1));
+      setInitialized(true);
+    }
+  }, [currentItem, initialized]);
+
+  const currentItem = useMemo(() => {
+    return order?.orderItems?.find(i => i.id === itemId);
+  }, [order, itemId]);
+
+  useEffect(() => {
+    const getCameraPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    };
+    getCameraPermissions();
+  }, []);
+
   const handleGoBack = () => {
     router.back();
   };
@@ -55,18 +73,75 @@ export default function ItemSubstitutionScreen() {
     console.log('Open notifications');
   };
 
-  
-
   const handleChatCustomer = () => {
     console.log('Chat with customer');
   };
 
   const handleNoSubstitution = () => {
-    console.log('No substitution found');
+    if (!orderId || !itemId) return;
+
+    const payload = { status: 'NOT_FOUND' };
+
+    updateItemStatus({ orderId, itemId, payload }, {
+      onSuccess: () => {
+        toast.success("Item marked as not found");
+        router.back();
+      },
+      onError: (err: any) => {
+        toast.error(err.message || "Failed to update item status");
+      }
+    });
   };
 
   const handleScanItem = () => {
-    console.log('Scan item');
+    if (hasPermission === null) {
+      toast.info('Requesting camera permission...');
+      return;
+    }
+    if (hasPermission === false) {
+      toast.error('No camera access');
+      return;
+    }
+    setScanned(false);
+    setIsScannerVisible(true);
+  };
+
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    if (scanned) return;
+    setScanned(true);
+    setIsScannerVisible(false);
+
+    if (!orderId || !itemId) {
+      toast.error("Missing order or item information");
+      return;
+    }
+
+    // Check if scanned barcode matches any suggested replacement
+    const replacement = currentItem?.replacements?.find((r: any) => r.product?.barcode === data);
+    
+    console.log('Scanned Barcode:', data);
+    console.log('Found Replacement:', replacement);
+
+    const payload: any = {
+      status: 'REPLACED',
+      quantityFound: parseInt(quantity, 10) || 1,
+      // If we found a matching replacement in the suggestions, send its ID.
+      // Otherwise send the barcode so backend can handle ad-hoc substitution.
+      ...(replacement ? { chosenReplacementId: replacement.id } : { replacementBarcode: data }),
+    };
+
+    console.log('Submitting substitution payload:', JSON.stringify(payload, null, 2));
+
+    updateItemStatus({ orderId, itemId, payload }, {
+      onSuccess: () => {
+        toast.success("Item substituted successfully");
+        router.back();
+      },
+      onError: (err: any) => {
+        toast.error(err.message || "Failed to substitute item");
+        setScanned(false);
+      }
+    });
   };
 
   return (
@@ -90,6 +165,21 @@ export default function ItemSubstitutionScreen() {
       </View>
 
       <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+      {isLoading ? (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#06888C" />
+        </View>
+      ) : (
+        <>
+      {!currentItem ? (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ fontSize: 16, color: '#666', marginBottom: 20 }}>Item not found</Text>
+          <TouchableOpacity onPress={handleGoBack} style={{ padding: 10, backgroundColor: '#06888C', borderRadius: 8 }}>
+            <Text style={{ color: '#FFF' }}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+      <>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Delivery Info Section */}
         <View style={styles.deliverySection}>
@@ -111,21 +201,33 @@ export default function ItemSubstitutionScreen() {
             <View style={styles.itemRow}>
               <View style={styles.itemImageContainer}>
                 <Image 
-                  source={{ uri: MOCK_ORDERED_ITEM.image }}
+                  source={{ uri: currentItem?.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }}
                   style={styles.itemImage}
                 />
               </View>
               <View style={styles.itemDetails}>
-                <Text style={styles.itemLabel}>{MOCK_ORDERED_ITEM.name}</Text>
-                <Text style={styles.itemDescription}>{MOCK_ORDERED_ITEM.description}</Text>
+                <Text style={styles.itemLabel}>{currentItem?.vendorProduct?.name}</Text>
+                <Text style={styles.itemDescription}>{currentItem?.vendorProduct?.description}</Text>
                 <View style={styles.itemBottomRow}>
-                  <Text style={styles.itemPrice}>$3.88</Text>
+                  <Text style={styles.itemPrice}>${currentItem?.vendorProduct?.price?.toFixed(2)}</Text>
                   <Text style={styles.quantityFound}>
-                    {MOCK_ORDERED_ITEM.quantityFound} of {MOCK_ORDERED_ITEM.totalQuantity} found
+                    {currentItem?.quantityFound ?? 0} of {currentItem?.quantity} found
                   </Text>
                 </View>
               </View>
             </View>
+          </View>
+
+          {/* Quantity Input */}
+          <View style={styles.quantityContainer}>
+            <Text style={styles.quantityLabel}>Quantity to substitute</Text>
+            <TextInput
+              style={styles.quantityInput}
+              value={quantity}
+              onChangeText={setQuantity}
+              keyboardType="numeric"
+              placeholder="Enter quantity"
+            />
           </View>
 
           {/* Substitution Guidance */}
@@ -151,15 +253,44 @@ export default function ItemSubstitutionScreen() {
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.noSubstitutionButton} onPress={handleNoSubstitution}>
+        <TouchableOpacity 
+          style={[styles.noSubstitutionButton, isUpdating && { opacity: 0.5 }]} 
+          onPress={handleNoSubstitution}
+          disabled={isUpdating}
+        >
           <Text style={styles.noSubstitutionText}>No substitution found</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.scanButton} onPress={handleScanItem}>
-          <ScanIcon />
-          <Text style={styles.scanButtonText}>Scan Item</Text>
+        <TouchableOpacity style={[styles.scanButton, isUpdating && { opacity: 0.5 }]} onPress={handleScanItem} disabled={isUpdating}>
+          {isUpdating ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <>
+              <ScanIcon />
+              <Text style={styles.scanButtonText}>Scan Item</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
+      </>
+      )}
+      </>
+      )}
       </View>
+
+      <Modal
+        visible={isScannerVisible}
+        animationType="slide"
+        onRequestClose={() => setIsScannerVisible(false)}
+      >
+        <View style={styles.scannerContainer}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            onBarcodeScanned={handleBarCodeScanned}
+            barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "qr", "code128"] }}
+          />
+          <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setIsScannerVisible(false)}><Text style={styles.scannerCloseText}>Cancel</Text></TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -424,5 +555,42 @@ const styles = StyleSheet.create({
     color: '#FFF',
     lineHeight: 25,
     textAlign: 'center',
+  },
+  scannerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+  },
+  scannerCloseButton: {
+    position: 'absolute',
+    bottom: 50,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 20,
+  },
+  scannerCloseText: {
+    color: '#000',
+    fontSize: 16,
+  },
+  quantityContainer: {
+    gap: 8,
+  },
+  quantityLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#000',
+  },
+  quantityInput: {
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    fontFamily: 'Open Sans',
+    color: '#000',
+    backgroundColor: '#FFF',
   },
 });

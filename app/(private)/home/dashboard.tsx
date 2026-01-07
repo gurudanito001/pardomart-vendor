@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import React from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback } from "react";
 
 import {
   Image,
@@ -43,14 +43,16 @@ export default function HomeScreen() {
   const { state: authState } = useAuth();
   const { user } = authState;
   const { fetchIncompleteSetups } = useVendors();
-
-  const { data: incompleteVendors = [], isLoading: isIncompleteLoading } =
-    useQuery<Vendor[]>({
-      queryKey: ["vendors", "incomplete-setups"],
-      queryFn: fetchIncompleteSetups,
-      enabled: !authState.isLoading,
-      staleTime: 60_000,
-    });
+  const {
+    data: incompleteVendors = [],
+    isLoading: isIncompleteLoading,
+    refetch: refetchIncompleteSetups,
+  } = useQuery<Vendor[]>({
+    queryKey: ["vendors", "incomplete-setups"],
+    queryFn: fetchIncompleteSetups,
+    enabled: !authState.isLoading,
+    staleTime: 60_000,
+  });
 
   const firstIncompleteVendor = incompleteVendors[0];
   const showSetupBanner = !isIncompleteLoading && incompleteVendors.length > 0;
@@ -81,6 +83,12 @@ export default function HomeScreen() {
 
 
   const isAuthLoading = authState.isLoading;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchIncompleteSetups();
+    }, [refetchIncompleteSetups])
+  );
 
   const handleSetupStore = () => {
     if (!firstIncompleteVendor?.id) {

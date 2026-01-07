@@ -1,10 +1,15 @@
 import { toast } from "@/utils/toast";
+import { uploadMediaFile } from '@/utils/upload';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
+  Modal,
   Platform,
+  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -23,6 +28,7 @@ interface UploadedFile {
   uri: string;
   fileSize?: number;
   progress: number;
+  isRemote?: boolean;
 }
 
 interface PickedFile {
@@ -47,8 +53,14 @@ async function prepareUploadFile(
     return new File([blob], name, { type: blob.type || type, lastModified: Date.now() });
   }
 
+  // Ensure Android URIs are handled correctly if they are raw paths
+  let uri = doc.uri;
+  if (Platform.OS === 'android' && !uri.startsWith('content://') && !uri.startsWith('file://')) {
+    uri = `file://${uri}`;
+  }
+
   return {
-    uri: doc.uri,
+    uri,
     name,
     type,
   } as any;
@@ -56,18 +68,111 @@ async function prepareUploadFile(
 
 export default function UploadDocumentsScreen() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
+  const queryClient = useQueryClient();
 
-  const [certificate, setCertificate] = useState<UploadedFile | null>(null);
-  const [certificateImage, setCertificateImage] = useState<PickedFile | null>(
-    null
-  );
-  const [idCard, setIdCard] = useState<UploadedFile | null>(null);
-  const [idCardImage, setIdCardImage] = useState<PickedFile | null>(null);
+  const [registrationDoc, setRegistrationDoc] = useState<UploadedFile | null>(null);
+  const [registrationDocImage, setRegistrationDocImage] = useState<PickedFile | null>(null);
+  /* const [idCard, setIdCard] = useState<UploadedFile | null>(null);
+  const [idCardImage, setIdCardImage] = useState<PickedFile | null>(null); */
+  const [otherDocuments, setOtherDocuments] = useState<UploadedFile | null>(null);
+  const [otherDocumentsImages, setOtherDocumentsImages] = useState<PickedFile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [certificateLoading, setCertificateLoading] = useState(false);
-  const [idCardLoading, setIdCardLoading] = useState(false);
+  const [registrationDocLoading, setRegistrationDocLoading] = useState(false);
+  //const [idCardLoading, setIdCardLoading] = useState(false);
+  const [otherLoading, setOtherLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const mediaApi = useMemo(() => new MediaApi(apiConfig), []);
+
+  // Fetch existing documents
+  const { data: remoteDocuments, isLoading: isLoadingRemote, isError: isRemoteError, refetch: refetchDocs } = useQuery({
+    queryKey: ['documents', storeId],
+    queryFn: async () => {
+      try {
+        const res = await mediaApi.mediaGet(storeId!, 'document');
+        console.log('mediaGet response', { status: (res as any)?.status, data: (res as any)?.data });
+        return (res as any)?.data as unknown as any[];
+      } catch (err) {
+        console.error('mediaGet error', err);
+        toast.error('Failed to fetch documents');
+        throw err;
+      }
+    },
+    enabled: !!storeId,
+  } as any);
+
+  // Sync remote documents to state
+  useEffect(() => {
+    if (Array.isArray(remoteDocuments)) {
+      // identify certificate and id documents (flexible matching)
+      const regDoc = remoteDocuments.find((d: any) => {
+        if (d.identifier === 'business_document_1') return true;
+        const name = (d.name || d.originalName || '').toString().toLowerCase();
+        return name.includes('store') || name.includes('certificate') || name.includes('business');
+      });
+
+      const otherDoc = remoteDocuments.find((d: any) => {
+        if (d.identifier === 'business_document_2') return true;
+        const name = (d.name || d.originalName || '').toString().toLowerCase();
+        return name.includes('identity') || name.includes('id') || name.includes('passport');
+      });
+
+
+      if (regDoc) {
+        setRegistrationDoc({
+          id: regDoc.id,
+          name: regDoc.name || regDoc.originalName || 'store-certificate.pdf',
+          uri: regDoc.url || regDoc.path || '',
+          progress: 100,
+          isRemote: true,
+        });
+      } else {
+        setRegistrationDoc(null);
+      }
+
+      if (otherDoc) {
+        setOtherDocuments({
+          id: otherDoc.id,
+          name: otherDoc.name || otherDoc.originalName || 'document.pdf',
+          uri: otherDoc.url || otherDoc.path || '',
+          progress: 100,
+          isRemote: true,
+        });
+      } else {
+        setOtherDocuments(null);
+      }
+    }
+  }, [remoteDocuments]);
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await mediaApi.mediaIdDelete(id);
+      console.log('mediaIdDelete response', { status: (res as any)?.status, data: (res as any)?.data });
+      return res;
+    },
+  });
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetchDocs();
+    } catch (error) {
+      // The error is already handled and toasted inside the useQuery's queryFn
+      console.error('Failed to refresh documents:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchDocs]);
+
+  const handlePreview = (uri?: string) => {
+    if (uri) {
+      Linking.openURL(uri).catch((err) => {
+        console.error('Failed to open URL:', err);
+        toast.error('Unable to open document.');
+      });
+    }
+  };
 
   const handleGoBack = () => {
     router.back();
@@ -78,7 +183,7 @@ export default function UploadDocumentsScreen() {
   };
 
   const handleStoreCertificateUpload = async () => {
-    setCertificateLoading(true);
+    setRegistrationDocLoading(true);
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "application/pdf",
@@ -87,14 +192,14 @@ export default function UploadDocumentsScreen() {
 
       if (result.canceled === false && result.assets && result.assets[0]) {
         const asset = result.assets[0];
-        setCertificate({
+        setRegistrationDoc({
           id: `cert-${Date.now()}`,
           name: asset.name,
           uri: asset.uri,
           fileSize: asset.size,
           progress: 100,
         });
-        setCertificateImage({
+        setRegistrationDocImage({
           uri: asset.uri,
           fileName: asset.name,
           fileSize: asset.size,
@@ -105,12 +210,14 @@ export default function UploadDocumentsScreen() {
       toast.error("Failed to pick document.");
       console.error("Document picking error:", err);
     } finally {
-      setCertificateLoading(false);
+      setRegistrationDocLoading(false);
     }
   };
 
-  const handleIdCardUpload = async () => {
-    setIdCardLoading(true);
+  
+
+  const handleOtherUpload = async () => {
+    setOtherLoading(true);
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "application/pdf",
@@ -119,14 +226,15 @@ export default function UploadDocumentsScreen() {
 
       if (result.canceled === false && result.assets && result.assets[0]) {
         const asset = result.assets[0];
-        setIdCard({
-          id: `id-${Date.now()}`,
+        const newDoc = {
+          id: `other-${Date.now()}`,
           name: asset.name,
           uri: asset.uri,
           fileSize: asset.size,
           progress: 100,
-        });
-        setIdCardImage({
+        };
+        setOtherDocuments(newDoc);
+        setOtherDocumentsImages({
           uri: asset.uri,
           fileName: asset.name,
           fileSize: asset.size,
@@ -137,18 +245,61 @@ export default function UploadDocumentsScreen() {
       toast.error("Failed to pick document.");
       console.error("Document picking error:", err);
     } finally {
-      setIdCardLoading(false);
+      setOtherLoading(false);
     }
   };
 
-  const handleRemoveFile = (type: "certificate" | "id") => {
-    if (type === "certificate") {
-      setCertificate(null);
-      setCertificateImage(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<null | { id: string; kind: 'registration' | 'other' }>(null);
+
+  const handleRemoveRegistrationDoc = () => {
+    if (registrationDoc?.isRemote) {
+      setDeleteTarget({ id: registrationDoc.id, kind: 'registration' });
+      setDeleteModalVisible(true);
     } else {
-      setIdCard(null);
-      setIdCardImage(null);
+      setRegistrationDoc(null);
+      setRegistrationDocImage(null);
     }
+  };
+
+  const handleRemoveOther = () => {
+    if (otherDocuments?.isRemote && otherDocuments.id) {
+      setDeleteTarget({ id: otherDocuments.id, kind: 'other' });
+      setDeleteModalVisible(true);
+    } else {
+      setOtherDocuments(null);
+      setOtherDocumentsImages(null);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        toast.success('Document deleted successfully');
+        if (deleteTarget.kind === 'registration') {
+          setRegistrationDoc(null);
+          setRegistrationDocImage(null);
+        } else if (deleteTarget.kind === 'other') {
+          setOtherDocuments(null);
+          setOtherDocumentsImages(null);
+        }
+        queryClient.invalidateQueries({ queryKey: ['documents', storeId] });
+      },
+      onError: (err) => {
+        console.error('delete failed', err);
+        toast.error('Failed to delete document');
+      },
+      onSettled: () => {
+        setDeleteModalVisible(false);
+        setDeleteTarget(null);
+      }
+    });
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalVisible(false);
+    setDeleteTarget(null);
   };
 
   const handleSubmit = async () => {
@@ -156,7 +307,7 @@ export default function UploadDocumentsScreen() {
       toast.error("Missing store ID");
       return;
     }
-    if (!certificateImage) {
+    if (!registrationDoc) {
       toast.error("Please upload your Business registration document.");
       return;
     }
@@ -164,48 +315,50 @@ export default function UploadDocumentsScreen() {
     try {
       setIsSubmitting(true);
 
-      const uploads = [];
-
-      if (certificateImage) {
-        const certFile = await prepareUploadFile(
-          certificateImage,
+      if (registrationDocImage) {
+        const registrationFile = await prepareUploadFile(
+          registrationDocImage,
           "store-certificate.pdf"
         );
-        uploads.push(
-          mediaApi.mediaUploadPost(
-            certFile,
-            String(storeId),
-            "document",
-          )
+        console.log('Uploading certificate file:', { name: registrationFile?.name, uri: registrationFile?.uri, type: registrationFile?.type });
+        await uploadMediaFile(registrationFile, String(storeId), 'document', {
+          onUploadProgress: (loaded, total) => console.log('certificate upload progress', { loaded, total }),
+          identifier: 'business_document_1',
+        });
+      }
+
+      if (otherDocumentsImages && !otherDocuments?.isRemote) {
+        const otherFile = await prepareUploadFile(
+          otherDocumentsImages,
+          otherDocumentsImages.fileName || "document.pdf"
         );
+        console.log('Uploading other file:', { name: otherFile?.name, uri: otherFile?.uri, type: otherFile?.type });
+        await uploadMediaFile(otherFile, String(storeId), 'document', {
+          onUploadProgress: (loaded, total) => console.log('other docs upload progress', { loaded, total }),
+          identifier: 'business_document_2',
+        });
       }
 
-      if (idCardImage) {
-        const idFile = await prepareUploadFile(idCardImage, "identity-document.pdf");
-        uploads.push(
-          mediaApi.mediaUploadPost(
-            idFile,
-            String(storeId),
-            "document",
-          )
-        );
-      }
-
-      if (uploads.length === 0) {
-        toast.info("No documents to upload.");
-        return;
-      }
-
-      await Promise.all(uploads);
+      await refetchDocs();
+      setRegistrationDocImage(null);
+      setOtherDocumentsImages(null);
 
       toast.success("Documents uploaded successfully.");
-      router.push("/(private)/store/document-verification" as any);
     } catch (err: any) {
-      console.error("Failed to upload documents", err);
+      // Log extended details to help troubleshoot network errors
+      console.error("Failed to upload documents", {
+        message: err?.message,
+        config: err?.config,
+        response: err?.response?.data ?? err?.response,
+        stack: err?.stack,
+      });
+
+
       const message =
-        err?.response?.data?.message ||
+        err?.response?.data?.message || // Used by Media Controller
+        err?.response?.data?.error ||   // Used by Vendor Controller
         err?.message ||
-        "Failed to upload documents.";
+        "Operation failed.";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -269,15 +422,31 @@ export default function UploadDocumentsScreen() {
     </TouchableOpacity>
   );
 
+  const TrashIcon = () => (
+    <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+        stroke="#FF4444"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+
   const UploadedFileCard = ({
     file,
     onRemove,
+  isDeleting,
+  onPress
   }: {
     file: UploadedFile;
     onRemove: () => void;
+    isDeleting?: boolean;
+  onPress?: () => void;
   }) => (
     <View style={styles.uploadedFileCard}>
-      <View style={styles.uploadedFileContent}>
+    <TouchableOpacity style={styles.uploadedFileContent} onPress={onPress} disabled={!onPress}>
         <PdfIcon />
         <View style={styles.fileInfo}>
           <Text style={styles.fileName}>{file.name}</Text>
@@ -288,9 +457,13 @@ export default function UploadDocumentsScreen() {
             />
           </View>
         </View>
-      </View>
-      <TouchableOpacity style={styles.removeButton} onPress={onRemove}>
-        <CloseIcon />
+    </TouchableOpacity>
+      <TouchableOpacity style={styles.removeButton} onPress={onRemove} disabled={isDeleting}>
+        {isDeleting ? (
+          <ActivityIndicator size="small" color="#FF4444" />
+        ) : (
+          file.isRemote ? <TrashIcon /> : <CloseIcon />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -339,11 +512,21 @@ export default function UploadDocumentsScreen() {
         style={styles.scrollView}
         contentContainerStyle={{ backgroundColor: '#FFF', flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#06888C']}
+            tintColor="#06888C"
+          />
+        }
       >
         <View style={styles.content}>
           <Text style={styles.instructions}>
             Kindly upload all necessary information and wait for verification
           </Text>
+
+          
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -353,17 +536,27 @@ export default function UploadDocumentsScreen() {
               <Text style={styles.sectionTitle}>Store/Business Registration document</Text>
             </View>
 
-            {certificate ? (
+            {isLoadingRemote && (
+              <ActivityIndicator size="small" color="#06888C" style={{ marginBottom: 12 }} />
+            )}
+
+            {Array.isArray(remoteDocuments) && remoteDocuments.length === 0 && !isLoadingRemote ? (
+              <Text style={{ color: '#50555C', marginBottom: 12 }}>No remote documents found.</Text>
+            ) : null}
+
+            {registrationDoc ? (
               <UploadedFileCard
-                file={certificate}
-                onRemove={() => handleRemoveFile("certificate")}
+                file={registrationDoc}
+                onRemove={handleRemoveRegistrationDoc}
+                isDeleting={deleteMutation.isPending && deleteMutation.variables === registrationDoc.id}
+                onPress={() => handlePreview(registrationDoc.uri)}
               />
             ) : null}
 
-            {!certificate && (
+            {!registrationDoc && (
               <UploadZone
                 onPress={handleStoreCertificateUpload}
-                isLoading={certificateLoading}
+                isLoading={registrationDocLoading}
               />
             )}
           </View>
@@ -376,18 +569,46 @@ export default function UploadDocumentsScreen() {
               <Text style={styles.sectionTitle}>Other Business documents</Text>
             </View>
 
-            {idCard ? (
+            {otherDocuments ? (
               <UploadedFileCard
-                file={idCard}
-                onRemove={() => handleRemoveFile("id")}
+                file={otherDocuments}
+                onRemove={handleRemoveOther}
+                isDeleting={deleteMutation.isPending && deleteMutation.variables === otherDocuments.id}
+                onPress={() => handlePreview(otherDocuments.uri)}
               />
             ) : (
               <UploadZone
-                onPress={handleIdCardUpload}
-                isLoading={idCardLoading}
+                onPress={handleOtherUpload}
+                isLoading={otherLoading}
               />
             )}
           </View>
+
+          
+
+          {deleteModalVisible && deleteTarget ? (
+            <Modal
+              visible={deleteModalVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={cancelDelete}
+            >
+              <View style={styles.modalBackdrop}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Confirm deletion</Text>
+                  <Text style={styles.modalMessage}>Are you sure you want to delete this document?</Text>
+                  <View style={styles.modalButtons}>
+                    <TouchableOpacity style={styles.modalButton} onPress={cancelDelete}>
+                      <Text style={styles.modalButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.modalButton, styles.modalConfirm]} onPress={confirmDelete}>
+                      <Text style={[styles.modalButtonText, { color: '#fff' }]}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          ) : null}
 
           <TouchableOpacity
             onPress={handleSkip}
@@ -634,5 +855,45 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Raleway",
     fontWeight: "700",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    color: '#50555C',
+    marginBottom: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginLeft: 8,
+  },
+  modalConfirm: {
+    backgroundColor: '#E53935',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  modalButtonText: {
+    color: '#06888C',
+    fontWeight: '700',
   },
 });

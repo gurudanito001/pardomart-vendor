@@ -16,7 +16,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import NotificationBell from '../../../components/NotificationBell';
 
 interface StoreDetails {
@@ -152,7 +152,7 @@ export default function StoreProductsScreen() {
         {/* Tab Section - Positioned Absolutely */}
         <View style={styles.tabSection}>
           <View style={styles.tabContainer}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.tab, selectedTab === 'shop' && styles.activeTab]}
               onPress={() => setSelectedTab('shop')}
             >
@@ -162,21 +162,21 @@ export default function StoreProductsScreen() {
               <Text style={[styles.tabText, selectedTab === 'shop' && styles.activeTabText]}>
                 Shop and Deliver
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={[styles.tab, selectedTab === 'pickup' && styles.activeTab]}
-              onPress={() => setSelectedTab('pickup')}
+              //onPress={() => setSelectedTab('pickup')}
             >
               <Svg width="14" height="14" viewBox="0 0 14 15" fill="none">
                 <Path d="M2.625 2.34599C2.625 1.69849 3.14417 1.17932 3.79167 1.17932C4.43917 1.17932 4.95833 1.69849 4.95833 2.34599C4.95833 2.99349 4.43917 3.51265 3.79167 3.51265C3.14417 3.51265 2.625 2.99349 2.625 2.34599ZM5.83333 6.40015V5.26265C5.83333 4.62099 5.30833 4.09599 4.66667 4.09599H2.91667C2.275 4.09599 1.75 4.62099 1.75 5.26265V8.76265H2.91667V12.846H4.95833V12.7818C4.235 12.0468 3.79167 11.0377 3.79167 9.92932C3.79167 8.42432 4.61417 7.10599 5.83333 6.40015ZM9.625 9.92932C9.625 10.8918 8.8375 11.6793 7.875 11.6793C6.9125 11.6793 6.125 10.8918 6.125 9.92932C6.125 9.28182 6.48083 8.72765 7 8.42432V7.16432C5.82167 7.53765 4.95833 8.62849 4.95833 9.92932C4.95833 11.5393 6.265 12.846 7.875 12.846C9.485 12.846 10.7917 11.5393 10.7917 9.92932H9.625ZM11.3983 8.17932H8.75V4.67932H7.58333V9.34599H10.7683L12.2092 11.5102L13.1775 10.8627L11.3983 8.17932Z" fill="#06888C"/>
               </Svg>
-              <Text style={[styles.tabText, selectedTab === 'pickup' && styles.activeTabText]}>
+              <Text style={[styles.tabText, vendor?.availableForShopping && styles.activeTabText]}>
                 Pick up
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={[styles.tab, selectedTab === 'delivery' && styles.activeTab]}
               onPress={() => setSelectedTab('delivery')}
             >
@@ -187,7 +187,7 @@ export default function StoreProductsScreen() {
               <Text style={[styles.tabText, selectedTab === 'delivery' && styles.activeTabText]}>
                 Delivery Person
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -391,7 +391,8 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 10,
     rowGap: 30,
     marginBottom: 30,
   },

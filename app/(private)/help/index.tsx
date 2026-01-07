@@ -62,7 +62,7 @@ export default function SupportScreen() {
 
   const createTicketMutation = useMutation({
     mutationFn: (data: CreateSupportTicketPayload) => {
-      return supportApi.apiV1SupportTicketsPost(data);
+      return supportApi.supportTicketsPost(data);
     },
     onSuccess: () => {
       toast.success("Your message has been sent!", {

@@ -127,7 +127,7 @@ const ProfileScreen = () => {
           <Text style={[styles.headerTitle, { color: isScrolled ? "#000" : "#FFF" }]}>Account</Text>
         </View>
         <View style={!isScrolled && { borderColor: '#FFF', borderWidth: 1, borderRadius: 20 }}>
-          <NotificationBell from="/profile/profile" color={isScrolled ? undefined : "#FFF"} />
+          <NotificationBell from="/profile/profile" />
         </View>
       </View>
 

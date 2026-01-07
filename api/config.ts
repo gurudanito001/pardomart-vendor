@@ -24,6 +24,8 @@ export const apiConfig = new Configuration({
     const token = await getStorageItem<string>(STORAGE_KEYS.AUTH_TOKEN);
     return token || '';
   },
+  // Ensure the generated client uses the runtime FormData constructor (important in RN)
+  formDataCtor: (global as any).FormData,
 });
 
 export const setAuthToken = (token: string) => {

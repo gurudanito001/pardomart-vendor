@@ -107,7 +107,7 @@ export default function StoreProductsScreen() {
     stores.find((s: Vendor) => s.id === selectedStoreId)?.name || 'All Stores';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Extended Header Background */}
@@ -169,7 +169,7 @@ export default function StoreProductsScreen() {
 
      
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <Text style={styles.productsHeader}>Products ({totalProducts})</Text>
 
@@ -328,7 +328,8 @@ const styles = StyleSheet.create({
   productsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
+    gap: 10,
     rowGap: 30,
     marginBottom: 30,
   },

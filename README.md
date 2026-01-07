@@ -48,3 +48,21 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Running tests
+
+This project includes unit tests using Vitest. To run tests locally:
+
+1. Install dependencies (if not already):
+
+```bash
+npm install
+```
+
+2. Run the tests:
+
+```bash
+npm test
+```
+
+If you prefer Jest instead of Vitest, I can convert the tests to Jest — let me know.

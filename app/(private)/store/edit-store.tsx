@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useVendor } from '@/hooks/api/useVendors';
 import { useImagePicker } from '@/hooks/useImagePicker';
+import { Country, getCountries } from '@/utils/countries';
 import { GooglePlacesSuggestion } from '@/utils/googleMapsLocation';
 import { toast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
@@ -15,6 +16,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -31,7 +33,7 @@ export default function EditStoreScreen() {
   const { getVendorById, updateVendor } = useVendor();
 
   // Data fetching
-  const { data: vendor, isLoading: isLoadingVendor } = useQuery({
+  const { data: vendor, isLoading: isLoadingVendor, refetch } = useQuery({
     queryKey: ['vendor', storeId],
     queryFn: () => getVendorById(storeId!),
     enabled: !!storeId,
@@ -41,6 +43,7 @@ export default function EditStoreScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [initialCountry, setInitialCountry] = useState<Country | undefined>();
   const [availableForShopping, setAvailableForShopping] = useState(true);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
@@ -49,6 +52,7 @@ export default function EditStoreScreen() {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const {
     selectedImage,
@@ -63,12 +67,22 @@ export default function EditStoreScreen() {
       setName(vendor.name || '');
       setEmail(vendor.email || '');
       setMobileNumber(vendor.mobileNumber || '');
+      
+      if (vendor.mobileNumber) {
+        getCountries().then((countries) => {
+          const clean = vendor.mobileNumber!.replace(/[^0-9+]/g, '');
+          const sorted = [...countries].sort((a, b) => b.dialCode.length - a.dialCode.length);
+          const match = sorted.find((c) => clean.startsWith(c.dialCode));
+          if (match) setInitialCountry(match);
+        });
+      }
+
       setAvailableForShopping(vendor.availableForShopping ?? true);
       setTagline(vendor.tagline || '');
       setDetails(vendor.details || '');
       setStoreAddress(vendor.address || '');
       setAddressSearch(vendor.address || '');
-      setLatitude(vendor.latitude || null);
+      setLatitude(vendor.latitude || null); 
       setLongitude(vendor.longitude || null);
     }
   }, [vendor]);
@@ -78,6 +92,7 @@ export default function EditStoreScreen() {
   };
 
   const handleSaveChanges = async () => {
+    
     if (!name.trim()) {
       toast.error('Store name is required');
       return;
@@ -112,7 +127,9 @@ export default function EditStoreScreen() {
       router.back();
     } catch (err: any) {
       console.error('Failed to update vendor', err);
-      toast.error(err?.message || 'Failed to update store');
+      // Check if the API returned a specific error message, otherwise fallback to the generic one
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to update store';
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -134,8 +151,19 @@ export default function EditStoreScreen() {
     }
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Refresh failed', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Header */}
@@ -166,7 +194,18 @@ export default function EditStoreScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={[styles.scrollView, { backgroundColor: '#FFF' }]}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#06888C']}
+                tintColor="#06888C"
+              />
+            }
+          >
             <View style={styles.formSection}>
               {/* Avatar Image upload */}
               <View style={styles.avatarSection}>
@@ -269,15 +308,15 @@ export default function EditStoreScreen() {
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
             </View>
-
-            {(submitting || imageLoading) && (
-              <LoadingSpinner overlay message={submitting ? 'Saving changes...' : 'Processing image...'} />
-            )}
           </ScrollView>
         </KeyboardAvoidingView>
       )}
+
+      {(submitting || imageLoading) && (
+        <LoadingSpinner overlay message={submitting ? 'Saving changes...' : 'Processing image...'} />
+      )}
     </SafeAreaView>
-  );
+  ); 
 }
 
 const styles = StyleSheet.create({

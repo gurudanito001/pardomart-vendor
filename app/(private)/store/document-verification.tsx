@@ -99,7 +99,7 @@ export default function DocumentVerificationScreen() {
         
         <View style={styles.textContainer}>
           <Text style={styles.title}>
-            Kindly wait while we verify is been Documents
+            Kindly wait while we verify the Documents
           </Text>
           <Text style={styles.subtitle}>
             This usually take a minute. Once verified, the screen will automatically redirect you to your dashboard
