@@ -32,6 +32,8 @@ import type { SupportTicket } from '../models';
 // @ts-ignore
 import type { TicketStatus } from '../models';
 // @ts-ignore
+import type { UpdateSupportTicketPayload } from '../models';
+// @ts-ignore
 import type { UpdateSupportTicketStatusPayload } from '../models';
 /**
  * SupportApi - axios parameter creator
@@ -39,7 +41,65 @@ import type { UpdateSupportTicketStatusPayload } from '../models';
 export const SupportApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportAdminExportGet: async (customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/support/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (customerName !== undefined) {
+                localVarQueryParameter['customerName'] = customerName;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -253,6 +313,50 @@ export const SupportApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Updates the details of a support ticket. Only the creator can update it.
+         * @summary Update a support ticket
+         * @param {UpdateSupportTicketPayload} updateSupportTicketPayload 
+         * @param {string} ticketId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsTicketIdPut: async (updateSupportTicketPayload: UpdateSupportTicketPayload, ticketId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateSupportTicketPayload' is not null or undefined
+            assertParamExists('supportTicketsTicketIdPut', 'updateSupportTicketPayload', updateSupportTicketPayload)
+            // verify required parameter 'ticketId' is not null or undefined
+            assertParamExists('supportTicketsTicketIdPut', 'ticketId', ticketId)
+            const localVarPath = `/support/tickets/{ticketId}`
+                .replace(`{${"ticketId"}}`, encodeURIComponent(String(ticketId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateSupportTicketPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Updates the status of a specific support ticket. Requires admin privileges.
          * @summary Update a support ticket\'s status (Admin)
          * @param {UpdateSupportTicketStatusPayload} updateSupportTicketStatusPayload 
@@ -306,7 +410,23 @@ export const SupportApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = SupportApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -374,6 +494,20 @@ export const SupportApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Updates the details of a support ticket. Only the creator can update it.
+         * @summary Update a support ticket
+         * @param {UpdateSupportTicketPayload} updateSupportTicketPayload 
+         * @param {string} ticketId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async supportTicketsTicketIdPut(updateSupportTicketPayload: UpdateSupportTicketPayload, ticketId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportTicket>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportTicketsTicketIdPut(updateSupportTicketPayload, ticketId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SupportApi.supportTicketsTicketIdPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Updates the status of a specific support ticket. Requires admin privileges.
          * @summary Update a support ticket\'s status (Admin)
          * @param {UpdateSupportTicketStatusPayload} updateSupportTicketStatusPayload 
@@ -397,7 +531,20 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = SupportApiFp(configuration)
     return {
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -450,6 +597,17 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.supportTicketsTicketIdGet(ticketId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Updates the details of a support ticket. Only the creator can update it.
+         * @summary Update a support ticket
+         * @param {UpdateSupportTicketPayload} updateSupportTicketPayload 
+         * @param {string} ticketId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportTicketsTicketIdPut(updateSupportTicketPayload: UpdateSupportTicketPayload, ticketId: string, options?: RawAxiosRequestConfig): AxiosPromise<SupportTicket> {
+            return localVarFp.supportTicketsTicketIdPut(updateSupportTicketPayload, ticketId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Updates the status of a specific support ticket. Requires admin privileges.
          * @summary Update a support ticket\'s status (Admin)
          * @param {UpdateSupportTicketStatusPayload} updateSupportTicketStatusPayload 
@@ -468,7 +626,21 @@ export const SupportApiFactory = function (configuration?: Configuration, basePa
  */
 export class SupportApi extends BaseAPI {
     /**
-     * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+     * 
+     * @summary Export support tickets to CSV (Admin)
+     * @param {string} [customerName] 
+     * @param {string} [status] 
+     * @param {string} [createdAtStart] 
+     * @param {string} [createdAtEnd] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
      * @summary Get platform-wide support ticket overview (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -523,6 +695,18 @@ export class SupportApi extends BaseAPI {
      */
     public supportTicketsTicketIdGet(ticketId: string, options?: RawAxiosRequestConfig) {
         return SupportApiFp(this.configuration).supportTicketsTicketIdGet(ticketId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Updates the details of a support ticket. Only the creator can update it.
+     * @summary Update a support ticket
+     * @param {UpdateSupportTicketPayload} updateSupportTicketPayload 
+     * @param {string} ticketId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public supportTicketsTicketIdPut(updateSupportTicketPayload: UpdateSupportTicketPayload, ticketId: string, options?: RawAxiosRequestConfig) {
+        return SupportApiFp(this.configuration).supportTicketsTicketIdPut(updateSupportTicketPayload, ticketId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

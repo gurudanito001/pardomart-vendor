@@ -5,7 +5,9 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**transactionsAdminAllGet**](#transactionsadminallget) | **GET** /transactions/admin/all | Get a paginated list of all transactions (Admin)|
+|[**transactionsAdminExportGet**](#transactionsadminexportget) | **GET** /transactions/admin/export | Export transactions to CSV (Admin)|
 |[**transactionsAdminOverviewGet**](#transactionsadminoverviewget) | **GET** /transactions/admin/overview | Get platform-wide transaction overview (Admin)|
+|[**transactionsAdminTransactionIdDownloadReceiptGet**](#transactionsadmintransactioniddownloadreceiptget) | **GET** /transactions/admin/{transactionId}/download-receipt | Download receipt for a transaction (Admin)|
 |[**transactionsAdminTransactionIdGet**](#transactionsadmintransactionidget) | **GET** /transactions/admin/{transactionId} | Get a single transaction by ID (Admin)|
 |[**transactionsAdminTransactionIdSendReceiptPost**](#transactionsadmintransactionidsendreceiptpost) | **POST** /transactions/admin/{transactionId}/send-receipt | Generate and send a receipt for a transaction (Admin)|
 |[**transactionsCreatePaymentIntentPost**](#transactionscreatepaymentintentpost) | **POST** /transactions/create-payment-intent | Create a Payment Intent for an order|
@@ -86,10 +88,69 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **transactionsAdminExportGet**
+> transactionsAdminExportGet()
+
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let search: string; // (optional) (default to undefined)
+let status: string; // (optional) (default to undefined)
+let createdAtStart: string; // (optional) (default to undefined)
+let createdAtEnd: string; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.transactionsAdminExportGet(
+    search,
+    status,
+    createdAtStart,
+    createdAtEnd
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **search** | [**string**] |  | (optional) defaults to undefined|
+| **status** | [**string**] |  | (optional) defaults to undefined|
+| **createdAtStart** | [**string**] |  | (optional) defaults to undefined|
+| **createdAtEnd** | [**string**] |  | (optional) defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | CSV file download. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **transactionsAdminOverviewGet**
 > TransactionsAdminOverviewGet200Response transactionsAdminOverviewGet()
 
-Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
 
 ### Example
 
@@ -128,6 +189,56 @@ This endpoint does not have any parameters.
 |-------------|-------------|------------------|
 |**200** | An object containing the financial overview data. |  -  |
 |**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **transactionsAdminTransactionIdDownloadReceiptGet**
+> string transactionsAdminTransactionIdDownloadReceiptGet()
+
+
+### Example
+
+```typescript
+import {
+    TransactionApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new TransactionApi(configuration);
+
+let transactionId: string; // (default to undefined)
+
+const { status, data } = await apiInstance.transactionsAdminTransactionIdDownloadReceiptGet(
+    transactionId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **transactionId** | [**string**] |  | defaults to undefined|
+
+
+### Return type
+
+**string**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/html
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | HTML receipt file. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

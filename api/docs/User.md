@@ -17,7 +17,9 @@ Name | Type | Description | Notes
 **referralCode** | **string** |  | [optional] [default to undefined]
 **createdAt** | **string** |  | [optional] [default to undefined]
 **updatedAt** | **string** |  | [optional] [default to undefined]
+**image** | **string** |  | [optional] [default to undefined]
 **dynamicMediaUrls** | **object** |  | [optional] [default to undefined]
+**online** | **boolean** |  | [optional] [default to undefined]
 **rememberToken** | **string** |  | [optional] [default to undefined]
 **stripeCustomerId** | **string** |  | [optional] [default to undefined]
 **vendorId** | **string** |  | [optional] [default to undefined]
@@ -40,7 +42,9 @@ const instance: User = {
     referralCode,
     createdAt,
     updatedAt,
+    image,
     dynamicMediaUrls,
+    online,
     rememberToken,
     stripeCustomerId,
     vendorId,

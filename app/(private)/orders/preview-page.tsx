@@ -44,21 +44,28 @@ export default function PreviewPage() {
       queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
       queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
       router.push({
-        pathname: '/(private)/orders/verify-order-code',
+        pathname: '/(private)/orders/success',
         params: { orderId },
       });
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to update order status.');
+      const errorMessage =
+        err?.response?.data?.message || // Message from the backend API
+        err?.response?.data?.error ||   // Alternative backend error field
+        err?.message ||                 // Standard JS Error message (e.g., Network Error)
+        'Failed to update order status.'; // Fallback message
+
+      toast.error(errorMessage);
+      console.error('Order status update failed:', err);
     },
   });
 
 
   const groupedItems = useMemo(() => {
     const items = order?.orderItems ?? [];
-    const relevantItems = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED' || item.status === 'NOT_FOUND');
+    const relevantItems = items.filter((item: { status: string; }) => item.status === 'FOUND' || item.status === 'REPLACED' || item.status === 'NOT_FOUND');
 
-    return relevantItems.reduce((acc, item) => {
+    return relevantItems.reduce((acc: { [x: string]: any[]; }, item: { vendorProduct: { categories: { name: string; }[]; }; }) => {
       const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
       if (!acc[categoryName]) {
         acc[categoryName] = [];
@@ -87,22 +94,31 @@ export default function PreviewPage() {
     }
 
     let newStatus: OrderStatus;
-    if (order.deliveryMethod === 'customer_pickup') {
-      newStatus = 'ready_for_pickup';
-    } else { // Assumes 'delivery_person' or other delivery types
-      newStatus = 'ready_for_delivery';
-    }
+    newStatus = 'completed_bagging';
     updateOrderStatusMutation.mutate({ newStatus });
   };
 
   const postBaggingStatuses: OrderStatus[] = [
-    'ready_for_pickup',
-    'ready_for_delivery',
-    'accepted_for_delivery',
-    'en_route',
-    'delivered',
-    'picked_up_by_customer',
-  ];
+  // Handoff States
+  'ready_for_pickup',
+  'ready_for_delivery',
+
+  // Active Delivery Flow
+  'en_route_to_pickup',
+  'arrived_at_store',
+  'en_route_to_delivery', // Replaces generic 'en_route'
+  'arrived_at_customer_location',
+  
+  // Return Flow (Post-bagging exceptions)
+  'en_route_to_return_pickup',
+  'arrived_at_return_pickup_location',
+  'en_route_to_return_to_store',
+  'returned_to_store',
+
+  // Terminal Success States
+  'delivered',
+  'picked_up_by_customer',
+];
   const showCompletedBaggingButton = !postBaggingStatuses.includes(order?.orderStatus as OrderStatus);
 
   return (
@@ -161,7 +177,7 @@ export default function PreviewPage() {
               Object.entries(groupedItems).map(([category, items]) => (
                 <View key={category} style={styles.categorySection}>
                   <Text style={styles.categoryTitle}>{category}</Text>
-                  {items.map((item) => <PreviewItemCard key={item.id} item={item} />)}
+                  {items.map((item: OrderItem) => <PreviewItemCard key={item.id} item={item} />)}
                 </View>
               ))
             ) : (

@@ -1,6 +1,6 @@
 import type { VendorOrder } from '@/api/models';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -27,13 +27,53 @@ type DisplayOrder = VendorOrder & {
   units: number;
 };
 
+const getStatusColor = (status: string | undefined) => {
+  switch (status) {
+    case 'pending':
+      return '#F59E0B'; // Amber
+    case 'accepted_for_shopping':
+    case 'currently_shopping':
+    case 'completed_bagging':
+      return '#3B82F6'; // Blue
+    case 'ready_for_pickup':
+    case 'ready_for_delivery':
+    case 'delivered':
+    case 'picked_up_by_customer':
+      return '#10B981'; // Green
+    case 'cancelled':
+      return '#EF4444'; // Red
+    default:
+      return '#6B7280'; // Gray
+  }
+};
+
+const formatStatus = (status: string | undefined) => {
+  if (!status) return '';
+  return status.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 export default function OrdersScreen() {
   const params = useLocalSearchParams<{ storeId?: string }>();
   const storeId = params.storeId;
   const { data: orders, isLoading, isError, error } = useVendorOrders(storeId);
   const { mutate: acceptOrder, isPending: isAcceptingOrder, data: acceptedOrderId } = useAcceptOrder();
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
 
+  const pendingStatuses = [
+    'pending',
+    'accepted_for_shopping',
+    'currently_shopping',
+    'completed_bagging',
+  ];
+
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+    return orders.filter((order) => {
+      const isPending = pendingStatuses.includes(order.orderStatus || '');
+      return activeTab === 'pending' ? isPending : !isPending;
+    });
+  }, [orders, activeTab]);
 
   const handleGoBack = () => {
     console.log('Go back');
@@ -66,33 +106,45 @@ export default function OrdersScreen() {
 
     setProcessingOrderId(order.id);
 
-    // If the order is not pending, it means it's already been accepted or is in a later stage.
-    // In this case, navigate to the shopping list screen.
-    if (order.orderStatus !== 'pending') {
+    const status = order.orderStatus;
+
+    if (status === 'pending') {
+      acceptOrder(order.id, {
+        onSuccess: (data) => {
+          router.push({
+            pathname: '/(private)/orders/order-details',
+            params: { orderId: data.id },
+          });
+        },
+        onSettled: () => {
+          setProcessingOrderId(null);
+        },
+      });
+    } else if (['accepted_for_shopping', 'currently_shopping', 'completed_bagging'].includes(status || '')) {
       router.push({
         pathname: '/(private)/orders/shopping-list',
         params: { orderId: order.id },
       });
-      setProcessingOrderId(null); // Clear loading state as we are just navigating
-      return;
+      setProcessingOrderId(null);
+    } else if (['ready_for_pickup', 'ready_for_delivery'].includes(status || '')) {
+      router.push({
+        pathname: '/(private)/orders/success',
+        params: { orderId: order.id },
+      });
+      setProcessingOrderId(null);
+    } else {
+      router.push({
+        pathname: '/(private)/orders/order-details',
+        params: { orderId: order.id },
+      });
+      setProcessingOrderId(null);
     }
-
-    // Otherwise, call the API to accept the order.
-    acceptOrder(order.id, {
-      onSuccess: (data) => {
-        router.push({
-          pathname: '/(private)/orders/order-details',
-          params: { orderId: data.id },
-        });
-      },
-      onSettled: () => {
-        setProcessingOrderId(null); // Clear processing state when mutation is done
-      },
-    });
   };
 
-  const renderOrderCard = (order: DisplayOrder) => (
-    <View key={order.id} style={styles.orderCard}>
+  const renderOrderCard = (order: DisplayOrder) => {
+    const statusColor = getStatusColor(order.orderStatus);
+    return (
+      <View key={order.id} style={styles.orderCard}>
       {/* Order Type Header */}
       <TouchableOpacity style={styles.orderHeader} onPress={() => handlePreviewOrder(order.id)}>
         <View style={styles.orderTypeContainer}>
@@ -116,12 +168,19 @@ export default function OrdersScreen() {
             </Svg>
           )}
           <Text style={styles.orderTypeText}>
-            {order.shoppingMethod === 'vendor' ? 'Shop and Deliver' : 'Delivery Person'}
+            {order.shoppingMethod === 'vendor' ? 'Vendor Shopping' : 'Delivery Person Shopping'}
           </Text>
         </View>
-        <Svg width="7" height="12" viewBox="0 0 7 12" fill="none">
-          <Path d="M0.866949 11.9985C0.66474 11.9988 0.468777 11.9292 0.313076 11.8017C0.225444 11.7299 0.153007 11.6418 0.0999113 11.5423C0.0468157 11.4428 0.0141058 11.3339 0.00365506 11.2219C-0.0067957 11.1098 0.00521815 10.9969 0.0390082 10.8895C0.0727983 10.7821 0.1277 10.6823 0.200571 10.5958L4.07768 6.01173L0.339039 1.41906C0.267152 1.33158 0.213468 1.23092 0.181074 1.12286C0.148679 1.01481 0.138213 0.901501 0.150276 0.789439C0.16234 0.677378 0.196694 0.568777 0.251367 0.469879C0.306039 0.370982 0.379951 0.283737 0.468853 0.213159C0.558395 0.135301 0.663255 0.0765731 0.776853 0.0406621C0.89045 0.00475112 1.01033 -0.00756759 1.12898 0.00447846C1.24762 0.0165245 1.36246 0.0526755 1.4663 0.110663C1.57014 0.16865 1.66072 0.247221 1.73237 0.341446L5.91238 5.47292C6.03967 5.62596 6.10925 5.81791 6.10925 6.01601C6.10925 6.2141 6.03967 6.40606 5.91238 6.55909L1.58525 11.6906C1.49843 11.7941 1.38815 11.8759 1.26335 11.9294C1.13854 11.9829 1.00274 12.0065 0.866949 11.9985Z" fill="#333333"/>
-        </Svg>
+        <View style={styles.headerRight}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {formatStatus(order.orderStatus)}
+            </Text>
+          </View>
+          <Svg width="7" height="12" viewBox="0 0 7 12" fill="none">
+            <Path d="M0.866949 11.9985C0.66474 11.9988 0.468777 11.9292 0.313076 11.8017C0.225444 11.7299 0.153007 11.6418 0.0999113 11.5423C0.0468157 11.4428 0.0141058 11.3339 0.00365506 11.2219C-0.0067957 11.1098 0.00521815 10.9969 0.0390082 10.8895C0.0727983 10.7821 0.1277 10.6823 0.200571 10.5958L4.07768 6.01173L0.339039 1.41906C0.267152 1.33158 0.213468 1.23092 0.181074 1.12286C0.148679 1.01481 0.138213 0.901501 0.150276 0.789439C0.16234 0.677378 0.196694 0.568777 0.251367 0.469879C0.306039 0.370982 0.379951 0.283737 0.468853 0.213159C0.558395 0.135301 0.663255 0.0765731 0.776853 0.0406621C0.89045 0.00475112 1.01033 -0.00756759 1.12898 0.00447846C1.24762 0.0165245 1.36246 0.0526755 1.4663 0.110663C1.57014 0.16865 1.66072 0.247221 1.73237 0.341446L5.91238 5.47292C6.03967 5.62596 6.10925 5.81791 6.10925 6.01601C6.10925 6.2141 6.03967 6.40606 5.91238 6.55909L1.58525 11.6906C1.49843 11.7941 1.38815 11.8759 1.26335 11.9294C1.13854 11.9829 1.00274 12.0065 0.866949 11.9985Z" fill="#333333"/>
+          </Svg>
+        </View>
       </TouchableOpacity>
 
       <View style={styles.divider} />
@@ -181,12 +240,21 @@ export default function OrdersScreen() {
           {isAcceptingOrder && processingOrderId === order.id ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <Text style={styles.previewText}>Accept Order</Text>
+            <Text style={styles.previewText}>
+              {order.orderStatus === 'pending'
+                ? 'Accept Order'
+                : ['accepted_for_shopping', 'currently_shopping', 'completed_bagging'].includes(order.orderStatus || '')
+                ? 'Continue Shopping'
+                : ['ready_for_pickup', 'ready_for_delivery'].includes(order.orderStatus || '')
+                ? 'Complete Order'
+                : 'View Order'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
     </View>
-  );
+    );
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -197,15 +265,15 @@ export default function OrdersScreen() {
       return <Text style={[styles.centered, styles.errorText]}>Error: {error.message}</Text>;
     }
 
-    if (!orders || orders.length === 0) {
-      return <Text style={[styles.centered, styles.emptyText]}>You have no orders yet.</Text>;
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return <Text style={[styles.centered, styles.emptyText]}>No {activeTab} orders found.</Text>;
     }
 
-    return orders.map((order) => renderOrderCard(order as DisplayOrder));
+    return filteredOrders.map((order) => renderOrderCard(order as DisplayOrder));
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Extended Header */}
@@ -224,6 +292,22 @@ export default function OrdersScreen() {
             
             {/* Support icon removed from header (kept only on Help page) */}
           </View>
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'pending' && styles.activeTab]}
+            onPress={() => setActiveTab('pending')}
+          >
+            <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'completed' && styles.activeTab]}
+            onPress={() => setActiveTab('completed')}
+          >
+            <Text style={[styles.tabText, activeTab === 'completed' && styles.activeTabText]}>Completed</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Order Requests Banner */}
@@ -252,7 +336,7 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#06888C',
   },
   extendedHeader: {
     backgroundColor: '#06888C',
@@ -294,6 +378,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 25,
+    paddingBottom: 15,
+    gap: 10,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  activeTab: {
+    backgroundColor: '#FFF',
+    borderColor: '#FFF',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
+    fontFamily: 'Open Sans',
+  },
+  activeTabText: {
+    color: '#06888C',
+  },
   orderBanner: {
     marginHorizontal: 23,
     paddingVertical: 9,
@@ -318,6 +430,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 21,
     paddingTop: 20,
+    backgroundColor: '#FFF',
   },
   scrollContent: {
     paddingBottom: 20,
@@ -361,6 +474,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   orderTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -372,6 +490,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000',
     lineHeight: 22,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
   },
   divider: {
     height: 1,

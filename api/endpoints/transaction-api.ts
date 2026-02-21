@@ -114,13 +114,109 @@ export const TransactionApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminExportGet: async (search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         transactionsAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/transactions/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdDownloadReceiptGet: async (transactionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionId' is not null or undefined
+            assertParamExists('transactionsAdminTransactionIdDownloadReceiptGet', 'transactionId', transactionId)
+            const localVarPath = `/transactions/admin/{transactionId}/download-receipt`
+                .replace(`{${"transactionId"}}`, encodeURIComponent(String(transactionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -511,7 +607,23 @@ export const TransactionApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -520,6 +632,19 @@ export const TransactionApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminOverviewGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TransactionApi.transactionsAdminTransactionIdDownloadReceiptGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -662,13 +787,36 @@ export const TransactionApiFactory = function (configuration?: Configuration, ba
             return localVarFp.transactionsAdminAllGet(orderCode, customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         transactionsAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<TransactionsAdminOverviewGet200Response> {
             return localVarFp.transactionsAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
@@ -782,13 +930,38 @@ export class TransactionApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+     * 
+     * @summary Export transactions to CSV (Admin)
+     * @param {string} [search] 
+     * @param {string} [status] 
+     * @param {string} [createdAtStart] 
+     * @param {string} [createdAtEnd] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
      * @summary Get platform-wide transaction overview (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public transactionsAdminOverviewGet(options?: RawAxiosRequestConfig) {
         return TransactionApiFp(this.configuration).transactionsAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Download receipt for a transaction (Admin)
+     * @param {string} transactionId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig) {
+        return TransactionApiFp(this.configuration).transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

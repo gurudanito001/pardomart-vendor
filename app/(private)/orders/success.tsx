@@ -1,6 +1,12 @@
+import { OrderApi } from '@/api';
+import { apiConfig } from '@/api/config';
 import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
-import { router } from 'expo-router';
-import React from 'react';
+import { Button } from '@/components/ui';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { colors, spacing, typography } from '@/styles/theme';
+import { useQueryClient } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useMemo } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -11,19 +17,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ConfettiSVG from '../../../assets/images/confetti_15552843 1.svg';
 
-
-// Import existing components
-import { Button } from '@/components/ui';
-import { colors, spacing, typography } from '@/styles/theme';
-
 export default function SuccessScreen() {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading } = useOrderDetails(orderId);
+  const queryClient = useQueryClient();
+  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+
   const handleBackPress = () => {
     router.back();
   };
 
-  const handleGoToOrdersPress = () => {
-    // Navigate to orders tab or orders screen
-    router.push('/(private)/orders');
+  const handleVerifyPickupPress = () => {
+    router.push({
+      pathname: '/(private)/orders/verify-order-code',
+      params: { orderId },
+    });
   };
 
   return (
@@ -59,11 +67,11 @@ export default function SuccessScreen() {
         </View>
       </View>
 
-      {/* Go to My Orders Button */}
+      {/* Verify Pickup Button */}
       <View style={styles.buttonContainer}>
         <Button
-          title="Go to My Orders"
-          onPress={handleGoToOrdersPress}
+          title="Verify Pickup"
+          onPress={handleVerifyPickupPress}
           variant="primary"
           size="large"
           fullWidth

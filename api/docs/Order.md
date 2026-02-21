@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **serviceFee** | **number** |  | [optional] [default to undefined]
 **shoppingFee** | **number** |  | [optional] [default to undefined]
 **paymentMethod** | [**PaymentMethods**](PaymentMethods.md) |  | [optional] [default to undefined]
-**paymentStatus** | **string** |  | [optional] [default to undefined]
+**paymentStatus** | [**PaymentStatus**](PaymentStatus.md) |  | [optional] [default to undefined]
 **orderStatus** | [**OrderStatus**](OrderStatus.md) |  | [optional] [default to undefined]
 **deliveryAddressId** | **string** |  | [optional] [default to undefined]
 **deliveryInstructions** | **string** |  | [optional] [default to undefined]
@@ -31,6 +31,16 @@ Name | Type | Description | Notes
 **deliveryAddress** | [**DeliveryAddress**](DeliveryAddress.md) |  | [optional] [default to undefined]
 **shopper** | [**User**](User.md) |  | [optional] [default to undefined]
 **deliverer** | [**User**](User.md) |  | [optional] [default to undefined]
+**orderCode** | **string** |  | [optional] [default to undefined]
+**pickupOtp** | **string** |  | [optional] [default to undefined]
+**subtotal** | **number** |  | [optional] [default to undefined]
+**shopperTip** | **number** |  | [optional] [default to undefined]
+**deliveryPersonTip** | **number** |  | [optional] [default to undefined]
+**shopperId** | **string** |  | [optional] [default to undefined]
+**shoppingStartTime** | **string** |  | [optional] [default to undefined]
+**scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
+**actualDeliveryTime** | **string** |  | [optional] [default to undefined]
+**pickupOtpVerifiedAt** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -64,6 +74,16 @@ const instance: Order = {
     deliveryAddress,
     shopper,
     deliverer,
+    orderCode,
+    pickupOtp,
+    subtotal,
+    shopperTip,
+    deliveryPersonTip,
+    shopperId,
+    shoppingStartTime,
+    scheduledDeliveryTime,
+    actualDeliveryTime,
+    pickupOtpVerifiedAt,
 };
 ```
 

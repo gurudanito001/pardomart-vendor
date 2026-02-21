@@ -30,7 +30,9 @@ export interface User {
     'referralCode'?: string | null;
     'createdAt'?: string;
     'updatedAt'?: string;
+    'image'?: string | null;
     'dynamicMediaUrls'?: object | null;
+    'online'?: boolean;
     'rememberToken'?: string | null;
     'stripeCustomerId'?: string | null;
     'vendorId'?: string | null;

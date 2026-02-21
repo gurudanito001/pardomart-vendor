@@ -14,6 +14,8 @@ Name | Type | Description | Notes
 **language** | **string** |  | [optional] [default to undefined]
 **notification** | **{ [key: string]: any; }** |  | [optional] [default to undefined]
 **referralCode** | **string** |  | [optional] [default to undefined]
+**image** | **string** | Base64 encoded image or URL | [optional] [default to undefined]
+**online** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -30,6 +32,8 @@ const instance: UpdateUserPayload = {
     language,
     notification,
     referralCode,
+    image,
+    online,
 };
 ```
 

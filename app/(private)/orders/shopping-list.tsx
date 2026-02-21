@@ -1,5 +1,8 @@
+import { OrderApi } from '@/api';
+import { apiConfig } from '@/api/config';
 import type { OrderItem, OrderStatus } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -31,6 +34,30 @@ export default function ShoppingListScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
   const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>();
+  const queryClient = useQueryClient();
+  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: ({ status }: { status: OrderStatus }) => {
+      if (!orderId) throw new Error('Order ID is missing');
+      return orderApi.orderIdStatusPatch({ status }, orderId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
+      toast.success('Order status updated successfully!');
+    },
+    onError: (err: any) => {
+      const errorMessage =
+        err?.response?.data?.message || // Message from the backend API
+        err?.response?.data?.error ||   // Alternative backend error field
+        err?.message ||                 // Standard JS Error message (e.g., Network Error)
+        'Failed to update order status.'; // Fallback message
+
+      toast.error(errorMessage);
+      console.error('Order status update failed:', err);
+    },
+  });
 
 
   const {
@@ -41,7 +68,7 @@ export default function ShoppingListScreen() {
     pendingCount,
     notFoundCount,
     completedCount,
-    isBaggingComplete,
+    isShoppingComplete,
     isPostBagging,
   } = useMemo(() => {
     const items = order?.orderItems ?? [];
@@ -60,11 +87,24 @@ export default function ShoppingListScreen() {
     const not_found = items.filter(item => item.status === 'NOT_FOUND');
     const completed = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
 
-    const postBaggingStatuses: OrderStatus[] = [
+      const postBaggingStatuses: OrderStatus[] = [
+      // Handoff States
       'ready_for_pickup',
       'ready_for_delivery',
-      'accepted_for_delivery',
-      'en_route',
+    
+      // Active Delivery Flow
+      'en_route_to_pickup',
+      'arrived_at_store',
+      'en_route_to_delivery', // Replaces generic 'en_route'
+      'arrived_at_customer_location',
+      
+      // Return Flow (Post-bagging exceptions)
+      'en_route_to_return_pickup',
+      'arrived_at_return_pickup_location',
+      'en_route_to_return_to_store',
+      'returned_to_store',
+    
+      // Terminal Success States
       'delivered',
       'picked_up_by_customer',
     ];
@@ -77,7 +117,7 @@ export default function ShoppingListScreen() {
       completedItems: groupByCategory(completed),
       completedCount: completed.length,
       itemsLeft: pending.length + not_found.length,
-      isBaggingComplete: pending.length === 0 && not_found.length === 0,
+      isShoppingComplete: pending.length === 0 && not_found.length === 0,
       isPostBagging: postBaggingStatuses.includes(order?.orderStatus as OrderStatus),
     };
   }, [order]);
@@ -113,6 +153,38 @@ export default function ShoppingListScreen() {
     });
   };
 
+  const handleCompletedBagging = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    updateOrderStatusMutation.mutate({ status: 'completed_bagging' });
+  };
+
+  const handleCompleteOrder = () => {
+    if (!order) return;
+
+    let nextStatus: OrderStatus | undefined;
+    if (order.deliveryMethod === 'customer_pickup') {
+      nextStatus = 'ready_for_pickup';
+    } else if (order.deliveryMethod === 'delivery_person') {
+      nextStatus = 'ready_for_delivery';
+    }
+
+    if (nextStatus) {
+      updateOrderStatusMutation.mutate({ status: nextStatus }, {
+        onSuccess: () => {
+          router.push({
+            pathname: '/(private)/orders/success',
+            params: { orderId },
+          });
+        },
+      });
+    } else {
+      toast.error('Unable to complete order: Invalid delivery method.');
+    }
+  };
+
   const handlePreviewOrder = () => {
     if (!orderId) {
       toast.error('Order ID is missing.');
@@ -120,17 +192,6 @@ export default function ShoppingListScreen() {
     }
     router.push({
       pathname: '/(private)/orders/preview-page',
-      params: { orderId },
-    });
-  };
-
-  const handleVerifyPickup = () => {
-    if (!orderId) {
-      toast.error('Order ID is missing.');
-      return;
-    }
-    router.push({
-      pathname: '/(private)/orders/verify-order-code',
       params: { orderId },
     });
   };
@@ -269,15 +330,31 @@ export default function ShoppingListScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        {isBaggingComplete ? (
+        {isShoppingComplete ? (
           isPostBagging ? (
-            <TouchableOpacity style={styles.continueButton} onPress={handleVerifyPickup}>
-              <Text style={styles.continueButtonText}>Verify Pickup</Text>
-            </TouchableOpacity>
+            null
           ) : (
-            <TouchableOpacity style={styles.continueButton} onPress={handlePreviewOrder}>
-              <Text style={styles.continueButtonText}>Preview Order</Text>
-            </TouchableOpacity>
+            order?.orderStatus === 'completed_bagging' ? (
+              <TouchableOpacity 
+                style={[styles.continueButton, updateOrderStatusMutation.isPending && styles.disabledButton]} 
+                onPress={handleCompleteOrder}
+                disabled={updateOrderStatusMutation.isPending}
+              >
+                <Text style={styles.continueButtonText}>
+                  {updateOrderStatusMutation.isPending ? 'Processing...' : 'Complete Order'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={[styles.continueButton, updateOrderStatusMutation.isPending && styles.disabledButton]} 
+                onPress={handleCompletedBagging}
+                disabled={updateOrderStatusMutation.isPending}
+              >
+                <Text style={styles.continueButtonText}>
+                  {updateOrderStatusMutation.isPending ? 'Processing...' : 'Completed Bagging'}
+                </Text>
+              </TouchableOpacity>
+            )
           )
         ) : (
           <TouchableOpacity style={styles.continueButton} onPress={handleContinueShopping}>

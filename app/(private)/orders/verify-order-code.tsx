@@ -7,6 +7,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -244,7 +246,11 @@ export default function VerifyOrderCode() {
         </View>
       </View>
 
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+        keyboardVerticalOffset={80}
+      >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Order Summary Card */}
         <View style={styles.orderCard}>
@@ -382,7 +388,7 @@ export default function VerifyOrderCode() {
           />
         </View>
       </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

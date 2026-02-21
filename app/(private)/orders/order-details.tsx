@@ -96,7 +96,14 @@ export default function OrderDetailsScreen() {
   };
 
   const handleMessageCustomer = () => {
-    console.log('Message customer');
+    if (!order?.user) {
+      toast.error('Customer details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+    });
   };
 
   const handleCopyOrderCode = () => {

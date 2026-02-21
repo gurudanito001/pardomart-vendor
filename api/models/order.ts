@@ -30,6 +30,9 @@ import type { OrderStatus } from './order-status';
 import type { PaymentMethods } from './payment-methods';
 // May contain unused imports in some cases
 // @ts-ignore
+import type { PaymentStatus } from './payment-status';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { ShoppingMethod } from './shopping-method';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -47,7 +50,7 @@ export interface Order {
     'serviceFee'?: number | null;
     'shoppingFee'?: number | null;
     'paymentMethod'?: PaymentMethods;
-    'paymentStatus'?: OrderPaymentStatusEnum;
+    'paymentStatus'?: PaymentStatus;
     'orderStatus'?: OrderStatus;
     'deliveryAddressId'?: string | null;
     'deliveryInstructions'?: string | null;
@@ -65,14 +68,17 @@ export interface Order {
     'deliveryAddress'?: DeliveryAddress;
     'shopper'?: User;
     'deliverer'?: User;
+    'orderCode'?: string;
+    'pickupOtp'?: string | null;
+    'subtotal'?: number;
+    'shopperTip'?: number | null;
+    'deliveryPersonTip'?: number | null;
+    'shopperId'?: string | null;
+    'shoppingStartTime'?: string | null;
+    'scheduledDeliveryTime'?: string | null;
+    'actualDeliveryTime'?: string | null;
+    'pickupOtpVerifiedAt'?: string | null;
 }
 
-export const OrderPaymentStatusEnum = {
-    Pending: 'pending',
-    Paid: 'paid',
-    Failed: 'failed'
-} as const;
-
-export type OrderPaymentStatusEnum = typeof OrderPaymentStatusEnum[keyof typeof OrderPaymentStatusEnum];
 
 

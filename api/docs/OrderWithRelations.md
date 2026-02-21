@@ -1,10 +1,15 @@
-# VendorWithRatingAndDistance
+# OrderWithRelations
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**id** | **string** |  | [optional] [default to undefined]
+**userId** | **string** |  | [optional] [default to undefined]
+**vendorId** | **string** |  | [optional] [default to undefined]
+**orderCode** | **string** |  | [optional] [default to undefined]
+**pickupOtp** | **string** |  | [optional] [default to undefined]
 **subtotal** | **number** |  | [optional] [default to undefined]
 **totalAmount** | **number** |  | [optional] [default to undefined]
 **deliveryFee** | **number** |  | [optional] [default to undefined]
@@ -24,13 +29,28 @@ Name | Type | Description | Notes
 **shoppingStartTime** | **string** |  | [optional] [default to undefined]
 **scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
 **actualDeliveryTime** | **string** |  | [optional] [default to undefined]
+**pickupOtpVerifiedAt** | **string** |  | [optional] [default to undefined]
+**reasonForDecline** | **string** |  | [optional] [default to undefined]
+**createdAt** | **string** |  | [optional] [default to undefined]
+**updatedAt** | **string** |  | [optional] [default to undefined]
+**user** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
+**shopper** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
+**deliveryPerson** | [**UserSummary**](UserSummary.md) |  | [optional] [default to undefined]
+**orderItems** | [**Array&lt;OrderItemWithRelations&gt;**](OrderItemWithRelations.md) |  | [optional] [default to undefined]
+**vendor** | [**VendorWithDetails**](VendorWithDetails.md) |  | [optional] [default to undefined]
+**deliveryAddress** | [**DeliveryAddress**](DeliveryAddress.md) |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { VendorWithRatingAndDistance } from './api';
+import { OrderWithRelations } from './api';
 
-const instance: VendorWithRatingAndDistance = {
+const instance: OrderWithRelations = {
+    id,
+    userId,
+    vendorId,
+    orderCode,
+    pickupOtp,
     subtotal,
     totalAmount,
     deliveryFee,
@@ -50,6 +70,16 @@ const instance: VendorWithRatingAndDistance = {
     shoppingStartTime,
     scheduledDeliveryTime,
     actualDeliveryTime,
+    pickupOtpVerifiedAt,
+    reasonForDecline,
+    createdAt,
+    updatedAt,
+    user,
+    shopper,
+    deliveryPerson,
+    orderItems,
+    vendor,
+    deliveryAddress,
 };
 ```
 

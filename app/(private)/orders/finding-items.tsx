@@ -168,24 +168,11 @@ export default function FindingItemsScreen() {
     setIsScannerVisible(false);
     setManualBarcode(''); // Clear manual input
 
-    const replacements = currentItem?.replacements || [];
-    const isReplacementBarcode = replacements.some(
-      // The replacement object might be nested differently, adjust path if needed
-      // e.g., rep.product?.barcode or rep.vendorProduct?.product?.barcode
-      (rep: any) => rep.product?.barcode === barcode
-    );
-
     if (isSubstituting) {
       if (!orderId || !currentItem?.id) {
         toast.error('Missing order or item ID for substitution.');
         return;
       }
-      if (!isReplacementBarcode) {
-          toast.error('Scanned item is not a valid replacement.');
-          setScanned(false); // Allow re-scanning
-          return;
-        }
-
       const payload = {
         status: 'REPLACED' as const,
         replacementBarcode: barcode,
@@ -196,7 +183,10 @@ export default function FindingItemsScreen() {
           toast.success(`Item substituted successfully.`);
           setIsSubstituting(false);
         },
-        onError: (err) => toast.error(`Substitution failed: ${err.message}`),
+        onError: (err) => {
+          toast.error(`Substitution failed: ${err.message}`);
+          setScanned(false);
+        },
       });
     } else if (barcode === currentItem?.vendorProduct?.product?.barcode) {
       toast.success(`Item "${currentItem?.vendorProduct?.name}" matched!`);
@@ -240,7 +230,7 @@ export default function FindingItemsScreen() {
   const handleFinishShopping = () => {
     // Navigate to the preview page
     router.push({
-      pathname: '/(private)/orders/preview-page',
+      pathname: '/(private)/orders/shopping-list',
       params: { orderId },
     });
   };
@@ -424,10 +414,6 @@ export default function FindingItemsScreen() {
             <TouchableOpacity style={styles.scanButton} onPress={handleFinishShopping}>
               <Text style={styles.scanButtonText}>Preview order</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.scanButton} onPress={()=>{}}>
-              <Text style={styles.scanButtonText}>Verify Pickup</Text>
-            </TouchableOpacity>
             </>
             
           ) : (
@@ -503,7 +489,7 @@ export default function FindingItemsScreen() {
                       </View>
                     ))
                   ) : (
-                    <Text style={styles.noSubstitutesText}>No replacements available for this item.</Text>
+                    <Text style={styles.noSubstitutesText}>No specific replacements suggested. You can scan any item to substitute.</Text>
                   )}
                 </ScrollView>
               ) : (

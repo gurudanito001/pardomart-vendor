@@ -34,6 +34,8 @@ import type { ContentType } from '../models';
 // @ts-ignore
 import type { CreateFaqPayload } from '../models';
 // @ts-ignore
+import type { CreateUserPayload } from '../models';
+// @ts-ignore
 import type { CustomersAdminOverviewGet200Response } from '../models';
 // @ts-ignore
 import type { DeliveryPersonsAdminOverviewGet200Response } from '../models';
@@ -43,8 +45,6 @@ import type { Faq } from '../models';
 import type { MessageWithRelations } from '../models';
 // @ts-ignore
 import type { OrderAdminOverviewGet200Response } from '../models';
-// @ts-ignore
-import type { OrderStatus } from '../models';
 // @ts-ignore
 import type { PaginatedSupportTickets } from '../models';
 // @ts-ignore
@@ -73,6 +73,8 @@ import type { UpdateOrderPayload } from '../models';
 import type { UpdateSupportTicketStatusPayload } from '../models';
 // @ts-ignore
 import type { UpdateUserPayload } from '../models';
+// @ts-ignore
+import type { UsersAdminStatsGet200Response } from '../models';
 // @ts-ignore
 import type { VendorsOverviewGet200Response } from '../models';
 /**
@@ -348,6 +350,50 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Updates the privacy policy for the specified app. Supports Markdown or HTML.
+         * @summary Update privacy policy for a specific app (Admin)
+         * @param {UpdateContentPayload} updateContentPayload 
+         * @param {ContentPrivacyPolicyAppPatchAppEnum} app The app to update the privacy policy for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        contentPrivacyPolicyAppPatch: async (updateContentPayload: UpdateContentPayload, app: ContentPrivacyPolicyAppPatchAppEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateContentPayload' is not null or undefined
+            assertParamExists('contentPrivacyPolicyAppPatch', 'updateContentPayload', updateContentPayload)
+            // verify required parameter 'app' is not null or undefined
+            assertParamExists('contentPrivacyPolicyAppPatch', 'app', app)
+            const localVarPath = `/content/privacy-policy/{app}`
+                .replace(`{${"app"}}`, encodeURIComponent(String(app)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateContentPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Creates or updates the content for a given type. Requires admin privileges. The content should be an HTML string.
          * @summary Update static content by type (Admin)
          * @param {UpdateContentPayload} updateContentPayload 
@@ -394,10 +440,8 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
          * @summary Get a paginated list of all customers (Admin)
-         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
-         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
          * @param {string} [createdAtStart] Filter customers created on or after this date.
          * @param {string} [createdAtEnd] Filter customers created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -405,7 +449,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        customersAdminAllGet: async (name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        customersAdminAllGet: async (search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/customers/admin/all`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -422,20 +466,12 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
-            if (name !== undefined) {
-                localVarQueryParameter['name'] = name;
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
 
             if (status !== undefined) {
                 localVarQueryParameter['status'] = status;
-            }
-
-            if (minAmountSpent !== undefined) {
-                localVarQueryParameter['minAmountSpent'] = minAmountSpent;
-            }
-
-            if (maxAmountSpent !== undefined) {
-                localVarQueryParameter['maxAmountSpent'] = maxAmountSpent;
             }
 
             if (createdAtStart !== undefined) {
@@ -600,7 +636,51 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * 
+         * @summary Export customers to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminExportGet: async (search?: string, status?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/customers/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders, new customers, and total payments. Only accessible by admins.
          * @summary Get platform-wide customer overview data (Admin)
          * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
          * @param {*} [options] Override http request option.
@@ -641,10 +721,8 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Retrieves a paginated list of all users with the \'delivery_person\' role. Allows filtering by name, status, number of deliveries, and creation date.
          * @summary Get a paginated list of all delivery persons (Admin)
-         * @param {string} [name] Filter by name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minDeliveries] Filter by minimum number of completed deliveries.
-         * @param {number} [maxDeliveries] Filter by maximum number of completed deliveries.
          * @param {string} [createdAtStart] Filter users created on or after this date.
          * @param {string} [createdAtEnd] Filter users created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -652,7 +730,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deliveryPersonsAdminAllGet: async (name?: string, status?: boolean, minDeliveries?: number, maxDeliveries?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        deliveryPersonsAdminAllGet: async (search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/delivery-persons/admin/all`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -669,20 +747,12 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
-            if (name !== undefined) {
-                localVarQueryParameter['name'] = name;
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
 
             if (status !== undefined) {
                 localVarQueryParameter['status'] = status;
-            }
-
-            if (minDeliveries !== undefined) {
-                localVarQueryParameter['minDeliveries'] = minDeliveries;
-            }
-
-            if (maxDeliveries !== undefined) {
-                localVarQueryParameter['maxDeliveries'] = maxDeliveries;
             }
 
             if (createdAtStart !== undefined) {
@@ -703,6 +773,50 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
 
             if (size !== undefined) {
                 localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Export delivery persons to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deliveryPersonsAdminExportGet: async (search?: string, status?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/delivery-persons/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
             }
 
 
@@ -1008,10 +1122,10 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status (pending, in-progress, completed, cancelled), creation date, and customer name. Only accessible by admins.
          * @summary Get a paginated list of all orders (Admin)
          * @param {string} [orderCode] Filter by order code.
-         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [status] Filter by order status (pending, in-progress, completed, cancelled) or specific OrderStatus.
          * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
          * @param {string} [createdAtStart] Filter orders created on or after this date.
          * @param {string} [createdAtEnd] Filter orders created on or before this date.
@@ -1020,7 +1134,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        orderAdminAllGet: async (orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        orderAdminAllGet: async (orderCode?: string, status?: string, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/order/admin/all`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1163,7 +1277,7 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products, in-stock products, and total cancelled orders. Only accessible by admins.
          * @summary Get platform-wide order overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1463,7 +1577,65 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportAdminExportGet: async (customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/support/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (customerName !== undefined) {
+                localVarQueryParameter['customerName'] = customerName;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1684,13 +1856,109 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminExportGet: async (search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/transactions/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (createdAtStart !== undefined) {
+                localVarQueryParameter['createdAtStart'] = (createdAtStart as any instanceof Date) ?
+                    (createdAtStart as any).toISOString() :
+                    createdAtStart;
+            }
+
+            if (createdAtEnd !== undefined) {
+                localVarQueryParameter['createdAtEnd'] = (createdAtEnd as any instanceof Date) ?
+                    (createdAtEnd as any).toISOString() :
+                    createdAtEnd;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         transactionsAdminOverviewGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/transactions/admin/overview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdDownloadReceiptGet: async (transactionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'transactionId' is not null or undefined
+            assertParamExists('transactionsAdminTransactionIdDownloadReceiptGet', 'transactionId', transactionId)
+            const localVarPath = `/transactions/admin/{transactionId}/download-receipt`
+                .replace(`{${"transactionId"}}`, encodeURIComponent(String(transactionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1794,7 +2062,251 @@ export const AdminApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Retrieves aggregate data about the platform, such as the total number of vendor users, stores, and staff members. Only accessible by admins.
+         * Downloads a CSV file containing a list of all admin users.
+         * @summary Export list of admins (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminExportGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/users/admin/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Deactivate an admin user account (Admin)
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminIdDeactivatePatch: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('usersAdminIdDeactivatePatch', 'id', id)
+            const localVarPath = `/users/admin/{id}/deactivate`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update an admin user profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminIdPatch: async (updateUserPayload: UpdateUserPayload, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateUserPayload' is not null or undefined
+            assertParamExists('usersAdminIdPatch', 'updateUserPayload', updateUserPayload)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('usersAdminIdPatch', 'id', id)
+            const localVarPath = `/users/admin/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateUserPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create a new admin user (Admin)
+         * @param {CreateUserPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminPost: async (body: CreateUserPayload, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('usersAdminPost', 'body', body)
+            const localVarPath = `/users/admin`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves statistics about admin users, including total count and active count.
+         * @summary Get admin statistics (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminStatsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/users/admin/stats`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Exports a list of vendors matching the provided filters to a CSV file.
+         * @summary Export vendors to CSV (Admin)
+         * @param {string} [name] 
+         * @param {string} [userId] Filter by the user who owns the store.
+         * @param {boolean} [isVerified] 
+         * @param {boolean} [isPublished] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsExportGet: async (name?: string, userId?: string, isVerified?: boolean, isPublished?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/vendors/export`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+            if (userId !== undefined) {
+                localVarQueryParameter['userId'] = userId;
+            }
+
+            if (isVerified !== undefined) {
+                localVarQueryParameter['isVerified'] = isVerified;
+            }
+
+            if (isPublished !== undefined) {
+                localVarQueryParameter['isPublished'] = isPublished;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Retrieves aggregate data about the platform, such as the total number of stores, users, orders, and delivered orders. Only accessible by admins.
          * @summary Get platform overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1914,6 +2426,20 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Updates the privacy policy for the specified app. Supports Markdown or HTML.
+         * @summary Update privacy policy for a specific app (Admin)
+         * @param {UpdateContentPayload} updateContentPayload 
+         * @param {ContentPrivacyPolicyAppPatchAppEnum} app The app to update the privacy policy for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async contentPrivacyPolicyAppPatch(updateContentPayload: UpdateContentPayload, app: ContentPrivacyPolicyAppPatchAppEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Content>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.contentPrivacyPolicyAppPatch(updateContentPayload, app, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.contentPrivacyPolicyAppPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Creates or updates the content for a given type. Requires admin privileges. The content should be an HTML string.
          * @summary Update static content by type (Admin)
          * @param {UpdateContentPayload} updateContentPayload 
@@ -1930,10 +2456,8 @@ export const AdminApiFp = function(configuration?: Configuration) {
         /**
          * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
          * @summary Get a paginated list of all customers (Admin)
-         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
-         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
          * @param {string} [createdAtStart] Filter customers created on or after this date.
          * @param {string} [createdAtEnd] Filter customers created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -1941,8 +2465,8 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options);
+        async customersAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.customersAdminAllGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -1990,7 +2514,21 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * 
+         * @summary Export customers to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async customersAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.customersAdminExportGet(search, status, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.customersAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders, new customers, and total payments. Only accessible by admins.
          * @summary Get platform-wide customer overview data (Admin)
          * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
          * @param {*} [options] Override http request option.
@@ -2005,10 +2543,8 @@ export const AdminApiFp = function(configuration?: Configuration) {
         /**
          * Retrieves a paginated list of all users with the \'delivery_person\' role. Allows filtering by name, status, number of deliveries, and creation date.
          * @summary Get a paginated list of all delivery persons (Admin)
-         * @param {string} [name] Filter by name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minDeliveries] Filter by minimum number of completed deliveries.
-         * @param {number} [maxDeliveries] Filter by maximum number of completed deliveries.
          * @param {string} [createdAtStart] Filter users created on or after this date.
          * @param {string} [createdAtEnd] Filter users created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -2016,10 +2552,24 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deliveryPersonsAdminAllGet(name?: string, status?: boolean, minDeliveries?: number, maxDeliveries?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deliveryPersonsAdminAllGet(name, status, minDeliveries, maxDeliveries, createdAtStart, createdAtEnd, page, size, options);
+        async deliveryPersonsAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deliveryPersonsAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.deliveryPersonsAdminAllGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Export delivery persons to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deliveryPersonsAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deliveryPersonsAdminExportGet(search, status, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.deliveryPersonsAdminExportGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2118,10 +2668,10 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status (pending, in-progress, completed, cancelled), creation date, and customer name. Only accessible by admins.
          * @summary Get a paginated list of all orders (Admin)
          * @param {string} [orderCode] Filter by order code.
-         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [status] Filter by order status (pending, in-progress, completed, cancelled) or specific OrderStatus.
          * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
          * @param {string} [createdAtStart] Filter orders created on or after this date.
          * @param {string} [createdAtEnd] Filter orders created on or before this date.
@@ -2130,7 +2680,7 @@ export const AdminApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async orderAdminAllGet(orderCode?: string, status?: string, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.orderAdminAllGet']?.[localVarOperationServerIndex]?.url;
@@ -2164,7 +2714,7 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products, in-stock products, and total cancelled orders. Only accessible by admins.
          * @summary Get platform-wide order overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2261,7 +2811,23 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.supportAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2324,7 +2890,23 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.transactionsAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2333,6 +2915,19 @@ export const AdminApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminOverviewGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AdminApi.transactionsAdminOverviewGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.transactionsAdminTransactionIdDownloadReceiptGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2362,7 +2957,87 @@ export const AdminApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieves aggregate data about the platform, such as the total number of vendor users, stores, and staff members. Only accessible by admins.
+         * Downloads a CSV file containing a list of all admin users.
+         * @summary Export list of admins (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async usersAdminExportGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersAdminExportGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.usersAdminExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Deactivate an admin user account (Admin)
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async usersAdminIdDeactivatePatch(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersAdminIdDeactivatePatch(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.usersAdminIdDeactivatePatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update an admin user profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async usersAdminIdPatch(updateUserPayload: UpdateUserPayload, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersAdminIdPatch(updateUserPayload, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.usersAdminIdPatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create a new admin user (Admin)
+         * @param {CreateUserPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async usersAdminPost(body: CreateUserPayload, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersAdminPost(body, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.usersAdminPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves statistics about admin users, including total count and active count.
+         * @summary Get admin statistics (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async usersAdminStatsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UsersAdminStatsGet200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.usersAdminStatsGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.usersAdminStatsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Exports a list of vendors matching the provided filters to a CSV file.
+         * @summary Export vendors to CSV (Admin)
+         * @param {string} [name] 
+         * @param {string} [userId] Filter by the user who owns the store.
+         * @param {boolean} [isVerified] 
+         * @param {boolean} [isPublished] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async vendorsExportGet(name?: string, userId?: string, isVerified?: boolean, isPublished?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.vendorsExportGet(name, userId, isVerified, isPublished, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AdminApi.vendorsExportGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves aggregate data about the platform, such as the total number of stores, users, orders, and delivered orders. Only accessible by admins.
          * @summary Get platform overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2445,6 +3120,17 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.categoryAdminOverviewGet(options).then((request) => request(axios, basePath));
         },
         /**
+         * Updates the privacy policy for the specified app. Supports Markdown or HTML.
+         * @summary Update privacy policy for a specific app (Admin)
+         * @param {UpdateContentPayload} updateContentPayload 
+         * @param {ContentPrivacyPolicyAppPatchAppEnum} app The app to update the privacy policy for.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        contentPrivacyPolicyAppPatch(updateContentPayload: UpdateContentPayload, app: ContentPrivacyPolicyAppPatchAppEnum, options?: RawAxiosRequestConfig): AxiosPromise<Content> {
+            return localVarFp.contentPrivacyPolicyAppPatch(updateContentPayload, app, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Creates or updates the content for a given type. Requires admin privileges. The content should be an HTML string.
          * @summary Update static content by type (Admin)
          * @param {UpdateContentPayload} updateContentPayload 
@@ -2458,10 +3144,8 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
         /**
          * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
          * @summary Get a paginated list of all customers (Admin)
-         * @param {string} [name] Filter by customer name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minAmountSpent] Filter by minimum total amount spent.
-         * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
          * @param {string} [createdAtStart] Filter customers created on or after this date.
          * @param {string} [createdAtEnd] Filter customers created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -2469,8 +3153,8 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        customersAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves detailed information for a specific customer, including their profile and order statistics (total, completed, cancelled). Only accessible by admins.
@@ -2506,7 +3190,18 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.customersAdminCustomerIdTransactionsGet(customerId, page, size, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+         * 
+         * @summary Export customers to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        customersAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.customersAdminExportGet(search, status, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about customers, such as total customers, total completed orders, new customers, and total payments. Only accessible by admins.
          * @summary Get platform-wide customer overview data (Admin)
          * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
          * @param {*} [options] Override http request option.
@@ -2518,10 +3213,8 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
         /**
          * Retrieves a paginated list of all users with the \'delivery_person\' role. Allows filtering by name, status, number of deliveries, and creation date.
          * @summary Get a paginated list of all delivery persons (Admin)
-         * @param {string} [name] Filter by name (case-insensitive).
+         * @param {string} [search] Search by name, email, or mobile number.
          * @param {boolean} [status] Filter by active status (true/false).
-         * @param {number} [minDeliveries] Filter by minimum number of completed deliveries.
-         * @param {number} [maxDeliveries] Filter by maximum number of completed deliveries.
          * @param {string} [createdAtStart] Filter users created on or after this date.
          * @param {string} [createdAtEnd] Filter users created on or before this date.
          * @param {number} [page] Page number for pagination.
@@ -2529,8 +3222,19 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deliveryPersonsAdminAllGet(name?: string, status?: boolean, minDeliveries?: number, maxDeliveries?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.deliveryPersonsAdminAllGet(name, status, minDeliveries, maxDeliveries, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        deliveryPersonsAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deliveryPersonsAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Export delivery persons to CSV (Admin)
+         * @param {string} [search] 
+         * @param {boolean} [status] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deliveryPersonsAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deliveryPersonsAdminExportGet(search, status, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves a paginated list of all completed deliveries for a specific delivery person.
@@ -2607,10 +3311,10 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.faqsPost(createFaqPayload, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+         * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status (pending, in-progress, completed, cancelled), creation date, and customer name. Only accessible by admins.
          * @summary Get a paginated list of all orders (Admin)
          * @param {string} [orderCode] Filter by order code.
-         * @param {OrderStatus} [status] Filter by order status.
+         * @param {string} [status] Filter by order status (pending, in-progress, completed, cancelled) or specific OrderStatus.
          * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
          * @param {string} [createdAtStart] Filter orders created on or after this date.
          * @param {string} [createdAtEnd] Filter orders created on or before this date.
@@ -2619,7 +3323,7 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        orderAdminAllGet(orderCode?: string, status?: string, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2644,7 +3348,7 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.orderAdminOrderIdPatch(updateOrderPayload, orderId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+         * Retrieves aggregate data about all orders on the platform, such as total orders, total products, in-stock products, and total cancelled orders. Only accessible by admins.
          * @summary Get platform-wide order overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2720,7 +3424,20 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.staffAdminStoreVendorIdGet(vendorId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+         * 
+         * @summary Export support tickets to CSV (Admin)
+         * @param {string} [customerName] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
          * @summary Get platform-wide support ticket overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2771,13 +3488,36 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.transactionsAdminAllGet(orderCode, customerName, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+         * 
+         * @summary Export transactions to CSV (Admin)
+         * @param {string} [search] 
+         * @param {string} [status] 
+         * @param {string} [createdAtStart] 
+         * @param {string} [createdAtEnd] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
          * @summary Get platform-wide transaction overview (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         transactionsAdminOverviewGet(options?: RawAxiosRequestConfig): AxiosPromise<TransactionsAdminOverviewGet200Response> {
             return localVarFp.transactionsAdminOverviewGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Download receipt for a transaction (Admin)
+         * @param {string} transactionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig): AxiosPromise<string> {
+            return localVarFp.transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieves the full details of a specific transaction by its ID. Only accessible by admins.
@@ -2800,7 +3540,69 @@ export const AdminApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.transactionsAdminTransactionIdSendReceiptPost(transactionId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieves aggregate data about the platform, such as the total number of vendor users, stores, and staff members. Only accessible by admins.
+         * Downloads a CSV file containing a list of all admin users.
+         * @summary Export list of admins (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminExportGet(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.usersAdminExportGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Deactivate an admin user account (Admin)
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminIdDeactivatePatch(id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.usersAdminIdDeactivatePatch(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update an admin user profile (Admin)
+         * @param {UpdateUserPayload} updateUserPayload 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminIdPatch(updateUserPayload: UpdateUserPayload, id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.usersAdminIdPatch(updateUserPayload, id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create a new admin user (Admin)
+         * @param {CreateUserPayload} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminPost(body: CreateUserPayload, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.usersAdminPost(body, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves statistics about admin users, including total count and active count.
+         * @summary Get admin statistics (Admin)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        usersAdminStatsGet(options?: RawAxiosRequestConfig): AxiosPromise<UsersAdminStatsGet200Response> {
+            return localVarFp.usersAdminStatsGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Exports a list of vendors matching the provided filters to a CSV file.
+         * @summary Export vendors to CSV (Admin)
+         * @param {string} [name] 
+         * @param {string} [userId] Filter by the user who owns the store.
+         * @param {boolean} [isVerified] 
+         * @param {boolean} [isPublished] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        vendorsExportGet(name?: string, userId?: string, isVerified?: boolean, isPublished?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.vendorsExportGet(name, userId, isVerified, isPublished, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves aggregate data about the platform, such as the total number of stores, users, orders, and delivered orders. Only accessible by admins.
          * @summary Get platform overview data (Admin)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2883,6 +3685,18 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
+     * Updates the privacy policy for the specified app. Supports Markdown or HTML.
+     * @summary Update privacy policy for a specific app (Admin)
+     * @param {UpdateContentPayload} updateContentPayload 
+     * @param {ContentPrivacyPolicyAppPatchAppEnum} app The app to update the privacy policy for.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public contentPrivacyPolicyAppPatch(updateContentPayload: UpdateContentPayload, app: ContentPrivacyPolicyAppPatchAppEnum, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).contentPrivacyPolicyAppPatch(updateContentPayload, app, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Creates or updates the content for a given type. Requires admin privileges. The content should be an HTML string.
      * @summary Update static content by type (Admin)
      * @param {UpdateContentPayload} updateContentPayload 
@@ -2897,10 +3711,8 @@ export class AdminApi extends BaseAPI {
     /**
      * Retrieves a paginated list of all users with the \'customer\' role. Allows filtering by name, status, amount spent, and creation date. Only accessible by admins.
      * @summary Get a paginated list of all customers (Admin)
-     * @param {string} [name] Filter by customer name (case-insensitive).
+     * @param {string} [search] Search by name, email, or mobile number.
      * @param {boolean} [status] Filter by active status (true/false).
-     * @param {number} [minAmountSpent] Filter by minimum total amount spent.
-     * @param {number} [maxAmountSpent] Filter by maximum total amount spent.
      * @param {string} [createdAtStart] Filter customers created on or after this date.
      * @param {string} [createdAtEnd] Filter customers created on or before this date.
      * @param {number} [page] Page number for pagination.
@@ -2908,8 +3720,8 @@ export class AdminApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public customersAdminAllGet(name?: string, status?: boolean, minAmountSpent?: number, maxAmountSpent?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).customersAdminAllGet(name, status, minAmountSpent, maxAmountSpent, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    public customersAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).customersAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2949,7 +3761,19 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate data about customers, such as total customers, total completed orders (invoices), and new customers in a given period. Only accessible by admins.
+     * 
+     * @summary Export customers to CSV (Admin)
+     * @param {string} [search] 
+     * @param {boolean} [status] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public customersAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).customersAdminExportGet(search, status, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about customers, such as total customers, total completed orders, new customers, and total payments. Only accessible by admins.
      * @summary Get platform-wide customer overview data (Admin)
      * @param {number} [days] The number of past days to count for \&quot;new customers\&quot;.
      * @param {*} [options] Override http request option.
@@ -2962,10 +3786,8 @@ export class AdminApi extends BaseAPI {
     /**
      * Retrieves a paginated list of all users with the \'delivery_person\' role. Allows filtering by name, status, number of deliveries, and creation date.
      * @summary Get a paginated list of all delivery persons (Admin)
-     * @param {string} [name] Filter by name (case-insensitive).
+     * @param {string} [search] Search by name, email, or mobile number.
      * @param {boolean} [status] Filter by active status (true/false).
-     * @param {number} [minDeliveries] Filter by minimum number of completed deliveries.
-     * @param {number} [maxDeliveries] Filter by maximum number of completed deliveries.
      * @param {string} [createdAtStart] Filter users created on or after this date.
      * @param {string} [createdAtEnd] Filter users created on or before this date.
      * @param {number} [page] Page number for pagination.
@@ -2973,8 +3795,20 @@ export class AdminApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public deliveryPersonsAdminAllGet(name?: string, status?: boolean, minDeliveries?: number, maxDeliveries?: number, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
-        return AdminApiFp(this.configuration).deliveryPersonsAdminAllGet(name, status, minDeliveries, maxDeliveries, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    public deliveryPersonsAdminAllGet(search?: string, status?: boolean, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).deliveryPersonsAdminAllGet(search, status, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Export delivery persons to CSV (Admin)
+     * @param {string} [search] 
+     * @param {boolean} [status] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deliveryPersonsAdminExportGet(search?: string, status?: boolean, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).deliveryPersonsAdminExportGet(search, status, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3059,10 +3893,10 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status, creation date, and customer name. Only accessible by admins.
+     * Retrieves a paginated list of all orders on the platform. Allows filtering by orderCode, status (pending, in-progress, completed, cancelled), creation date, and customer name. Only accessible by admins.
      * @summary Get a paginated list of all orders (Admin)
      * @param {string} [orderCode] Filter by order code.
-     * @param {OrderStatus} [status] Filter by order status.
+     * @param {string} [status] Filter by order status (pending, in-progress, completed, cancelled) or specific OrderStatus.
      * @param {string} [customerName] Filter by customer\&#39;s name (case-insensitive).
      * @param {string} [createdAtStart] Filter orders created on or after this date.
      * @param {string} [createdAtEnd] Filter orders created on or before this date.
@@ -3071,7 +3905,7 @@ export class AdminApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public orderAdminAllGet(orderCode?: string, status?: OrderStatus, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+    public orderAdminAllGet(orderCode?: string, status?: string, customerName?: string, createdAtStart?: string, createdAtEnd?: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).orderAdminAllGet(orderCode, status, customerName, createdAtStart, createdAtEnd, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -3099,7 +3933,7 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate data about all orders on the platform, such as total orders, total products ordered, and total cancelled orders. Only accessible by admins.
+     * Retrieves aggregate data about all orders on the platform, such as total orders, total products, in-stock products, and total cancelled orders. Only accessible by admins.
      * @summary Get platform-wide order overview data (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3182,7 +4016,21 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate data about support tickets, such as total count, open tickets, and closed tickets. Only accessible by admins.
+     * 
+     * @summary Export support tickets to CSV (Admin)
+     * @param {string} [customerName] 
+     * @param {string} [status] 
+     * @param {string} [createdAtStart] 
+     * @param {string} [createdAtEnd] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public supportAdminExportGet(customerName?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).supportAdminExportGet(customerName, status, createdAtStart, createdAtEnd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about support tickets, such as total count, open tickets (including in-progress), closed tickets, and resolved tickets. Only accessible by admins.
      * @summary Get platform-wide support ticket overview (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3237,13 +4085,38 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate financial data for the platform, including total transactions, income (fees), expenses (refunds), and revenue. Only accessible by admins.
+     * 
+     * @summary Export transactions to CSV (Admin)
+     * @param {string} [search] 
+     * @param {string} [status] 
+     * @param {string} [createdAtStart] 
+     * @param {string} [createdAtEnd] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminExportGet(search?: string, status?: string, createdAtStart?: string, createdAtEnd?: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).transactionsAdminExportGet(search, status, createdAtStart, createdAtEnd, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate financial data for the platform. Total Income is the sum of all paid order amounts. Total Revenue is the sum of service fees from paid orders. Total Expenses is the sum of refunds. Only accessible by admins.
      * @summary Get platform-wide transaction overview (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public transactionsAdminOverviewGet(options?: RawAxiosRequestConfig) {
         return AdminApiFp(this.configuration).transactionsAdminOverviewGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Download receipt for a transaction (Admin)
+     * @param {string} transactionId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transactionsAdminTransactionIdDownloadReceiptGet(transactionId: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).transactionsAdminTransactionIdDownloadReceiptGet(transactionId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3269,7 +4142,75 @@ export class AdminApi extends BaseAPI {
     }
 
     /**
-     * Retrieves aggregate data about the platform, such as the total number of vendor users, stores, and staff members. Only accessible by admins.
+     * Downloads a CSV file containing a list of all admin users.
+     * @summary Export list of admins (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public usersAdminExportGet(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).usersAdminExportGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Deactivate an admin user account (Admin)
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public usersAdminIdDeactivatePatch(id: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).usersAdminIdDeactivatePatch(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update an admin user profile (Admin)
+     * @param {UpdateUserPayload} updateUserPayload 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public usersAdminIdPatch(updateUserPayload: UpdateUserPayload, id: string, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).usersAdminIdPatch(updateUserPayload, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create a new admin user (Admin)
+     * @param {CreateUserPayload} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public usersAdminPost(body: CreateUserPayload, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).usersAdminPost(body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves statistics about admin users, including total count and active count.
+     * @summary Get admin statistics (Admin)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public usersAdminStatsGet(options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).usersAdminStatsGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Exports a list of vendors matching the provided filters to a CSV file.
+     * @summary Export vendors to CSV (Admin)
+     * @param {string} [name] 
+     * @param {string} [userId] Filter by the user who owns the store.
+     * @param {boolean} [isVerified] 
+     * @param {boolean} [isPublished] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public vendorsExportGet(name?: string, userId?: string, isVerified?: boolean, isPublished?: boolean, options?: RawAxiosRequestConfig) {
+        return AdminApiFp(this.configuration).vendorsExportGet(name, userId, isVerified, isPublished, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves aggregate data about the platform, such as the total number of stores, users, orders, and delivered orders. Only accessible by admins.
      * @summary Get platform overview data (Admin)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3279,3 +4220,9 @@ export class AdminApi extends BaseAPI {
     }
 }
 
+export const ContentPrivacyPolicyAppPatchAppEnum = {
+    Customer: 'customer',
+    Vendor: 'vendor',
+    Delivery: 'delivery'
+} as const;
+export type ContentPrivacyPolicyAppPatchAppEnum = typeof ContentPrivacyPolicyAppPatchAppEnum[keyof typeof ContentPrivacyPolicyAppPatchAppEnum];

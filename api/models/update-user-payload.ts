@@ -27,6 +27,11 @@ export interface UpdateUserPayload {
     'language'?: string | null;
     'notification'?: { [key: string]: any; } | null;
     'referralCode'?: string | null;
+    /**
+     * Base64 encoded image or URL
+     */
+    'image'?: string;
+    'online'?: boolean;
 }
 
 
