@@ -13,24 +13,20 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import type { FeeCalculationMethod } from './fee-calculation-method';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { FeeType } from './fee-type';
 
 export interface CreateFeePayload {
-    'type': FeeType;
+    'type': CreateFeePayloadTypeEnum;
     'amount': number;
     'description'?: string | null;
-    'isActive': boolean;
-    'method': FeeCalculationMethod;
-    'unit'?: string | null;
-    'minThreshold'?: number | null;
-    'maxThreshold'?: number | null;
-    'thresholdAppliesTo'?: string | null;
+    'isActive'?: boolean;
 }
 
+export const CreateFeePayloadTypeEnum = {
+    Delivery: 'DELIVERY',
+    Service: 'SERVICE',
+    Shopping: 'SHOPPING'
+} as const;
+
+export type CreateFeePayloadTypeEnum = typeof CreateFeePayloadTypeEnum[keyof typeof CreateFeePayloadTypeEnum];
 
 

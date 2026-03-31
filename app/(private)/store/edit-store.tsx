@@ -45,6 +45,7 @@ export default function EditStoreScreen() {
   const [mobileNumber, setMobileNumber] = useState('');
   const [initialCountry, setInitialCountry] = useState<Country | undefined>();
   const [availableForShopping, setAvailableForShopping] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [addressSearch, setAddressSearch] = useState('');
@@ -59,7 +60,17 @@ export default function EditStoreScreen() {
     isLoading: imageLoading,
     error: imageError,
     pickFromGallery,
-  } = useImagePicker({ base64: true });
+  } = useImagePicker({ base64: true, maxSize: 1 * 1024 * 1024 });
+
+  useEffect(() => {
+    if (imageError) {
+      if (imageError.includes('Size exceeds')) {
+        toast.error('The image should not exceed 1MB in size');
+      } else {
+        toast.error(imageError);
+      }
+    }
+  }, [imageError]);
 
   // Populate form with fetched data
   useEffect(() => {
@@ -78,6 +89,7 @@ export default function EditStoreScreen() {
       }
 
       setAvailableForShopping(vendor.availableForShopping ?? true);
+      setIsPublished((vendor as any).isPublished ?? false);
       setTagline(vendor.tagline || '');
       setDetails(vendor.details || '');
       setStoreAddress(vendor.address || '');
@@ -115,6 +127,7 @@ export default function EditStoreScreen() {
         address: storeAddress,
         latitude: latitude === null ? undefined : latitude,
         longitude: longitude === null ? undefined : longitude,
+        ...({ isPublished } as any),
       };
 
       // Only include the image if a new one was selected
@@ -136,10 +149,10 @@ export default function EditStoreScreen() {
   };
 
   const handleAddressSelect = (suggestion: GooglePlacesSuggestion) => {
-    setStoreAddress(suggestion.address);
+    setStoreAddress(suggestion.displayName);
     setLatitude(suggestion.latitude ?? null);
     setLongitude(suggestion.longitude ?? null);
-    setAddressSearch(suggestion.address);
+    setAddressSearch(suggestion.displayName);
   };
 
   const handleAddressChange = (text: string) => {
@@ -149,6 +162,13 @@ export default function EditStoreScreen() {
       setLatitude(null);
       setLongitude(null);
     }
+  };
+
+  const clearSelectedAddress = () => {
+    setStoreAddress('');
+    setAddressSearch('');
+    setLatitude(null);
+    setLongitude(null);
   };
 
   const onRefresh = React.useCallback(async () => {
@@ -197,6 +217,7 @@ export default function EditStoreScreen() {
           <ScrollView
             style={[styles.scrollView, { backgroundColor: '#FFF' }]}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -245,6 +266,8 @@ export default function EditStoreScreen() {
                   onValueChange={handleAddressChange}
                   onAddressSelect={handleAddressSelect}
                   requireConfirmation={true}
+                  selectedAddress={storeAddress}
+                  onClearSelection={clearSelectedAddress}
                 />
               </View>
 
@@ -298,6 +321,18 @@ export default function EditStoreScreen() {
                   ios_backgroundColor="#3e3e3e"
                   onValueChange={setAvailableForShopping}
                   value={availableForShopping}
+                />
+              </View>
+
+              {/* Publish Store */}
+              <View style={[styles.inputGroup, styles.switchContainer]}>
+                <Text style={styles.inputLabel}>Publish Store</Text>
+                <Switch
+                  trackColor={{ false: "#767577", true: "#06888C" }}
+                  thumbColor={isPublished ? "#f4f3f4" : "#f4f3f4"}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={setIsPublished}
+                  value={isPublished}
                 />
               </View>
             </View>

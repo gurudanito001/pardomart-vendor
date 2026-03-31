@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -29,6 +30,8 @@ interface AddressAutocompleteEnhancedProps {
   value?: string;
   onValueChange?: (value: string) => void;
   requireConfirmation?: boolean;
+  selectedAddress?: string;
+  onClearSelection?: () => void;
 }
 
 const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = ({
@@ -40,6 +43,8 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
   value: controlledValue,
   onValueChange,
   requireConfirmation = false,
+  selectedAddress,
+  onClearSelection,
 }) => {
   // State management
   const [internalValue, setInternalValue] = useState('');
@@ -56,7 +61,6 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Hooks
   const showError = useCallback((m: string) => toast.error(m), []);
@@ -79,15 +83,6 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
       // Ignore location errors, search will work without bias
     });
   }, [getCurrentLocation]);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   // Enhanced debounced search with abort controller for cleanup
   const performSearch = useCallback(async (searchQuery: string) => {
@@ -167,11 +162,12 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
   const handleSuggestionPress = useCallback(async (suggestion: GooglePlacesSuggestion, index: number) => {
     // Cancel any pending blur hide so the press can be processed reliably on
     // Android where blur may fire before the press.
+    console.log('Suggestion pressed:', suggestion);
     if (blurTimeoutRef.current) {
       clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = null;
     }
-  setSelectedIndex(index);
+    setSelectedIndex(index);
 
     if (requireConfirmation) {
       try {
@@ -188,14 +184,16 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
         // input value here — the parent likely wants to keep the selected
         // address visible. The parent can decide whether to clear the search
         // input or keep it.
-  onAddressSelect(selected);
+        onAddressSelect(selected);
+        setSuggestions([]);
 
         setShowSuggestions(false);
         setSelectedIndex(-1);
+        Keyboard.dismiss();
       } catch (error) {
         console.error('Suggestion selection error:', error);
       }
-    return;
+      return;
     }
 
     setIsCreating(true);
@@ -277,6 +275,18 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
     };
   }, []);
 
+  const handleClear = useCallback(() => {
+    if (controlledValue === undefined) {
+      setInternalValue('');
+    }
+    onValueChange?.('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+    setSearchError(null);
+    inputRef.current?.focus();
+  }, [controlledValue, onValueChange]);
+
   // Auto-focus if requested
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -309,20 +319,6 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
 
   return (
     <View style={containerStyles}>
-      {/* Keyboard overlay: when keyboard is open and suggestions are visible,
-          render a transparent overlay that captures the first tap to dismiss
-          the keyboard. After the keyboard is dismissed the user can tap a
-          suggestion which will then register normally. */}
-      {keyboardVisible && showSuggestions && (
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={() => {
-            Keyboard.dismiss();
-            // give keyboard a moment to hide before allowing suggestion taps
-            setTimeout(() => setKeyboardVisible(false), 100);
-          }}
-        />
-      )}
       {/* Input Container */}
       <Pressable 
         style={inputContainerStyles}
@@ -347,6 +343,14 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
           autoComplete={Platform.OS === 'web' ? 'street-address' : undefined}
           autoCorrect={false}
         />
+
+        {inputValue.length > 0 && (
+          <TouchableOpacity onPress={handleClear} style={styles.clearIcon} hitSlop={{top: 10, right: 10, bottom: 10, left: 10}}>
+            <Svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <Path d="M18 6L6 18M6 6L18 18" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </Svg>
+          </TouchableOpacity>
+        )}
         
         {LoadingIndicator}
       </Pressable>
@@ -375,11 +379,7 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
                   index === suggestions.length - 1 && styles.suggestionItemLast,
                   selectedIndex === index && styles.suggestionItemSelected,
                 ]}
-                // Use onPressIn so the selection handler runs before the
-                // TextInput blur and keyboard hide, improving reliability on
-                // mobile where keyboard closing can trigger a blur that hides
-                // suggestions before onPress fires.
-                onPressIn={() => handleSuggestionPress(suggestion, index)}
+                onPress={() => handleSuggestionPress(suggestion, index)}
                 disabled={isCreating}
               >
                 <View style={styles.suggestionContent}>
@@ -431,6 +431,19 @@ const AddressAutocompleteEnhanced: React.FC<AddressAutocompleteEnhancedProps> = 
           </View>
         </View>
       )}
+
+      {/* Selected Address Container */}
+      {selectedAddress ? (
+        <View style={styles.selectedAddressContainer}>
+          <View style={styles.selectedAddressInfo}>
+            <Text style={styles.selectedAddressLabel}>Selected:</Text>
+            <Text style={styles.selectedAddressText} numberOfLines={1}>{selectedAddress}</Text>
+          </View>
+          <TouchableOpacity onPress={onClearSelection}>
+            <Text style={styles.clearButtonText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -476,6 +489,9 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     flexShrink: 0,
+  },
+  clearIcon: {
+    padding: 4,
   },
   textInput: {
     flex: 1,
@@ -606,6 +622,40 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
     fontFamily: 'OpenSans-Regular',
+  },
+  selectedAddressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#F0F8F8',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 136, 140, 0.2)',
+  },
+  selectedAddressInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 6,
+  },
+  selectedAddressLabel: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-SemiBold',
+    color: '#06888C',
+  },
+  selectedAddressText: {
+    fontSize: 12,
+    fontFamily: 'Open Sans',
+    color: '#484C52',
+    flex: 1,
+  },
+  clearButtonText: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-SemiBold',
+    color: '#FF4D4F',
+    marginLeft: 12,
   },
 });
 

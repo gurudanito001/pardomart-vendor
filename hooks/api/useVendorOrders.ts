@@ -14,6 +14,7 @@ export const useVendorOrders = (vendorId?: string, status?: OrderStatus) => {
       try {
         // The user requested to use the "orders/vendor" endpoint.
         const response = await orderApi.orderVendorGet(vendorId, status);
+        console.log("vendor orders", response.data)
         return response.data;
       } catch (err: any) {
         const message =

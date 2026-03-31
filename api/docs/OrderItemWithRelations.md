@@ -12,6 +12,8 @@ Name | Type | Description | Notes
 **instructions** | **string** |  | [optional] [default to undefined]
 **status** | [**OrderItemStatus**](OrderItemStatus.md) |  | [optional] [default to undefined]
 **quantityFound** | **number** |  | [optional] [default to undefined]
+**purchasedPrice** | **number** |  | [optional] [default to undefined]
+**replacementPrices** | **object** | Key-value map of vendorProductId to locked price | [optional] [default to undefined]
 **chosenReplacementId** | **string** |  | [optional] [default to undefined]
 **isReplacementApproved** | **boolean** |  | [optional] [default to undefined]
 **createdAt** | **string** |  | [optional] [default to undefined]
@@ -33,6 +35,8 @@ const instance: OrderItemWithRelations = {
     instructions,
     status,
     quantityFound,
+    purchasedPrice,
+    replacementPrices,
     chosenReplacementId,
     isReplacementApproved,
     createdAt,

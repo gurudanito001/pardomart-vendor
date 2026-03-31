@@ -28,6 +28,7 @@ Name | Type | Description | Notes
 **product** | [**Product**](Product.md) |  | [optional] [default to undefined]
 **categories** | [**Array&lt;CategorySummary&gt;**](CategorySummary.md) |  | [optional] [default to undefined]
 **tags** | [**Array&lt;TagSummary&gt;**](TagSummary.md) |  | [optional] [default to undefined]
+**rating** | [**VendorProductWithRelationsAllOfRating**](VendorProductWithRelationsAllOfRating.md) |  | [optional] [default to undefined]
 **vendor** | [**VendorSummary**](VendorSummary.md) |  | [optional] [default to undefined]
 
 ## Example
@@ -59,6 +60,7 @@ const instance: VendorProductWithRelations = {
     product,
     categories,
     tags,
+    rating,
     vendor,
 };
 ```

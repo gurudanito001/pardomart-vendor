@@ -49,6 +49,7 @@ export interface OrderWithRelations {
     'pickupOtp'?: string | null;
     'subtotal'?: number;
     'totalAmount'?: number;
+    'budgetAmount'?: number | null;
     'deliveryFee'?: number | null;
     'serviceFee'?: number | null;
     'shoppingFee'?: number | null;

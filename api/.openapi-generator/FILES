@@ -85,8 +85,6 @@ docs/FAQApi.md
 docs/Faq.md
 docs/Fee.md
 docs/FeeApi.md
-docs/FeeCalculationMethod.md
-docs/FeeType.md
 docs/GeneralApi.md
 docs/GeneralSearchApi.md
 docs/GeneralSearchResult.md
@@ -144,6 +142,7 @@ docs/Rating.md
 docs/RatingApi.md
 docs/RatingType.md
 docs/RatingWithRelations.md
+docs/RatingWithRelationsAllOfRatedProduct.md
 docs/RatingsAggregateGet200Response.md
 docs/RespondToReplacementPayload.md
 docs/ReturnApi.md
@@ -175,6 +174,8 @@ docs/TransactionsAdminOverviewGet200Response.md
 docs/TransactionsApi.md
 docs/TransactionsCreatePaymentIntentPost200Response.md
 docs/TransactionsCreatePaymentIntentPostRequest.md
+docs/TransactionsSetupIntentPost200Response.md
+docs/TransactionsSimulatePaymentPostRequest.md
 docs/UpdateCartItemPayload.md
 docs/UpdateCategoryPayload.md
 docs/UpdateContentPayload.md
@@ -208,10 +209,10 @@ docs/VendorOpeningHoursApi.md
 docs/VendorProduct.md
 docs/VendorProductWithProduct.md
 docs/VendorProductWithRelations.md
+docs/VendorProductWithRelationsAllOfRating.md
 docs/VendorRating.md
 docs/VendorSummary.md
 docs/VendorWithDetails.md
-docs/VendorWithDetailsAllOfRating.md
 docs/VendorWithExtras.md
 docs/VendorWithRelations.md
 docs/VendorsIdAvailabilityPatchRequest.md
@@ -221,6 +222,7 @@ docs/VendorsOverviewGet200Response.md
 docs/Verification.md
 docs/Wallet.md
 docs/WalletApi.md
+docs/WalletWithdrawPostRequest.md
 docs/WishlistApi.md
 docs/WishlistItem.md
 docs/WishlistItemWithRelations.md
@@ -326,8 +328,6 @@ models/earnings-total-get200-response.ts
 models/errors-report-post-request.ts
 models/errors-report-post200-response.ts
 models/faq.ts
-models/fee-calculation-method.ts
-models/fee-type.ts
 models/fee.ts
 models/general-search-result.ts
 models/general-search-store-products-store-id-get200-response-one-of-inner.ts
@@ -376,6 +376,7 @@ models/product-vendor-transfer-post200-response.ts
 models/product-with-relations.ts
 models/product.ts
 models/rating-type.ts
+models/rating-with-relations-all-of-rated-product.ts
 models/rating-with-relations.ts
 models/rating.ts
 models/ratings-aggregate-get200-response.ts
@@ -403,6 +404,8 @@ models/transaction.ts
 models/transactions-admin-overview-get200-response.ts
 models/transactions-create-payment-intent-post-request.ts
 models/transactions-create-payment-intent-post200-response.ts
+models/transactions-setup-intent-post200-response.ts
+models/transactions-simulate-payment-post-request.ts
 models/update-cart-item-payload.ts
 models/update-category-payload.ts
 models/update-content-payload.ts
@@ -429,11 +432,11 @@ models/vendor-category-with-products.ts
 models/vendor-list-item.ts
 models/vendor-opening-hours.ts
 models/vendor-product-with-product.ts
+models/vendor-product-with-relations-all-of-rating.ts
 models/vendor-product-with-relations.ts
 models/vendor-product.ts
 models/vendor-rating.ts
 models/vendor-summary.ts
-models/vendor-with-details-all-of-rating.ts
 models/vendor-with-details.ts
 models/vendor-with-extras.ts
 models/vendor-with-relations.ts
@@ -443,6 +446,7 @@ models/vendors-id-stats-get200-response.ts
 models/vendors-incomplete-setups-get200-response.ts
 models/vendors-overview-get200-response.ts
 models/verification.ts
+models/wallet-withdraw-post-request.ts
 models/wallet.ts
 models/wishlist-item-with-relations.ts
 models/wishlist-item.ts

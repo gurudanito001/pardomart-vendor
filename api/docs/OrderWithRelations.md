@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **pickupOtp** | **string** |  | [optional] [default to undefined]
 **subtotal** | **number** |  | [optional] [default to undefined]
 **totalAmount** | **number** |  | [optional] [default to undefined]
+**budgetAmount** | **number** |  | [optional] [default to undefined]
 **deliveryFee** | **number** |  | [optional] [default to undefined]
 **serviceFee** | **number** |  | [optional] [default to undefined]
 **shoppingFee** | **number** |  | [optional] [default to undefined]
@@ -53,6 +54,7 @@ const instance: OrderWithRelations = {
     pickupOtp,
     subtotal,
     totalAmount,
+    budgetAmount,
     deliveryFee,
     serviceFee,
     shoppingFee,

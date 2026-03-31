@@ -98,7 +98,7 @@ export default function EditProductScreen() {
     
     if (!imagesLoadedRef.current && productData.images && Array.isArray(productData.images)) {
       setImages(productData.images.map((url, index) => ({
-        id: `existing-${index}-${url}`,
+        id: `existing-${index}-${Date.now()}`,
         uri: url,
         isExisting: true
       })));
@@ -123,8 +123,13 @@ export default function EditProductScreen() {
       });
 
       if (!result.canceled) {
-        const newImages = result.assets.map((asset) => ({
-          id: asset.uri,
+        const remainingSlots = 3 - images.length;
+        const newAssets = result.assets.slice(0, remainingSlots);
+        if (result.assets.length > remainingSlots) {
+          toast.info(`You can only add up to 3 images. Only the first ${remainingSlots} were added.`);
+        }
+        const newImages = newAssets.map((asset, index) => ({
+          id: `${Date.now()}-${index}`,
           uri: asset.uri,
           base64: asset.base64 || undefined,
           isExisting: false,
@@ -228,7 +233,7 @@ export default function EditProductScreen() {
 
           <View style={styles.imageSection}>
             <Text style={styles.fieldLabel}>Product Images</Text>
-            <View style={{ height: 100 }}>
+            <View style={{ height: 120, paddingVertical: 10 }}>
               <DraggableFlatList
                 data={images}
                 onDragEnd={({ data }) => setImages(data)}
@@ -236,15 +241,16 @@ export default function EditProductScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 renderItem={renderImageItem}
-                containerStyle={{ flexGrow: 0 }}
                 contentContainerStyle={styles.imageThumbnails}
                 ListFooterComponent={
-                <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
-                  <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-                    <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
-                  </Svg>
-                  <Text style={styles.addImageText}>Add Image</Text>
-                </TouchableOpacity>
+                  images.length < 3 ? (
+                    <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
+                      <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
+                        <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
+                      </Svg>
+                      <Text style={styles.addImageText}>Add Image</Text>
+                    </TouchableOpacity>
+                  ) : null
                 }
               />
             </View>
@@ -456,9 +462,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   imageThumbnails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     paddingRight: 20,
   },
   imageThumbnail: {

@@ -16,5 +16,17 @@
 
 export interface TransactionsCreatePaymentIntentPostRequest {
     'orderId': string;
+    /**
+     * Optional. Specifies the type of payment. Use \'ebt\' to configure the intent for EBT processing, otherwise defaults to standard automatic payment methods.
+     */
+    'paymentType'?: TransactionsCreatePaymentIntentPostRequestPaymentTypeEnum;
 }
+
+export const TransactionsCreatePaymentIntentPostRequestPaymentTypeEnum = {
+    Card: 'card',
+    Ebt: 'ebt'
+} as const;
+
+export type TransactionsCreatePaymentIntentPostRequestPaymentTypeEnum = typeof TransactionsCreatePaymentIntentPostRequestPaymentTypeEnum[keyof typeof TransactionsCreatePaymentIntentPostRequestPaymentTypeEnum];
+
 

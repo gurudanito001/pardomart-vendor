@@ -184,7 +184,7 @@ export default function VerifyOrderCode() {
   });
 
   const itemsCount = useMemo(() => {
-    return order?.orderItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) ?? 0;
+    return order?.orderItems?.reduce((acc: any, item: { quantity: any; }) => acc + (item.quantity ?? 0), 0) ?? 0;
   }, [order]);
 
   const handleBackPress = () => {
@@ -199,6 +199,17 @@ export default function VerifyOrderCode() {
       return;
     }
     verifyCodeMutation.mutate(otpCode);
+  };
+
+  const handleViewShoppingItems = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/receipt',
+      params: { orderId },
+    });
   };
 
   if (isLoading) {
@@ -226,8 +237,8 @@ export default function VerifyOrderCode() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#06888C' }]} edges={['top', 'left', 'right']}>
-      <StatusBar backgroundColor="#06888C" barStyle="light-content" />
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <StatusBar barStyle="light-content" backgroundColor="#06888C" />
       
       {/* Header */}
       <View style={styles.header}>
@@ -249,7 +260,7 @@ export default function VerifyOrderCode() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, backgroundColor: '#FFFFFF' }}
-        keyboardVerticalOffset={80}
+        keyboardVerticalOffset={30}
       >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Order Summary Card */}
@@ -312,8 +323,8 @@ export default function VerifyOrderCode() {
           </View>
 
           {/* View Shopping Items Button */}
-          <TouchableOpacity style={styles.viewItemsButton}>
-            <Text style={styles.viewItemsButtonText}>View Shopping Items</Text>
+          <TouchableOpacity style={styles.viewItemsButton} onPress={handleViewShoppingItems}>
+            <Text style={styles.viewItemsButtonText}>View Receipt</Text>
           </TouchableOpacity>
         </View>
 
@@ -323,7 +334,7 @@ export default function VerifyOrderCode() {
           <View style={styles.personCard}>
             <View style={styles.personInfo}>
               <Image
-                source={{ uri: order.user?.image || 'https://via.placeholder.com/60' }}
+                source={{ uri: order.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
                 style={styles.avatar}
               />
               <Text style={styles.personName}>{order.user?.name ?? 'Customer'}</Text>
@@ -345,7 +356,7 @@ export default function VerifyOrderCode() {
           <View style={styles.personCard}>
             <View style={styles.personInfo}>
               <Image
-                source={{ uri: order.shopper?.image || 'https://via.placeholder.com/60' }}
+                source={{ uri: order.shopper?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.shopper?.name || 'Shopper')}&background=06888C&color=fff&size=60` }}
                 style={styles.avatar}
               />
               <Text style={styles.personName}>{order.shopper?.name ?? 'Not Assigned'}</Text>
@@ -409,7 +420,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 25,
-    paddingVertical: 16,
+    paddingVertical: 10,
     height: 80,
   },
   
@@ -717,6 +728,6 @@ const styles = StyleSheet.create({
   
   buttonContainer: {
     paddingHorizontal: 1,
-    paddingBottom: 30,
+    marginBottom: 50,
   },
 });

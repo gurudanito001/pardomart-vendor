@@ -1,6 +1,6 @@
 import toast from '@/utils/toast';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -35,6 +35,7 @@ export default function AddStoreScreen() {
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [availableForShopping, setAvailableForShopping] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -47,7 +48,17 @@ export default function AddStoreScreen() {
     error: imageError,
     pickFromGallery,
     clearImage,
-  } = useImagePicker({ base64: true });
+  } = useImagePicker({ base64: true, maxSize: 1 * 1024 * 1024 });
+
+  useEffect(() => {
+    if (imageError) {
+      if (imageError.includes('Size exceeds')) {
+        toast.error('The image should not exceed 1MB in size');
+      } else {
+        toast.error(imageError);
+      }
+    }
+  }, [imageError]);
 
   const handleGoBack = () => {
     router.back();
@@ -82,6 +93,7 @@ export default function AddStoreScreen() {
         latitude: latitude === null ? undefined : latitude,
         longitude: longitude === null ? undefined : longitude,
         image: selectedImage?.base64,
+        ...({ isPublished } as any),
       };
       console.log('Prepared vendor payload', payload);
       const newVendor = await createVendor(payload);
@@ -102,11 +114,12 @@ export default function AddStoreScreen() {
   const handleAddressSelect = (suggestion: GooglePlacesSuggestion) => {
     // Set both the visible selected address and the search input so the
     // AddressAutocompleteEnhanced (controlled) reflects the cleared value.
-    setStoreAddress(suggestion.address);
+    console.log('Selected address suggestion:', suggestion);
+    setStoreAddress(suggestion.displayName);
     setLatitude(suggestion.latitude ?? null);
     setLongitude(suggestion.longitude ?? null);
     // Keep the selected address visible in the input (UX choice requested).
-    setAddressSearch(suggestion.address);
+    setAddressSearch(suggestion.displayName);
   };
 
   const handleAddressChange = (text: string) => {
@@ -166,7 +179,7 @@ export default function AddStoreScreen() {
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
             {/* Page Title Section */}
             <View style={styles.titleSection}>
@@ -221,18 +234,9 @@ export default function AddStoreScreen() {
                   onValueChange={handleAddressChange}
                   onAddressSelect={handleAddressSelect}
                   requireConfirmation={true}
+                  selectedAddress={storeAddress}
+                  onClearSelection={clearSelectedAddress}
                 />
-                {storeAddress ? (
-                  <View style={styles.selectedAddressContainer}>
-                    <View style={styles.selectedAddressInfo}>
-                      <Text style={styles.selectedAddressLabel}>Selected:</Text>
-                      <Text style={styles.selectedAddressText} numberOfLines={1}>{storeAddress}</Text>
-                    </View>
-                    <TouchableOpacity onPress={clearSelectedAddress}>
-                      <Text style={styles.clearButtonText}>Clear</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
               </View>
 
               {/* Store Email - zIndex 3 */}
@@ -300,6 +304,18 @@ export default function AddStoreScreen() {
                   ios_backgroundColor="#3e3e3e"
                   onValueChange={setAvailableForShopping}
                   value={availableForShopping}
+                />
+              </View>
+
+              {/* Publish Store - zIndex 1 */}
+              <View style={[styles.fieldContainer, styles.switchContainer, { zIndex: 1 }]}>
+                <Text style={styles.fieldLabel}>Publish Store</Text>
+                <Switch
+                  trackColor={{ false: "#767577", true: "#06888C" }}
+                  thumbColor={isPublished ? "#f4f3f4" : "#f4f3f4"}
+                  ios_backgroundColor="#3e3e3e"
+                  onValueChange={setIsPublished}
+                  value={isPublished}
                 />
               </View>
             </View>
@@ -526,39 +542,5 @@ const styles = StyleSheet.create({
     color: '#FF4D4F',
     marginTop: 8,
     fontSize: 12,
-  },
-  selectedAddressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: '#F0F8F8',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(6, 136, 140, 0.2)',
-  },
-  selectedAddressInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 6,
-  },
-  selectedAddressLabel: {
-    fontSize: 12,
-    fontFamily: 'OpenSans-SemiBold',
-    color: '#06888C',
-  },
-  selectedAddressText: {
-    fontSize: 12,
-    fontFamily: 'Open Sans',
-    color: '#484C52',
-    flex: 1,
-  },
-  clearButtonText: {
-    fontSize: 12,
-    fontFamily: 'OpenSans-SemiBold',
-    color: '#FF4D4F',
-    marginLeft: 12,
   },
 });

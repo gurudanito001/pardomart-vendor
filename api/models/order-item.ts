@@ -16,15 +16,22 @@
 // May contain unused imports in some cases
 // @ts-ignore
 import type { OrderItemStatus } from './order-item-status';
+import { VendorProductWithRelations } from './vendor-product-with-relations';
 
 export interface OrderItem {
     'id'?: string;
     'orderId'?: string;
+    'vendorProduct'?: VendorProductWithRelations;
     'vendorProductId'?: string;
     'quantity'?: number;
     'instructions'?: string | null;
     'status'?: OrderItemStatus;
     'quantityFound'?: number | null;
+    'purchasedPrice'?: number | null;
+    /**
+     * Key-value map of vendorProductId to locked price
+     */
+    'replacementPrices'?: object | null;
     'chosenReplacementId'?: string | null;
     'isReplacementApproved'?: boolean | null;
     'createdAt'?: string;

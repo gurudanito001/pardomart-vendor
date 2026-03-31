@@ -221,7 +221,7 @@ const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
     <View style={styles.itemCard}>
       <View style={styles.itemContent}>
         <View style={styles.itemImageContainer}>
-          <Image source={{ uri: item.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} style={styles.itemImage} />
+          <Image source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} style={styles.itemImage} />
         </View>
         
         <View style={styles.itemDetails}>

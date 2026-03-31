@@ -211,6 +211,15 @@ export default function ProductDetails() {
     router.push("/(private)/shared/notifications" as never);
   }, [router]);
 
+  const reportIssue = React.useCallback(() => {
+    const pid = product?.id || productId;
+    if (!pid) return;
+    router.push({
+      pathname: "/(private)/help/reportIssue",
+      params: { productId: pid, category: 'PRODUCT_ISSUE' },
+    } as never);
+  }, [router, product, productId]);
+
   const renderCarouselItem: ListRenderItem<string | null> = ({ item, index }) => (
     <Pressable
       key={index}
@@ -328,6 +337,13 @@ export default function ProductDetails() {
               ))}
             </View>
           )}
+        </View>
+
+        <View style={styles.reportIssueContainer}>
+          <Pressable style={styles.reportIssueButton} onPress={reportIssue} accessibilityRole="button">
+            <Ionicons name="warning-outline" size={20} color={colors.error} />
+            <Text style={styles.reportIssueText}>Report an issue</Text>
+          </Pressable>
         </View>
 
         <View style={styles.descriptionCard}>
@@ -588,6 +604,28 @@ const styles = StyleSheet.create({
     fontFamily: typography.families.accent,
     color: colors.textPrimary,
     marginTop: spacing.xs / 2,
+  },
+  reportIssueContainer: {
+    marginTop: spacing.lg,
+    marginHorizontal: spacing.lg,
+  },
+  reportIssueButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
+    ...shadows.sm,
+  },
+  reportIssueText: {
+    fontSize: typography.sizes.base,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.error,
   },
   descriptionCard: {
     marginTop: spacing.lg,

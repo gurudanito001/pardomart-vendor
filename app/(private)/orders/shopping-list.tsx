@@ -83,9 +83,9 @@ export default function ShoppingListScreen() {
         return acc;
       }, {} as GroupedItems);
 
-    const pending = items.filter(item => !item.status || item.status === 'PENDING');
-    const not_found = items.filter(item => item.status === 'NOT_FOUND');
-    const completed = items.filter(item => item.status === 'FOUND' || item.status === 'REPLACED');
+    const pending = items.filter((item: { status: string; }) => !item.status || item.status === 'PENDING');
+    const not_found = items.filter((item: { status: string; }) => item.status === 'NOT_FOUND');
+    const completed = items.filter((item: { status: string; }) => item.status === 'FOUND' || item.status === 'REPLACED');
 
       const postBaggingStatuses: OrderStatus[] = [
       // Handoff States
@@ -198,7 +198,7 @@ export default function ShoppingListScreen() {
   const renderOrderItem = (item: OrderItem) => (
     <View key={item.id} style={styles.itemCard}>
       <Image 
-        source={{ uri: item.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} 
+        source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.product?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
         style={styles.itemImage} 
       />
       <View style={styles.itemDetails}>

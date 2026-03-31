@@ -71,6 +71,7 @@ export interface Order {
     'orderCode'?: string;
     'pickupOtp'?: string | null;
     'subtotal'?: number;
+    'budgetAmount'?: number | null;
     'shopperTip'?: number | null;
     'deliveryPersonTip'?: number | null;
     'shopperId'?: string | null;

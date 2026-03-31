@@ -1,3 +1,5 @@
+import { ProductApi } from '@/api';
+import { apiConfig } from '@/api/config';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { useCategories } from '@/hooks/api/useCategories';
@@ -7,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Camera, CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -34,6 +36,8 @@ export default function AddProductScreen() {
   const { createProductWithBarcode, loading: isSubmitting } = useProducts();
   const { fetchAllSubCategories } = useCategories();
   const { fetchAllTags } = useTags();
+  
+  const productApi = useMemo(() => new ProductApi(apiConfig), []);
 
   const { data: subCategories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['subCategories'],
@@ -63,10 +67,12 @@ export default function AddProductScreen() {
   const [weightUnit, setWeightUnit] = useState('');
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] = useState(false);
   const weightUnits = ['lb', 'oz', 'g', 'kg', 'gal', 'fl oz', 'l', 'ml', 'ct'];
-  const [images, setImages] = useState<{ id: string; uri: string; base64?: string }[]>([]);
+  const [images, setImages] = useState<{ id: string; uri: string; base64?: string; isExisting?: boolean }[]>([]);
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isScannerVisible, setIsScannerVisible] = useState(false);
+  const [isFetchingBarcode, setIsFetchingBarcode] = useState(false);
+  const [lastFetchedBarcode, setLastFetchedBarcode] = useState('');
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -87,10 +93,16 @@ export default function AddProductScreen() {
       });
 
       if (!result.canceled) {
-        const newImages = result.assets.map((asset) => ({
-          id: asset.uri, // Use URI as ID for simplicity
+        const remainingSlots = 3 - images.length;
+        const newAssets = result.assets.slice(0, remainingSlots);
+        if (result.assets.length > remainingSlots) {
+          toast.info(`You can only add up to 3 images. Only the first ${remainingSlots} were added.`);
+        }
+        const newImages = newAssets.map((asset, index) => ({
+          id: `${Date.now()}-${index}`, // Ensure unique IDs
           uri: asset.uri,
           base64: asset.base64 || undefined,
+          isExisting: false,
         }));
         setImages((prev) => [...prev, ...newImages]);
       }
@@ -115,6 +127,52 @@ export default function AddProductScreen() {
 
   const handleCancel = () => {
     router.back();
+  };
+
+  const fetchProductByBarcode = async (scannedBarcode: string) => {
+    if (scannedBarcode === lastFetchedBarcode) return;
+    try {
+      setIsFetchingBarcode(true);
+      const res = await productApi.productBarcodeGet(scannedBarcode);
+      if (res.data) {
+        const product = res.data;
+        console.log('Fetched product details:', product);
+        setName(product.name || '');
+        setDescription(product.description || '');
+        setPublished(product.isActive ?? false);
+        setIsAlcohol(product.isAlcohol ?? false);
+        setIsAgeRestricted(product.isAgeRestricted ?? false);
+        setWeight(product.weight != null ? String(product.weight) : '');
+        setWeightUnit(product.weightUnit || '');
+        
+        if (product.images && Array.isArray(product.images)) {
+          setImages(product.images.map((url: string, index: number) => ({
+            id: `existing-${index}-${Date.now()}`,
+            uri: url,
+            isExisting: true,
+          })));
+        }
+
+        if (product.categories && Array.isArray(product.categories)) {
+          setCategoryIds(product.categories.map((c: any) => c.id || c.value || c));
+        }
+        if (product.tags && Array.isArray(product.tags)) {
+          setTagIds(product.tags.map((t: any) => t.id || t.value || t));
+        }
+        toast.success('Product details found and pre-filled!');
+      }
+      setLastFetchedBarcode(scannedBarcode);
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        toast.info('No existing product found. You can fill in the details.');
+      } else {
+        // Log error, but don't show a highly intrusive error if it's just a missing barcode mapping
+        console.error('Error fetching product details:', err);
+      }
+      setLastFetchedBarcode(scannedBarcode);
+    } finally {
+      setIsFetchingBarcode(false);
+    }
   };
 
   const handleScanBarcode = async () => {
@@ -155,8 +213,8 @@ export default function AddProductScreen() {
       isAgeRestricted,
       weight: weight ? parseFloat(weight) : undefined,
       weightUnit: weightUnit.trim() || undefined,
-      tags: tagIds.map((t: any) => (typeof t === 'object' ? t.id || t.value : t)),
-      images: images.map(img => img.base64).filter((b64): b64 is string => !!b64),
+      tags: tagIds.map((t: any) => (typeof t === 'object' ? t.id || t.value : t)), // Ensure tags are sent as IDs
+      images: images.map(img => img.isExisting ? img.uri : img.base64).filter((val): val is string => !!val),
     };
 
     const newProduct = await createProductWithBarcode(payload);
@@ -169,7 +227,7 @@ export default function AddProductScreen() {
     }
   }
 
-  const renderImageItem = ({ item, drag, isActive }: RenderItemParams<{ id: string; uri: string; base64?: string }>) => {
+  const renderImageItem = ({ item, drag, isActive }: RenderItemParams<{ id: string; uri: string; base64?: string; isExisting?: boolean }>) => {
     return (
       <ScaleDecorator>
         <TouchableOpacity
@@ -205,7 +263,7 @@ export default function AddProductScreen() {
               if (scanningResult.data) {
                 setIsScannerVisible(false);
                 setBarcode(scanningResult.data);
-                toast.success(`Barcode Scanned: ${scanningResult.data}`);
+                fetchProductByBarcode(scanningResult.data);
               }
             }}
             barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "qr", "code128"] }}
@@ -235,36 +293,11 @@ export default function AddProductScreen() {
       <ScrollView contentContainerStyle={styles.content} style={{ backgroundColor: '#FFF' }} showsVerticalScrollIndicator={false}>
         {/* Add Product Details Section */}
         <View style={styles.detailsSection}>
-          <Text style={styles.sectionTitle}>Add Product details</Text>
+          <Text style={styles.sectionTitle}>Add Product Details</Text>
           <Text style={styles.sectionSubtitle}>Provide all the information of your stores here</Text>
         </View>
 
-        {/* Product Image Section */}
-        <View style={styles.imageSection}>
-          <Text style={styles.fieldLabel}>Product Image</Text>
-          
-          {/* Image Thumbnails */}
-          <View style={{ height: 100 }}>
-            <DraggableFlatList
-              data={images}
-              onDragEnd={({ data }) => setImages(data)}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={renderImageItem}
-              containerStyle={{ flexGrow: 0 }}
-              contentContainerStyle={styles.imageThumbnails}
-              ListFooterComponent={
-              <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
-                <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
-                  <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
-                </Svg>
-                <Text style={styles.addImageText}>Add Image</Text>
-              </TouchableOpacity>
-              }
-            />
-          </View>
-        </View>
+        
 
         {/* Form Fields */}
         <View style={styles.formSection}>
@@ -278,10 +311,43 @@ export default function AddProductScreen() {
                 placeholderTextColor="#7C8BA0"
                 value={barcode}
                 onChangeText={setBarcode}
+                onBlur={() => {
+                  if (barcode.trim()) {
+                    fetchProductByBarcode(barcode.trim());
+                  }
+                }}
               />
               <TouchableOpacity style={styles.scanButton} onPress={handleScanBarcode}>
                 <Text style={styles.scanButtonText}>Scan</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Product Image Section */}
+          <View style={styles.imageSection}>
+            <Text style={styles.fieldLabel}>Product Image</Text>
+            
+            {/* Image Thumbnails */}
+            <View style={{ height: 120, paddingVertical: 10 }}>
+              <DraggableFlatList
+                data={images}
+                onDragEnd={({ data }) => setImages(data)}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={renderImageItem}
+                contentContainerStyle={styles.imageThumbnails}
+                ListFooterComponent={
+                  images.length < 3 ? (
+                    <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
+                      <Svg width="24" height="24" viewBox="0 0 25 24" fill="none">
+                        <Path d="M12.5 1.5C6.70156 1.5 2 6.20156 2 12C2 17.7984 6.70156 22.5 12.5 22.5C18.2984 22.5 23 17.7984 23 12C23 6.20156 18.2984 1.5 12.5 1.5ZM17 12.5625C17 12.6656 16.9156 12.75 16.8125 12.75H13.25V16.3125C13.25 16.4156 13.1656 16.5 13.0625 16.5H11.9375C11.8344 16.5 11.75 16.4156 11.75 16.3125V12.75H8.1875C8.08437 12.75 8 12.6656 8 12.5625V11.4375C8 11.3344 8.08437 11.25 8.1875 11.25H11.75V7.6875C11.75 7.58437 11.8344 7.5 11.9375 7.5H13.0625C13.1656 7.5 13.25 7.58437 13.25 7.6875V11.25H16.8125C16.9156 11.25 17 11.3344 17 11.4375V12.5625Z" fill="#007BFF"/>
+                      </Svg>
+                      <Text style={styles.addImageText}>Add Image</Text>
+                    </TouchableOpacity>
+                  ) : null
+                }
+              />
             </View>
           </View>
 
@@ -484,7 +550,7 @@ export default function AddProductScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
-      {isSubmitting && <LoadingSpinner overlay message='Saving product...' />}
+      {(isSubmitting || isFetchingBarcode) && <LoadingSpinner overlay message={isSubmitting ? 'Saving product...' : 'Fetching details...'} />}
     </SafeAreaView>
     </KeyboardAvoidingView>
     </GestureHandlerRootView>
@@ -560,7 +626,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   imageSection: {
-    paddingHorizontal: 21,
+    //paddingHorizontal: 21,
     paddingTop: 24,
     gap: 17,
   },
@@ -573,9 +639,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   imageThumbnails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     paddingRight: 20,
   },
   imageThumbnail: {

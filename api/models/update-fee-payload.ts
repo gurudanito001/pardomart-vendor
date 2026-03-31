@@ -13,20 +13,10 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import type { FeeCalculationMethod } from './fee-calculation-method';
 
 export interface UpdateFeePayload {
     'amount'?: number;
     'description'?: string | null;
     'isActive'?: boolean;
-    'method'?: FeeCalculationMethod;
-    'unit'?: string | null;
-    'minThreshold'?: number | null;
-    'maxThreshold'?: number | null;
-    'thresholdAppliesTo'?: string | null;
 }
-
-
 

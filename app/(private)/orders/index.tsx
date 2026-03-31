@@ -1,4 +1,4 @@
-import type { VendorOrder } from '@/api/models';
+import type { Order } from '@/api/models';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -19,7 +19,7 @@ import { useAcceptOrder } from '../../../hooks/api/useOrderMutations';
 import { useVendorOrders } from '../../../hooks/api/useVendorOrders';
 
 // This defines the shape of the data after it's been transformed by the `useVendorOrders` hook's `select` function.
-type DisplayOrder = VendorOrder & {
+type DisplayOrder = Order & {
   customerName: string;
   total: number | undefined;
   time: string;
@@ -65,6 +65,7 @@ export default function OrdersScreen() {
     'accepted_for_shopping',
     'currently_shopping',
     'completed_bagging',
+    'ready_for_delivery'
   ];
 
   const filteredOrders = useMemo(() => {
@@ -123,6 +124,12 @@ export default function OrdersScreen() {
     } else if (['accepted_for_shopping', 'currently_shopping', 'completed_bagging'].includes(status || '')) {
       router.push({
         pathname: '/(private)/orders/shopping-list',
+        params: { orderId: order.id },
+      });
+      setProcessingOrderId(null);
+    } else if (order.shoppingMethod === 'delivery_person' && status === 'ready_for_delivery') {
+      router.push({
+        pathname: '/(private)/orders/verify-order-code',
         params: { orderId: order.id },
       });
       setProcessingOrderId(null);
@@ -245,6 +252,8 @@ export default function OrdersScreen() {
                 ? 'Accept Order'
                 : ['accepted_for_shopping', 'currently_shopping', 'completed_bagging'].includes(order.orderStatus || '')
                 ? 'Continue Shopping'
+                : order.shoppingMethod === 'delivery_person' && order.orderStatus === 'ready_for_delivery'
+                ? 'Verify Order'
                 : ['ready_for_pickup', 'ready_for_delivery'].includes(order.orderStatus || '')
                 ? 'Complete Order'
                 : 'View Order'}

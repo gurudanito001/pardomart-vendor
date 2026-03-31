@@ -14,14 +14,8 @@
 
 
 
-
-export const FeeType = {
-    Delivery: 'delivery',
-    Service: 'service',
-    Shopping: 'shopping'
-} as const;
-
-export type FeeType = typeof FeeType[keyof typeof FeeType];
-
-
+export interface RatingWithRelationsAllOfRatedProduct {
+    'id'?: string;
+    'name'?: string;
+}
 

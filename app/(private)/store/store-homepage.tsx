@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
@@ -150,12 +150,20 @@ export default function StoreHomepage() {
     data: vendor,
     isLoading,
     isError,
+    refetch,
   } = useQuery<Vendor | VendorWithDetails>({
     queryKey: ["vendor", storeId],
     queryFn: () => getVendorById(storeId!),
     enabled: hasStoreId,
-    staleTime: 60_000,
   });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (hasStoreId) {
+        refetch();
+      }
+    }, [hasStoreId, refetch])
+  );
 
   React.useEffect(() => {
     if (isError) {
@@ -444,7 +452,16 @@ export default function StoreHomepage() {
                 />
               </Svg>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{vendor?.name || "My Store"}</Text>
+            <View style={{ flexDirection: 'column' }}>
+              <Text style={styles.headerTitle}>{vendor?.name || "My Store"}</Text>
+              {vendor && (
+                <View style={[styles.statusBadge, (vendor as any).isPublished ? styles.publishedBadge : styles.unpublishedBadge]}>
+                  <Text style={styles.statusBadgeText}>
+                    {(vendor as any).isPublished ? 'Published' : 'Unpublished'}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
           <View style={styles.rightSection}>
             <TouchableOpacity style={styles.iconButton}>
@@ -548,6 +565,25 @@ const styles = StyleSheet.create({
     fontFamily: "Raleway",
     color: "#FFF",
     lineHeight: 22,
+  },
+  statusBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  publishedBadge: {
+    backgroundColor: '#2CAF0B',
+  },
+  unpublishedBadge: {
+    backgroundColor: '#F8BB15',
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#FFF',
   },
   rightSection: {
     flexDirection: "row",

@@ -4,16 +4,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -117,7 +117,7 @@ export default function MessagesScreen() {
           <Ionicons name="chevron-back" size={24} color="#100A37" />
         </Pressable>
         <Image
-          source={{ uri: customer?.image || 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }}
+          source={{ uri: customer?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(customer?.name || 'Customer')}&background=F48022&color=fff&size=150` }}
           style={styles.avatar}
         />
         <View style={styles.headerUserInfo}>

@@ -2,10 +2,11 @@ import type { CartItem, OrderItem } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useStartShopping } from '@/hooks/api/useOrderMutations';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -46,6 +47,7 @@ export default function OrderDetailsScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
   const { mutate: startShopping, isPending: isStartingShopping } = useStartShopping();
+  const isOrderCompleted = useMemo(() => !['accepted_for_shopping', 'currently_shopping', 'completed_bagging' ].includes(order?.orderStatus || ''), [order]);
 
   useEffect(() =>{
     console.log("Vendor Product",order)
@@ -61,16 +63,24 @@ export default function OrderDetailsScreen() {
     console.log('Open notifications');
   };
 
-  const handleStartShopping = () => {
+  const handleMainAction = () => {
     if (!orderId) {
       toast.error('Cannot start shopping without an order ID.');
       return;
     }
 
-    // If shopping is already in progress, just navigate to the screen.
-    if (order?.orderStatus === 'currently_shopping') {
+    if (['ready_for_pickup', 'ready_for_delivery'].includes(order?.orderStatus || '')) {
       router.push({
-        pathname: '/(private)/orders/finding-items',
+        pathname: '/(private)/orders/verify-order-code',
+        params: { orderId },
+      });
+      return;
+    }
+
+    // If shopping is already in progress, just navigate to the screen.
+    if (['currently_shopping', 'completed_bagging'].includes(order?.orderStatus || '')) {
+      router.push({
+        pathname: '/(private)/orders/shopping-list',
         params: { orderId },
       });
       return;
@@ -92,7 +102,11 @@ export default function OrderDetailsScreen() {
   };
 
   const handleCallCustomer = () => {
-    console.log('Call customer');
+    if (order?.user?.mobileNumber) {
+      Linking.openURL(`tel:${order.user.mobileNumber}`);
+    } else {
+      toast.error('Customer phone number is not available.');
+    }
   };
 
   const handleMessageCustomer = () => {
@@ -107,14 +121,25 @@ export default function OrderDetailsScreen() {
   };
 
   const handleCopyOrderCode = () => {
-    if (order?.id) {
+    if (order?.orderCode) {
       // In a real app, you'd use Clipboard API
-      // Clipboard.setString(order.id);
-      toast.success(`Order code ${order.id} copied!`);
+      // Clipboard.setString(order.orderCode);
+      toast.success(`Order code ${order.orderCode} copied!`);
     }
   };
 
-  const groupedItems = orderItems.reduce((groups, item) => {
+  const handleViewReceipt = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/receipt',
+      params: { orderId },
+    });
+  };
+
+  const groupedItems = orderItems.reduce((groups: { [x: string]: any[]; }, item: { vendorProduct: { categories: { name: string; }[]; }; }) => {
     const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
     if (!groups[categoryName]) {
       groups[categoryName] = [];
@@ -126,7 +151,7 @@ export default function OrderDetailsScreen() {
   const renderOrderItem = (item: OrderItem | CartItem) => (
     <View key={item.id} style={styles.orderItem}>
       <View style={styles.itemImageContainer}>
-        <Image source={{ uri: item?.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} style={styles.itemImage} />
+        <Image source={{ uri: item?.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item?.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} style={styles.itemImage} />
       </View>
       <View style={styles.itemDetails}>
         <Text style={styles.itemName}>{item.vendorProduct?.name}</Text>
@@ -262,13 +287,27 @@ export default function OrderDetailsScreen() {
               <CopyIcon />
             </TouchableOpacity>
           </View>
+
+          {/* View Receipt Button */}
+          <TouchableOpacity style={styles.viewReceiptButton} onPress={handleViewReceipt}>
+            <Text style={styles.viewReceiptButtonText}>View Receipt</Text>
+          </TouchableOpacity>
         </View>
+          <View style={styles.reportIssueBtn}>
+            <TouchableOpacity
+              style={styles.reportIssueButton}
+              onPress={() => router.push({ pathname: '/(private)/help/reportIssue', params: { orderId, category: 'ORDER_ISSUE' } })}
+            >
+              <Text style={styles.reportIssueText}>Report an Issue</Text>
+            </TouchableOpacity>
+          </View>
+            
 
         {/* Customer Contact Card */}
         <View style={styles.customerCard}>
           <View style={styles.customerInfo}>
             <Image 
-              source={{ uri: order.user?.image || 'https://via.placeholder.com/60' }}
+            source={{ uri: order.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
               style={styles.customerAvatar}
             />
             <Text style={styles.customerName}>{order.user?.name ?? 'Customer'}</Text>
@@ -290,17 +329,19 @@ export default function OrderDetailsScreen() {
             <Text style={styles.itemCount}>{order.orderItems?.length ?? 0} ITEMS</Text>
           </View>
 
-          {Object.entries(groupedItems).map(([category, items]) => (
+          {Object.entries(groupedItems).map(([category, items]) => {
+            const typedItems = items as (OrderItem | CartItem)[];
+            return (
             <View key={category} style={styles.categorySection}>
               <Text style={styles.categoryTitle}>{category}</Text>
               <View style={styles.categoryItems}>
-                {items.map((item, index) => (
+                {typedItems.map((item, index) => (
                   <View 
                     key={item.id} 
                     style={[
                       styles.orderItemContainer,
                       index === 0 && styles.firstItem,
-                      index === items.length - 1 && styles.lastItem
+                      index === typedItems.length - 1 && styles.lastItem
                     ]}
                   >
                     {renderOrderItem(item)}
@@ -308,7 +349,8 @@ export default function OrderDetailsScreen() {
                 ))}
               </View>
             </View>
-          ))}
+          );
+          })}
         </View>
 
         {/* Action Buttons */}
@@ -316,15 +358,24 @@ export default function OrderDetailsScreen() {
           <TouchableOpacity style={styles.goBackButton} onPress={handleGoBackToOrders}>
             <Text style={styles.goBackText}>Go back</Text>
           </TouchableOpacity>
+
+          
+
+          {!isOrderCompleted &&
           <TouchableOpacity 
             style={[styles.startShoppingButton, isStartingShopping && styles.disabledButton]} 
-            onPress={handleStartShopping} 
+            onPress={handleMainAction} 
             disabled={isStartingShopping}
           >
-            {isStartingShopping 
-              ? <ActivityIndicator color="#FFF" /> 
-              : <Text style={styles.startShoppingText}>Start Shopping</Text>}
-          </TouchableOpacity>
+            {isStartingShopping && <ActivityIndicator color="#FFF" /> }
+            <Text style={styles.startShoppingText}>
+                {order?.shoppingMethod === 'delivery_person' && order?.orderStatus === 'ready_for_delivery'
+                  ? 'Verify Order'
+                  : ['currently_shopping', 'completed_bagging'].includes(order?.orderStatus || '')
+                  ? 'Continue Shopping'
+                  : 'Start Shopping'}
+            </Text>
+          </TouchableOpacity>}
         </View>
       </ScrollView>
       </>
@@ -546,6 +597,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000',
   },
+  viewReceiptButton: {
+    backgroundColor: '#06888C',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+  },
+  viewReceiptButtonText: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+    color: '#FFFFFF',
+  },
   customerCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -554,6 +619,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#B4BED4',
+    marginHorizontal: 22,
+    marginTop: 19,
+    marginBottom: 19,
+  },
+  reportIssueBtn: {
     marginHorizontal: 22,
     marginTop: 19,
     marginBottom: 19,
@@ -723,6 +793,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#06888C',
+    lineHeight: 25,
+    textAlign: 'center',
+  },
+  reportIssueButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#C43D28',
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    shadowColor: 'rgba(0, 0, 0, 0.06)',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 1,
+    shadowRadius: 9,
+    elevation: 3,
+  },
+  reportIssueText: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#C43D28',
     lineHeight: 25,
     textAlign: 'center',
   },

@@ -5,15 +5,10 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**type** | [**FeeType**](FeeType.md) |  | [default to undefined]
+**type** | **string** |  | [default to undefined]
 **amount** | **number** |  | [default to undefined]
 **description** | **string** |  | [optional] [default to undefined]
-**isActive** | **boolean** |  | [default to undefined]
-**method** | [**FeeCalculationMethod**](FeeCalculationMethod.md) |  | [default to undefined]
-**unit** | **string** |  | [optional] [default to undefined]
-**minThreshold** | **number** |  | [optional] [default to undefined]
-**maxThreshold** | **number** |  | [optional] [default to undefined]
-**thresholdAppliesTo** | **string** |  | [optional] [default to undefined]
+**isActive** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -25,11 +20,6 @@ const instance: CreateFeePayload = {
     amount,
     description,
     isActive,
-    method,
-    unit,
-    minThreshold,
-    maxThreshold,
-    thresholdAppliesTo,
 };
 ```
 

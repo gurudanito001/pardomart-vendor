@@ -7,8 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **orderItems** | [**Array&lt;CalculateFeesPayloadOrderItemsInner&gt;**](CalculateFeesPayloadOrderItemsInner.md) |  | [default to undefined]
 **vendorId** | **string** |  | [default to undefined]
-**deliveryAddressId** | **string** | Required if deliveryType is not \&#39;customer_pickup\&#39;. | [default to undefined]
-**deliveryType** | [**DeliveryMethod**](DeliveryMethod.md) |  | [optional] [default to undefined]
+**deliveryAddressId** | **string** |  | [default to undefined]
 
 ## Example
 
@@ -19,7 +18,6 @@ const instance: CalculateFeesPayload = {
     orderItems,
     vendorId,
     deliveryAddressId,
-    deliveryType,
 };
 ```
 

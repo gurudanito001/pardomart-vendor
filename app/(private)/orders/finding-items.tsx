@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   Modal,
   ScrollView,
   StatusBar,
@@ -71,7 +72,7 @@ export default function FindingItemsScreen() {
 
   const pendingOrderItems = useMemo(() => {
     const items = order?.orderItems ?? [];
-    return items.filter(item => item.status !== 'FOUND' && item.status !== 'REPLACED' && item.status !== 'NOT_FOUND');
+    return items.filter((item: { status: string; }) => item.status !== 'FOUND' && item.status !== 'REPLACED' && item.status !== 'NOT_FOUND');
   }, [order]);
 
   const currentItem = useMemo(() => {
@@ -91,9 +92,11 @@ export default function FindingItemsScreen() {
   }, []);
 
   useEffect(() => {
-    // Pre-fill the found quantity with the required quantity when the input becomes visible
-    setFoundQuantity(currentItem?.quantity?.toString() ?? '1');
-  }, [showQuantityInput, currentItem]);
+    // When the quantity input becomes visible, ensure it's empty.
+    if (showQuantityInput) {
+      setFoundQuantity('');
+    }
+  }, [showQuantityInput]);
 
   const handleGoBack = () => {
     router.back();
@@ -102,11 +105,22 @@ export default function FindingItemsScreen() {
   const handleNotifications = () => {};
 
   const handleMessageCustomer = () => {
-    console.log('Message customer');
+    if (!order?.user) {
+      toast.error('Customer details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+    });
   };
 
   const handleCallCustomer = () => {
-    console.log('Call customer');
+    if (order?.user?.mobileNumber) {
+      Linking.openURL(`tel:${order.user.mobileNumber}`);
+    } else {
+      toast.error('Customer phone number is not available.');
+    }
   };
 
   const handleCantFindItem = () => {
@@ -211,9 +225,26 @@ export default function FindingItemsScreen() {
       return;
     }
 
+    if (!foundQuantity.trim()) {
+      toast.error('Please enter how many items you found.');
+      return;
+    }
+
+    const quantityNum = parseInt(foundQuantity, 10);
+
+    if (isNaN(quantityNum) || quantityNum <= 0) {
+      toast.error('Please enter a valid quantity.');
+      return;
+    }
+
+    if (quantityNum > (currentItem.quantity || 0)) {
+      toast.error(`Quantity cannot be more than the requested ${currentItem.quantity}.`);
+      return;
+    }
+
     const payload = {
       status: 'FOUND' as const,
-      quantityFound: parseInt(foundQuantity, 10),
+      quantityFound: quantityNum,
     };
 
     updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
@@ -284,7 +315,7 @@ export default function FindingItemsScreen() {
           <View style={[styles.customerCard, styles.customerCardOnHeader]}>
             <View style={styles.customerInfo}>
               <Image
-                source={{ uri: order?.user?.image || 'https://via.placeholder.com/60' }}
+                source={{ uri: order?.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order?.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
                 style={styles.customerAvatar}
               />
 
@@ -339,7 +370,7 @@ export default function FindingItemsScreen() {
                 <View style={styles.itemImageWrapper}>
                   <View style={styles.itemImageContainer}>
                     <Image
-                      source={{ uri: currentItem.vendorProduct?.images?.[0] || 'https://via.placeholder.com/200' }}
+                      source={{ uri: currentItem.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentItem.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=200` }}
                       style={styles.itemImage}
                     />
                     {(currentItem.vendorProduct as any)?.isPerishable && (
@@ -479,7 +510,7 @@ export default function FindingItemsScreen() {
                     currentItem.replacements.map((rep: any, index: number) => (
                       <View key={index} style={styles.scannerItemDetails}>
                         <Image 
-                          source={{ uri: rep?.images?.[0] || 'https://via.placeholder.com/100' }} 
+                        source={{ uri: rep?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(rep.product?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
                           style={styles.scannerItemImage}
                         />
                         <View style={styles.scannerItemText}>
@@ -495,7 +526,7 @@ export default function FindingItemsScreen() {
               ) : (
                 <View style={styles.scannerItemDetails}>
                   <Image 
-                    source={{ uri: currentItem?.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }} 
+                    source={{ uri: currentItem?.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentItem?.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
                     style={styles.scannerItemImage}
                   />
                   <View style={styles.scannerItemText}>

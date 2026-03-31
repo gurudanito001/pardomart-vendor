@@ -14,7 +14,7 @@
 
 
 
-export interface VendorWithDetailsAllOfRating {
+export interface VendorProductWithRelationsAllOfRating {
     'average'?: number;
     'count'?: number;
 }

@@ -1,21 +1,19 @@
-# VendorWithDetailsAllOfRating
+# WalletWithdrawPostRequest
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**average** | **number** |  | [optional] [default to undefined]
-**count** | **number** |  | [optional] [default to undefined]
+**amount** | **number** | The amount to withdraw. | [default to undefined]
 
 ## Example
 
 ```typescript
-import { VendorWithDetailsAllOfRating } from './api';
+import { WalletWithdrawPostRequest } from './api';
 
-const instance: VendorWithDetailsAllOfRating = {
-    average,
-    count,
+const instance: WalletWithdrawPostRequest = {
+    amount,
 };
 ```
 

@@ -201,7 +201,7 @@ export default function ItemSubstitutionScreen() {
             <View style={styles.itemRow}>
               <View style={styles.itemImageContainer}>
                 <Image 
-                  source={{ uri: currentItem?.vendorProduct?.images?.[0] || 'https://via.placeholder.com/100' }}
+                source={{ uri: currentItem?.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentItem?.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }}
                   style={styles.itemImage}
                 />
               </View>
