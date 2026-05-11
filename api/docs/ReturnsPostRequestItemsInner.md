@@ -5,9 +5,10 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**vendorProductId** | **string** |  | [default to undefined]
-**quantity** | **number** |  | [default to undefined]
-**reason** | **string** |  | [optional] [default to undefined]
+**vendorProductId** | **string** | The ID of the vendor product being returned. | [default to undefined]
+**quantity** | **number** | The quantity of the product being returned. | [default to undefined]
+**reason** | **string** | Optional reason for returning this specific item. | [optional] [default to undefined]
+**isEbtEligible** | **boolean** | Whether the item was EBT eligible at the time of purchase (snapshotted). | [optional] [default to undefined]
 
 ## Example
 
@@ -18,6 +19,7 @@ const instance: ReturnsPostRequestItemsInner = {
     vendorProductId,
     quantity,
     reason,
+    isEbtEligible,
 };
 ```
 

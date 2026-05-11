@@ -58,6 +58,8 @@ export interface OrderWithRelations {
     'paymentMethod'?: PaymentMethods;
     'paymentStatus'?: PaymentStatus;
     'orderStatus'?: OrderStatus;
+    'replacementPreference'?: OrderWithRelationsReplacementPreferenceEnum;
+    'measurementUnit'?: OrderWithRelationsMeasurementUnitEnum;
     'deliveryAddressId'?: string | null;
     'deliveryInstructions'?: string | null;
     'shopperId'?: string | null;
@@ -79,5 +81,17 @@ export interface OrderWithRelations {
     'deliveryAddress'?: DeliveryAddress;
 }
 
+export const OrderWithRelationsReplacementPreferenceEnum = {
+    DontReplace: 'dont_replace',
+    SendRequest: 'send_request'
+} as const;
+
+export type OrderWithRelationsReplacementPreferenceEnum = typeof OrderWithRelationsReplacementPreferenceEnum[keyof typeof OrderWithRelationsReplacementPreferenceEnum];
+export const OrderWithRelationsMeasurementUnitEnum = {
+    Imperial: 'imperial',
+    Metric: 'metric'
+} as const;
+
+export type OrderWithRelationsMeasurementUnitEnum = typeof OrderWithRelationsMeasurementUnitEnum[keyof typeof OrderWithRelationsMeasurementUnitEnum];
 
 

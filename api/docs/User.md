@@ -23,6 +23,9 @@ Name | Type | Description | Notes
 **rememberToken** | **string** |  | [optional] [default to undefined]
 **stripeCustomerId** | **string** |  | [optional] [default to undefined]
 **vendorId** | **string** |  | [optional] [default to undefined]
+**replacementPreference** | **string** |  | [optional] [default to ReplacementPreferenceEnum_SendRequest]
+**measurementUnit** | **string** |  | [optional] [default to MeasurementUnitEnum_Metric]
+**biometricEnabled** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -48,6 +51,9 @@ const instance: User = {
     rememberToken,
     stripeCustomerId,
     vendorId,
+    replacementPreference,
+    measurementUnit,
+    biometricEnabled,
 };
 ```
 

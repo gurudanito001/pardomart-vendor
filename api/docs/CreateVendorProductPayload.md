@@ -21,6 +21,7 @@ Name | Type | Description | Notes
 **published** | **boolean** |  | [optional] [default to false]
 **isAlcohol** | **boolean** |  | [optional] [default to false]
 **isAgeRestricted** | **boolean** |  | [optional] [default to false]
+**isEbtEligible** | **boolean** |  | [optional] [default to false]
 **weight** | **number** |  | [optional] [default to undefined]
 **weightUnit** | **string** |  | [optional] [default to undefined]
 **meta** | **object** |  | [optional] [default to undefined]
@@ -47,6 +48,7 @@ const instance: CreateVendorProductPayload = {
     published,
     isAlcohol,
     isAgeRestricted,
+    isEbtEligible,
     weight,
     weightUnit,
     meta,

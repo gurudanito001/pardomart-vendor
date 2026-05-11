@@ -93,17 +93,23 @@ export default function StoreProductsScreen() {
       </View>
       <View style={styles.productDetails}>
         <View style={styles.priceContainer}>
-          {product.discountedPrice && (
-            <View style={styles.discountBadge}>
+          {product.discountedPrice ? (
+            <>
               <Text style={styles.discountText}>${product.discountedPrice.toFixed(2)}</Text>
-            </View>
+              <Text style={styles.originalPriceStrikethrough}>${product.price?.toFixed(2)}</Text>
+            </>
+          ) : (
+            <Text style={styles.productPrice}>${product.price?.toFixed(2)}</Text>
           )}
-          <Text style={styles.productPrice}>${product.price?.toFixed(2)}</Text>
         </View>
         <Text style={styles.productName} numberOfLines={2}>
           {product.name}
         </Text>
-        <Text style={styles.productSize}>{product.weight || ''}</Text>
+        <Text style={styles.productSize}>
+          {product.weight != null 
+            ? `${product.weight}${product.weightUnit ? ` ${product.weightUnit}` : ''}` 
+            : ''}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -131,12 +137,15 @@ export default function StoreProductsScreen() {
           </TouchableOpacity>
 
           <View style={styles.storeInfoSection}>
-            <View style={styles.storeLogoContainer}>
-              <Image
-                source={{ uri: storeDetails.image }}
-                style={styles.headerStoreLogo}
-                resizeMode="contain"
-              />
+            <View style={styles.storeHeaderMain}>
+              <View style={styles.storeLogoContainer}>
+                <Image
+                  source={{ uri: storeDetails.image }}
+                  style={styles.headerStoreLogo}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={styles.headerStoreName} numberOfLines={1}>{storeDetails.name}</Text>
             </View>
             <Text style={styles.storeLocation}>{storeDetails.address}</Text>
           </View>
@@ -257,12 +266,12 @@ const styles = StyleSheet.create({
   },
   extendedHeader: {
     backgroundColor: '#06888C',
-    paddingTop: 20,
-    paddingBottom: 91,
+    paddingTop: 12,
+    paddingBottom: 45,
   },
   headerContent: {
     flexDirection: 'row',
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
@@ -275,27 +284,39 @@ const styles = StyleSheet.create({
   storeInfoSection: {
     alignItems: 'center',
     flex: 1,
-    gap: 10,
+    gap: 4,
+    paddingHorizontal: 10,
+  },
+  storeHeaderMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   storeLogoContainer: {
-    width: 60,
-    height: 60,
+    width: 32,
+    height: 32,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(6, 136, 140, 0.20)',
-    backgroundColor: '#FFEBF0',
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  headerStoreName: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#FFF',
+    maxWidth: '80%',
   },
   headerStoreLogo: {
-    width: 60,
-    height: 60,
+    width: 24,
+    height: 24,
   },
   storeLocation: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '400',
     fontFamily: 'Open Sans',
-    color: '#FFF',
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
   },
   headerIcons: {
@@ -311,7 +332,7 @@ const styles = StyleSheet.create({
   },
   overlayContainer: {
     position: 'absolute',
-    top: 160,
+    top: 85,
     left: 0,
     right: 0,
     zIndex: 10,
@@ -319,7 +340,7 @@ const styles = StyleSheet.create({
     gap: 17,
   },
   tabSection: {
-    paddingTop: 5,
+    paddingVertical: 15,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -378,7 +399,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 45,
+    paddingTop: 75,
     paddingBottom: 20,
   },
   productsHeader: {
@@ -416,28 +437,27 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  discountBadge: {
-    paddingVertical: 1,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-    backgroundColor: '#DA5742',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   discountText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '700',
     fontFamily: 'Open Sans',
-    color: '#FFF',
+    color: '#06888C',
+  },
+  originalPriceStrikethrough: {
+    fontSize: 10,
+    fontWeight: '400',
+    fontFamily: 'Open Sans',
+    color: '#7C7B7B',
+    textDecorationLine: 'line-through',
   },
   productPrice: {
     fontSize: 14,
     fontWeight: '700',
     fontFamily: 'Open Sans',
     color: '#000',
-    flex: 1,
   },
   productName: {
     fontSize: 12,

@@ -21,6 +21,7 @@ docs/BugReportsIdStatusPatchRequest.md
 docs/CalculateFeesPayload.md
 docs/CalculateFeesPayloadOrderItemsInner.md
 docs/CalculateFeesResponse.md
+docs/CalculateFeesResponseItemPricesInner.md
 docs/Cart.md
 docs/CartApi.md
 docs/CartItem.md
@@ -85,6 +86,8 @@ docs/FAQApi.md
 docs/Faq.md
 docs/Fee.md
 docs/FeeApi.md
+docs/FeeCalculationMethod.md
+docs/FeeType.md
 docs/GeneralApi.md
 docs/GeneralSearchApi.md
 docs/GeneralSearchResult.md
@@ -150,7 +153,6 @@ docs/ReturnsPostRequest.md
 docs/ReturnsPostRequestItemsInner.md
 docs/ReturnsRequestIdStatusPatchRequest.md
 docs/Role.md
-docs/SavedPaymentMethod.md
 docs/ShoppingMethod.md
 docs/StaffApi.md
 docs/StaffPostRequest.md
@@ -166,14 +168,9 @@ docs/TagApi.md
 docs/TagSummary.md
 docs/TicketCategory.md
 docs/TicketStatus.md
-docs/Transaction.md
 docs/TransactionApi.md
-docs/TransactionWithRelations.md
-docs/TransactionWithRelationsAllOfOrder.md
 docs/TransactionsAdminOverviewGet200Response.md
 docs/TransactionsApi.md
-docs/TransactionsCreatePaymentIntentPost200Response.md
-docs/TransactionsCreatePaymentIntentPostRequest.md
 docs/TransactionsSetupIntentPost200Response.md
 docs/TransactionsSimulatePaymentPostRequest.md
 docs/UpdateCartItemPayload.md
@@ -200,6 +197,8 @@ docs/UserApi.md
 docs/UserSummary.md
 docs/UsersAdminStatsGet200Response.md
 docs/UsersApi.md
+docs/UsersMeDeleteAccountConfirmPostRequest.md
+docs/UsersMeSettingsPatchRequest.md
 docs/Vendor.md
 docs/VendorApi.md
 docs/VendorCategoryWithProducts.md
@@ -277,6 +276,7 @@ models/auth-verify-login-post-request.ts
 models/bug-reports-id-status-patch-request.ts
 models/calculate-fees-payload-order-items-inner.ts
 models/calculate-fees-payload.ts
+models/calculate-fees-response-item-prices-inner.ts
 models/calculate-fees-response.ts
 models/cart-item-with-product.ts
 models/cart-item.ts
@@ -328,6 +328,8 @@ models/earnings-total-get200-response.ts
 models/errors-report-post-request.ts
 models/errors-report-post200-response.ts
 models/faq.ts
+models/fee-calculation-method.ts
+models/fee-type.ts
 models/fee.ts
 models/general-search-result.ts
 models/general-search-store-products-store-id-get200-response-one-of-inner.ts
@@ -385,7 +387,6 @@ models/returns-post-request-items-inner.ts
 models/returns-post-request.ts
 models/returns-request-id-status-patch-request.ts
 models/role.ts
-models/saved-payment-method.ts
 models/shopping-method.ts
 models/staff-post-request.ts
 models/staff-staff-id-patch-request.ts
@@ -398,12 +399,7 @@ models/tag-summary.ts
 models/tag.ts
 models/ticket-category.ts
 models/ticket-status.ts
-models/transaction-with-relations-all-of-order.ts
-models/transaction-with-relations.ts
-models/transaction.ts
 models/transactions-admin-overview-get200-response.ts
-models/transactions-create-payment-intent-post-request.ts
-models/transactions-create-payment-intent-post200-response.ts
 models/transactions-setup-intent-post200-response.ts
 models/transactions-simulate-payment-post-request.ts
 models/update-cart-item-payload.ts
@@ -428,6 +424,8 @@ models/update-vendor-product-payload.ts
 models/user-summary.ts
 models/user.ts
 models/users-admin-stats-get200-response.ts
+models/users-me-delete-account-confirm-post-request.ts
+models/users-me-settings-patch-request.ts
 models/vendor-category-with-products.ts
 models/vendor-list-item.ts
 models/vendor-opening-hours.ts

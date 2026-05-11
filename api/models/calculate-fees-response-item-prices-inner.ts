@@ -14,14 +14,11 @@
 
 
 
-export interface SavedPaymentMethod {
-    'id'?: string;
-    'userId'?: string;
-    'stripePaymentMethodId'?: string;
-    'cardBrand'?: string;
-    'cardLast4'?: string;
-    'isDefault'?: boolean;
-    'createdAt'?: string;
-    'updatedAt'?: string;
+export interface CalculateFeesResponseItemPricesInner {
+    'vendorProductId'?: string;
+    /**
+     * The unit price used for calculation, prioritizing discountedPrice if available.
+     */
+    'price'?: number;
 }
 

@@ -1,13 +1,16 @@
 import { OrderApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import type { OrderItem, OrderStatus } from '@/api/models';
+import { useVendor } from '@/context/VendorContext';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -33,6 +36,7 @@ const OrderIcon = () => (
 export default function ShoppingListScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const { updateOrderItemStatus } = useVendor();
   const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>();
   const queryClient = useQueryClient();
   const orderApi = useMemo(() => new OrderApi(apiConfig), []);
@@ -153,6 +157,69 @@ export default function ShoppingListScreen() {
     });
   };
 
+  // Logic to handle individual item updates (e.g., if triggered from this list)
+  const handleUpdateItemStatus = async (itemId: string, payload: any) => {
+    try {
+      const result = await updateOrderItemStatus(orderId!, itemId, payload);
+
+      // II. Check for Terminal Failure (Nothing Found)
+      if (result?.isTerminal) {
+        Alert.alert(
+          "Session Closed",
+          "No items from this order were found. The order has been cancelled and refunded.",
+          [{ text: "OK", onPress: () => router.replace('/(private)/home') }]
+        );
+      } else if (result?.requiresApproval) {
+        // III. Check for send_request approval flow
+        toast.info('Replacement suggested; waiting for customer approval.');
+      }
+    } catch (err) {
+      // Errors (like Budget Barrier) are handled by VendorContext and shown in global state
+    }
+  };
+
+  const handleEditQuantity = (item: OrderItem) => {
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        "Edit Quantity",
+        `Enter quantity found for ${item.vendorProduct?.product?.name || 'this item'} (Max: ${item.quantity})`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Update", 
+            onPress: (value) => {
+              const qty = parseInt(value || '', 10);
+              if (!isNaN(qty) && qty >= 0 && qty <= (item.quantity || 0)) {
+                handleUpdateItemStatus(item.id!, { status: item.status, quantityFound: qty });
+              } else {
+                toast.error("Invalid quantity entered.");
+              }
+            }
+          }
+        ],
+        'plain-text',
+        String(item.quantityFound ?? item.quantity)
+      );
+    } else {
+      toast.info("Quantity editing is coming soon to Android. Please use 'Mark as Found' to reset to the full requested amount.");
+    }
+  };
+
+  const handleMarkAsNotFound = (itemId: string, itemName: string) => {
+    Alert.alert(
+      "Mark as Out of Stock",
+      `Are you sure "${itemName}" is unavailable? This will notify the customer.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Yes, Out of Stock", 
+          style: "destructive", 
+          onPress: () => handleUpdateItemStatus(itemId, { status: 'NOT_FOUND' }) 
+        }
+      ]
+    );
+  };
+
   const handleCompletedBagging = () => {
     if (!orderId) {
       toast.error('Order ID is missing.');
@@ -209,6 +276,30 @@ export default function ShoppingListScreen() {
           <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
           <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
         </View>
+        {activeTab === 'pending' && (
+          <TouchableOpacity 
+            style={styles.outOfStockButton} 
+            onPress={() => handleMarkAsNotFound(item.id!, item.vendorProduct?.product?.name || 'this item')}
+          >
+            <Text style={styles.outOfStockText}>Out of Stock</Text>
+          </TouchableOpacity>
+        )}
+        {activeTab === 'not_found' && (
+          <TouchableOpacity 
+            style={styles.foundButton} 
+            onPress={() => handleMarkForRescan(item.id!)}
+          >
+            <Text style={styles.foundButtonText}>Mark as Found</Text>
+          </TouchableOpacity>
+        )}
+        {activeTab === 'completed' && (
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => handleEditQuantity(item)}
+          >
+            <Text style={styles.editButtonText}>Edit Quantity</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -236,16 +327,25 @@ export default function ShoppingListScreen() {
     );
   };
 
-  if (order && (order.orderStatus === 'delivered' || order.orderStatus === 'picked_up_by_customer')) {
+  // V. Terminal States and Staff Unstacking logic
+  if (order && (
+    order.orderStatus === 'delivered' || 
+    order.orderStatus === 'picked_up_by_customer' || 
+    order.orderStatus === 'no_items_found'
+  )) {
+    const isNothingFound = order.orderStatus === 'no_items_found';
+    
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: '#FFF' }]}>
-        <CompletedOrdersSVG />
-        <Text style={styles.successTitle}>Order Completed</Text>
+        {isNothingFound ? <NotificationSVG /> : <CompletedOrdersSVG />}
+        <Text style={styles.successTitle}>{isNothingFound ? 'Session Closed' : 'Order Completed'}</Text>
         <Text style={styles.successMessage}>
-          This order has been successfully {order.orderStatus === 'delivered' ? 'delivered' : 'picked up'}.
+          {isNothingFound 
+            ? 'No items were found. The order has been cancelled and the customer has been fully refunded.'
+            : `This order has been successfully ${order.orderStatus === 'delivered' ? 'delivered' : 'picked up'}.`}
         </Text>
-        <TouchableOpacity style={styles.continueButton} onPress={handlePreviewOrder}>
-          <Text style={styles.continueButtonText}>Preview Completed Order</Text>
+        <TouchableOpacity style={styles.continueButton} onPress={() => router.replace('/(private)/home')}>
+          <Text style={styles.continueButtonText}>Return to Home</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -593,5 +693,50 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000000',
     lineHeight: 22,
-  }
+  },
+  outOfStockButton: {
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#C43D28',
+    alignSelf: 'flex-start',
+  },
+  outOfStockText: {
+    color: '#C43D28',
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+  },
+  foundButton: {
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#06888C',
+    alignSelf: 'flex-start',
+  },
+  foundButtonText: {
+    color: '#06888C',
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+  },
+  editButton: {
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#7C7B7B',
+    alignSelf: 'flex-start',
+  },
+  editButtonText: {
+    color: '#7C7B7B',
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Raleway',
+  },
 });

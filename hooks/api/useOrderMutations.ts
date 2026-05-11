@@ -1,13 +1,13 @@
 import type { Order, OrderItemWithRelations, UpdateOrderItemShoppingStatusPayload } from '@/api';
 import { apiConfig } from '@/api/config';
-import { OrderApi } from '@/api/endpoints/order-api';
+import { VendorApi } from '@/api/endpoints/vendor-api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toast } from 'sonner-native';
 
 export const useOrderMutations = () => {
   const queryClient = useQueryClient();
-  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+  const vendorApi = useMemo(() => new VendorApi(apiConfig), []);
 
   /**
    * Mutation to mark an order as 'shopping_in_progress'.
@@ -15,12 +15,9 @@ export const useOrderMutations = () => {
   const useStartShopping = () => {
     return useMutation<Order, Error, string>({
       mutationFn: (orderId: string) => {
-        return orderApi.orderOrderIdStartShoppingPatch(orderId).then(response => response.data);
+        return vendorApi.orderOrderIdStartShoppingPatch(orderId).then(response => response.data);
       },
       onSuccess: (data) => {
-        toast.success('Shopping started!');
-        // Invalidate and refetch the specific order details to get the updated status
-        queryClient.invalidateQueries({ queryKey: ['orderDetails', data.id] });
         // Optionally, invalidate the list of all orders
         queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
       },
@@ -41,7 +38,7 @@ export const useOrderMutations = () => {
       { orderId: string; itemId: string; payload: UpdateOrderItemShoppingStatusPayload }
     >({
       mutationFn: ({ orderId, itemId, payload }) => {
-        return orderApi
+        return vendorApi
           .orderOrderIdItemsItemIdUpdateShoppingStatusPatch(payload, orderId, itemId)
           .then(response => response.data);
       },
@@ -65,7 +62,7 @@ export const useOrderMutations = () => {
   const useAcceptOrder = () => {
     return useMutation<Order, Error, string>({
       mutationFn: (orderId: string) => {
-        return orderApi.orderOrderIdAcceptPatch(orderId).then(response => response.data);
+        return vendorApi.orderOrderIdAcceptPatch(orderId).then(response => response.data);
       },
       onSuccess: (data) => {
         toast.success(`Order #${data.orderCode} accepted!`);

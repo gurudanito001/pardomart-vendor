@@ -110,7 +110,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case 'SET_REGISTERED':
       return {
         ...state,
-        isRegistered: action.payload,
+        isRegistered: Boolean(action.payload),
       };
     
     case 'CLEAR_ERROR':
@@ -190,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const [token, user, isRegistered] = await Promise.all([
         getStorageItem<string>(STORAGE_KEYS.AUTH_TOKEN),
         getStorageItem<User>(STORAGE_KEYS.USER_DATA),
-        getStorageItem<boolean>(STORAGE_KEYS.IS_REGISTERED),
+        getStorageItem(STORAGE_KEYS.IS_REGISTERED),
       ]);
 
       if (token && user) {
@@ -203,7 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // No token found, user is not authenticated.
         // isLoading will be set to false in the failure case.
         dispatch({ type: 'AUTH_FAILURE', payload: '' }); // payload is empty as it's not an error to show.
-        if (isRegistered) {
+        if (isRegistered === true || isRegistered === 'true') {
           dispatch({ type: 'SET_REGISTERED', payload: true });
         }
       }

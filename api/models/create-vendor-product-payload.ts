@@ -37,6 +37,7 @@ export interface CreateVendorProductPayload {
     'published'?: boolean;
     'isAlcohol'?: boolean;
     'isAgeRestricted'?: boolean;
+    'isEbtEligible'?: boolean;
     'weight'?: number | null;
     'weightUnit'?: string | null;
     'meta'?: object | null;

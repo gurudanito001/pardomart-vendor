@@ -1,4 +1,4 @@
-import { TransactionsApi } from '@/api';
+import { VendorApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import type { Transaction, TransactionWithRelations } from '@/api/models';
 import { useQuery } from '@tanstack/react-query';
@@ -7,13 +7,13 @@ import { toast } from 'sonner-native';
 
 
 export const useVendorTransactions = (vendorId?: string, status?: string) => {
-  const transactionApi = useMemo(() => new TransactionsApi(apiConfig), []);
+  const vendorApi = useMemo(() => new VendorApi(apiConfig), []);
 
   return useQuery<TransactionWithRelations[], Error>({
     queryKey: ['allTransactions'],
     queryFn: async (): Promise<Transaction[]> => {
       try {
-        const response = await transactionApi.transactionsGet(vendorId);
+        const response = await vendorApi.transactionsVendorGet(vendorId);
         console.log('Fetched transactions:', response?.data);
         return response?.data ?? [];
       } catch (err: any) {

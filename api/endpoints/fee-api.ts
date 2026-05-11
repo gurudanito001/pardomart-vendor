@@ -26,6 +26,8 @@ import type { CalculateFeesPayload } from '../models';
 // @ts-ignore
 import type { CalculateFeesResponse } from '../models';
 // @ts-ignore
+import type { CreateFeePayload } from '../models';
+// @ts-ignore
 import type { Fee } from '../models';
 // @ts-ignore
 import type { UpdateFeePayload } from '../models';
@@ -258,6 +260,46 @@ export const FeeApiAxiosParamCreator = function (configuration?: Configuration) 
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Create a new fee
+         * @param {CreateFeePayload} createFeePayload 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        feesPost: async (createFeePayload: CreateFeePayload, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createFeePayload' is not null or undefined
+            assertParamExists('feesPost', 'createFeePayload', createFeePayload)
+            const localVarPath = `/fees`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createFeePayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -345,6 +387,19 @@ export const FeeApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['FeeApi.feesIdPatch']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @summary Create a new fee
+         * @param {CreateFeePayload} createFeePayload 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async feesPost(createFeePayload: CreateFeePayload, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Fee>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.feesPost(createFeePayload, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FeeApi.feesPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -413,6 +468,16 @@ export const FeeApiFactory = function (configuration?: Configuration, basePath?:
          */
         feesIdPatch(updateFeePayload: UpdateFeePayload, id: string, options?: RawAxiosRequestConfig): AxiosPromise<Fee> {
             return localVarFp.feesIdPatch(updateFeePayload, id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create a new fee
+         * @param {CreateFeePayload} createFeePayload 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        feesPost(createFeePayload: CreateFeePayload, options?: RawAxiosRequestConfig): AxiosPromise<Fee> {
+            return localVarFp.feesPost(createFeePayload, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -485,6 +550,17 @@ export class FeeApi extends BaseAPI {
      */
     public feesIdPatch(updateFeePayload: UpdateFeePayload, id: string, options?: RawAxiosRequestConfig) {
         return FeeApiFp(this.configuration).feesIdPatch(updateFeePayload, id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create a new fee
+     * @param {CreateFeePayload} createFeePayload 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public feesPost(createFeePayload: CreateFeePayload, options?: RawAxiosRequestConfig) {
+        return FeeApiFp(this.configuration).feesPost(createFeePayload, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

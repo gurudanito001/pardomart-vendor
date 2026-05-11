@@ -1,20 +1,20 @@
 import { useAuth } from '@/context/AppProvider';
 //import { vendorService } from '@/services/vendor';
 import { useVendor } from '@/context/VendorContext';
+import { useAvatarPicker } from '@/hooks/useImagePicker';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -65,6 +65,8 @@ const EditProfile = () => {
   const showError = React.useCallback((m: string) => toast.error(m), []);
   const showSuccess = React.useCallback((m: string) => toast.success(m), []);
   
+  const { selectedImage, showImagePicker, isLoading: isImageLoading } = useAvatarPicker({ base64: true });
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -95,11 +97,7 @@ const EditProfile = () => {
   //const handleNotifications = () => router.push('/shared/notifications');
 
   const handleCameraPress = () => {
-    Alert.alert('Change Profile Photo', 'Select an option', [
-      { text: 'Camera', onPress: () => console.log('Camera selected') },
-      { text: 'Gallery', onPress: () => console.log('Gallery selected') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    showImagePicker();
   };
 
   const handleSaveChanges = async () => {
@@ -107,13 +105,22 @@ const EditProfile = () => {
 
     setIsUpdating(true);
     try {
-      // Assuming the vendor profile update can include the user's name
-      const response = await updateProfile({ name: fullName.trim() });
+      const payload: any = { name: fullName.trim() };
+      
+      if (selectedImage?.base64) {
+        payload.image = selectedImage.base64;
+      }
+
+      console.log('Payload for profile update:', payload);
+
+      // Assuming the vendor profile update can include the user's name and profile image
+      const response = await updateProfile(payload);
 
       // Update the user in the global AuthContext state
       updateUser({
         ...state.user!,
-        name: response.data.businessName, // Use the name from the response
+        name: response.data.name || response.data.businessName, // Use the name from the response
+        image: response.data.image,
       });
 
       showSuccess('Profile updated successfully!');
@@ -168,8 +175,14 @@ const EditProfile = () => {
         <View style={styles.profilePhotoSection}>
           <View style={styles.profileImageContainer}>
             <View style={styles.profileImage}>
-              <Image // This is the Image component from expo-image
-                source={require("../../../assets/images/user profile.png")}
+              <Image
+                source={
+                  selectedImage?.uri 
+                    ? { uri: selectedImage.uri } 
+                    : (vendorState.profile?.image 
+                        ? { uri: vendorState.profile.image } 
+                        : require("../../../assets/images/user profile.png"))
+                }
                 style={styles.profileImage}
                 contentFit="contain"
               />
@@ -187,11 +200,11 @@ const EditProfile = () => {
         </View>
 
         <Pressable 
-          style={[styles.saveButton, isUpdating && styles.saveButtonDisabled]} 
+          style={[styles.saveButton, (isUpdating || isImageLoading) && styles.saveButtonDisabled]} 
           onPress={handleSaveChanges}
-          disabled={isUpdating}
+          disabled={isUpdating || isImageLoading}
         >
-          {isUpdating ? (
+          {isUpdating || isImageLoading ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
             <Text style={styles.saveButtonText}>Save Changes</Text>

@@ -34,7 +34,8 @@ export const OrderStatus = {
     Delivered: 'delivered',
     PickedUpByCustomer: 'picked_up_by_customer',
     DeclinedByVendor: 'declined_by_vendor',
-    CancelledByCustomer: 'cancelled_by_customer'
+    CancelledByCustomer: 'cancelled_by_customer',
+    NoItemsFound: 'no_items_found'
 } as const;
 
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];

@@ -10,7 +10,6 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**transactionsAdminTransactionIdDownloadReceiptGet**](#transactionsadmintransactioniddownloadreceiptget) | **GET** /transactions/admin/{transactionId}/download-receipt | Download receipt for a transaction (Admin)|
 |[**transactionsAdminTransactionIdGet**](#transactionsadmintransactionidget) | **GET** /transactions/admin/{transactionId} | Get a single transaction by ID (Admin)|
 |[**transactionsAdminTransactionIdSendReceiptPost**](#transactionsadmintransactionidsendreceiptpost) | **POST** /transactions/admin/{transactionId}/send-receipt | Generate and send a receipt for a transaction (Admin)|
-|[**transactionsCreatePaymentIntentPost**](#transactionscreatepaymentintentpost) | **POST** /transactions/create-payment-intent | Create a Payment Intent for an order|
 |[**transactionsMeGet**](#transactionsmeget) | **GET** /transactions/me | Get my transaction history|
 |[**transactionsMePaymentMethodsGet**](#transactionsmepaymentmethodsget) | **GET** /transactions/me/payment-methods | Get my saved payment methods|
 |[**transactionsMePaymentMethodsPaymentMethodIdDelete**](#transactionsmepaymentmethodspaymentmethodiddelete) | **DELETE** /transactions/me/payment-methods/{paymentMethodId} | Delete a saved payment method|
@@ -345,61 +344,6 @@ void (empty response body)
 |**200** | Receipt sent successfully. |  -  |
 |**400** | Bad request (e.g., transaction not linked to an order). |  -  |
 |**404** | Transaction or related data not found. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **transactionsCreatePaymentIntentPost**
-> TransactionsCreatePaymentIntentPost200Response transactionsCreatePaymentIntentPost(transactionsCreatePaymentIntentPostRequest)
-
-Initializes a Stripe PaymentIntent for a specific order. Accepts an optional `paymentType` to configure the intent for specialized payment methods like EBT. Returns a `clientSecret` that the frontend uses to securely render the Stripe PaymentSheet and complete the transaction.
-
-### Example
-
-```typescript
-import {
-    TransactionApi,
-    Configuration,
-    TransactionsCreatePaymentIntentPostRequest
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new TransactionApi(configuration);
-
-let transactionsCreatePaymentIntentPostRequest: TransactionsCreatePaymentIntentPostRequest; //
-
-const { status, data } = await apiInstance.transactionsCreatePaymentIntentPost(
-    transactionsCreatePaymentIntentPostRequest
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **transactionsCreatePaymentIntentPostRequest** | **TransactionsCreatePaymentIntentPostRequest**|  | |
-
-
-### Return type
-
-**TransactionsCreatePaymentIntentPost200Response**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Payment Intent created successfully. |  -  |
-|**400** | Bad Request (e.g., order already paid). |  -  |
-|**403** | Forbidden. |  -  |
-|**404** | Order or User not found. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

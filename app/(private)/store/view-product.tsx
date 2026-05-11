@@ -8,6 +8,7 @@ import {
   Dimensions,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -20,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useProducts } from "@/hooks/api/useProducts";
 import { useVendor } from "@/hooks/api/useVendors";
 import { borderRadius, colors, shadows, spacing, typography } from "@/styles/theme";
+import { toast } from "sonner-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const IMAGE_CARD_MAX_WIDTH = 360;
@@ -62,14 +64,16 @@ export default function ProductDetails() {
   }>();
   const productId = params?.productId as string | undefined;
 
-  const { getProductById } = useProducts();
+  const { getProductById, deleteProduct } = useProducts();
   const { vendor, getVendorById } = useVendor();
 
   const [product, setProduct] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
   const [modalIndex, setModalIndex] = React.useState(0);
 
   const carouselRef = React.useRef<FlatList<string | null>>(null);
@@ -141,9 +145,24 @@ export default function ProductDetails() {
     return 0;
   }, [product]);
 
+  const discountedPriceValue = React.useMemo(() => {
+    const raw = product?.discountedPrice;
+    if (typeof raw === "number") return raw;
+    if (typeof raw === "string") {
+      const parsed = parseFloat(raw);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  }, [product]);
+
   const productDescription = React.useMemo(() => {
     const description = typeof product?.description === "string" ? product.description.trim() : "";
     return description.length > 0 ? description : "No description has been provided for this product yet.";
+  }, [product]);
+
+  const productWeight = React.useMemo(() => {
+    if (product?.weight == null) return null;
+    return `${product.weight}${product.weightUnit ? ` ${product.weightUnit}` : ""}`;
   }, [product]);
 
   const productMeta = React.useMemo(
@@ -151,13 +170,15 @@ export default function ProductDetails() {
       [
         { label: "Unit Size", value: product?.unitSize },
         { label: "SKU", value: product?.sku },
+        { label: "Weight", value: productWeight },
+        { label: "EBT Eligible", value: product?.isEbtEligible ? "Yes" : "No" },
         {
           label: "Category",
           value: (product?.category as any)?.name ?? product?.categoryName ?? product?.category ?? null,
         },
         { label: "Vendor", value: vendor?.name ?? (product?.vendor as any)?.name ?? null },
-      ].filter((item) => typeof item.value === "string" && item.value.trim().length > 0),
-    [product, vendor]
+      ].filter((item) => item.value != null && String(item.value).trim().length > 0),
+    [product, vendor, productWeight]
   );
 
   const handleMomentumEnd = React.useCallback((event: any) => {
@@ -207,6 +228,24 @@ export default function ProductDetails() {
     } as never);
   }, [router, product, params?.vendorId]);
 
+  const handleDeleteProduct = React.useCallback(async () => {
+    if (!productId) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await deleteProduct(productId);
+      if (success) {
+        toast.success("Product deleted successfully");
+        router.back();
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalVisible(false);
+    }
+  }, [productId, deleteProduct, router]);
+
   const openNotifications = React.useCallback(() => {
     router.push("/(private)/shared/notifications" as never);
   }, [router]);
@@ -227,7 +266,10 @@ export default function ProductDetails() {
       disabled={!item}
       style={[styles.carouselItem, { width: SCREEN_WIDTH }]}
     >
-      <View style={[styles.carouselImageCard, { width: IMAGE_CARD_WIDTH }]}> 
+      <View style={[
+        styles.carouselImageCard, 
+        { width: SCREEN_WIDTH - (spacing.lg * 2) }
+      ]}> 
         {item ? (
           <Image
             style={styles.productImage}
@@ -306,33 +348,48 @@ export default function ProductDetails() {
           <View style={styles.productHeader}>
             <View style={styles.productTitleContainer}>
               <Text style={styles.productTitle}>{product?.name ?? "Unnamed Product"}</Text>
-              {product?.unitSize ? (
-                <Text style={styles.productSubtitle}>{product.unitSize}</Text>
+              {product?.unitSize || productWeight ? (
+                <Text style={styles.productSubtitle}>
+                  {productWeight || product.unitSize}
+                </Text>
               ) : null}
             </View>
-            <View style={styles.priceBadge}>
-              <Text style={styles.priceAmount}>${priceValue.toFixed(2)}</Text>
-              {product?.unitSize ? (
-                <Text style={styles.priceHint}>per {product.unitSize}</Text>
-              ) : null}
+            <View style={styles.priceContainer}>
+              {discountedPriceValue !== null ? (
+                <>
+                  <Text style={styles.priceAmount}>${discountedPriceValue.toFixed(2)}</Text>
+                  <Text style={styles.originalPriceCanceled}>${priceValue.toFixed(2)}</Text>
+                </>
+              ) : (
+                <Text style={styles.priceAmount}>${priceValue.toFixed(2)}</Text>
+              )}
             </View>
           </View>
 
           {typeof product?.stock === "number" || typeof product?.quantityAvailable === "number" ? (
             <View style={styles.inventoryRow}>
-              <Ionicons name="cube-outline" size={18} color={colors.primary} />
+              <View style={[styles.statusDot, { backgroundColor: (product?.stock ?? 0) > 0 ? colors.success : colors.error }]} />
               <Text style={styles.inventoryText}>
                 In stock: {product?.stock ?? product?.quantityAvailable}
               </Text>
             </View>
           ) : null}
 
+          <View style={styles.divider} />
+
           {productMeta.length > 0 && (
-            <View style={styles.metaChipsContainer}>
+            <View style={styles.specificationsContainer}>
+              <Text style={styles.specTitle}>Specifications</Text>
               {productMeta.map((item) => (
-                <View key={item.label} style={styles.metaChip}>
-                  <Text style={styles.metaChipLabel}>{item.label}</Text>
-                  <Text style={styles.metaChipValue}>{item.value}</Text>
+                <View key={item.label} style={styles.specRow}>
+                  <Text style={styles.specLabel}>{item.label}</Text>
+                  <Text 
+                    style={styles.specValue} 
+                    numberOfLines={1} 
+                    ellipsizeMode="tail"
+                  >
+                    {item.value}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -353,8 +410,15 @@ export default function ProductDetails() {
       </ScrollView>
 
       <View style={styles.bottomActionContainer}>
-        <Pressable style={styles.primaryButton} onPress={openEdit} accessibilityRole="button">
+        <Pressable style={[styles.primaryButton, { flex: 1 }]} onPress={openEdit} accessibilityRole="button">
           <Text style={styles.primaryButtonText}>Edit Product</Text>
+        </Pressable>
+        <Pressable 
+          style={styles.deleteButton} 
+          onPress={() => setDeleteModalVisible(true)} 
+          accessibilityRole="button"
+        >
+          <Ionicons name="trash-outline" size={20} color={colors.error} />
         </Pressable>
       </View>
 
@@ -409,6 +473,44 @@ export default function ProductDetails() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.deleteModalContent}>
+            <View style={styles.deleteIconCircle}>
+              <Ionicons name="trash" size={30} color={colors.error} />
+            </View>
+            <Text style={styles.deleteModalTitle}>Delete Product?</Text>
+            <Text style={styles.deleteModalMessage}>
+              Are you sure you want to delete "{product?.name}"? This action cannot be undone.
+            </Text>
+            <View style={styles.deleteModalActions}>
+              <Pressable 
+                style={styles.cancelModalButton} 
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </Pressable>
+              <Pressable 
+                style={styles.confirmDeleteButton} 
+                onPress={handleDeleteProduct}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={colors.surface} />
+                ) : (
+                  <Text style={styles.confirmDeleteButtonText}>Delete</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -432,10 +534,8 @@ const styles = StyleSheet.create({
   headerWrapper: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    borderBottomLeftRadius: borderRadius.md,
-    borderBottomRightRadius: borderRadius.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     ...shadows.md,
   },
   headerContainer: {
@@ -479,11 +579,12 @@ const styles = StyleSheet.create({
     marginTop: -spacing.lg,
   },
   carouselItem: {
+    paddingHorizontal: spacing.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   carouselImageCard: {
-    height: 250,
+    height: 300,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
     justifyContent: "center",
@@ -524,13 +625,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   productInfoCard: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     marginHorizontal: spacing.lg,
-    padding: spacing.lg,
+    padding: spacing.xl,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
-    gap: spacing.md,
-    ...shadows.md,
+    gap: spacing.lg,
+    ...shadows.sm,
   },
   productHeader: {
     flexDirection: "row",
@@ -548,83 +649,93 @@ const styles = StyleSheet.create({
     fontFamily: typography.families.accent,
     color: colors.textPrimary,
   },
+  priceContainer: {
+    alignItems: "flex-end",
+    gap: 2,
+  },
+  originalPriceCanceled: {
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.families.secondary,
+    color: colors.textMuted,
+    textDecorationLine: "line-through",
+  },
   productSubtitle: {
     fontSize: typography.sizes.sm,
     fontFamily: typography.families.secondary,
     color: colors.textMuted,
   },
-  priceBadge: {
-    alignItems: "flex-end",
-    backgroundColor: colors.accent,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    minWidth: 110,
-  },
   priceAmount: {
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.xl,
     fontFamily: typography.families.accent,
     fontWeight: typography.weights.bold,
-    color: colors.surface,
-  },
-  priceHint: {
-    fontSize: typography.sizes.xs,
-    color: "rgba(255,255,255,0.8)",
-    fontFamily: typography.families.secondary,
-    marginTop: spacing.xs / 2,
+    color: colors.primary,
   },
   inventoryRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: spacing.sm,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   inventoryText: {
     fontSize: typography.sizes.sm,
     fontFamily: typography.families.secondary,
     color: colors.textSecondary,
   },
-  metaChipsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.xs,
+  },
+  specificationsContainer: {
     gap: spacing.sm,
   },
-  metaChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.primaryLight,
+  specTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.families.accent,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
-  metaChipLabel: {
+  specRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 2,
+  },
+  specLabel: {
     fontSize: typography.sizes.xs,
     color: colors.textMuted,
     fontFamily: typography.families.secondary,
+    flex: 1,
   },
-  metaChipValue: {
-    fontSize: typography.sizes.sm,
+  specValue: {
+    fontSize: typography.sizes.xs,
     fontFamily: typography.families.accent,
+    fontWeight: typography.weights.semibold,
     color: colors.textPrimary,
-    marginTop: spacing.xs / 2,
+    flex: 2,
+    textAlign: "right",
   },
   reportIssueContainer: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     marginHorizontal: spacing.lg,
   },
   reportIssueButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.backgroundLight,
     gap: spacing.sm,
-    ...shadows.sm,
   },
   reportIssueText: {
-    fontSize: typography.sizes.base,
-    fontFamily: typography.families.accent,
-    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.families.secondary,
     color: colors.error,
   },
   descriptionCard: {
@@ -648,12 +759,13 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.base,
   },
   bottomActionContainer: {
+    flexDirection: "row",
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
+    paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.lg,
     paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    gap: spacing.md,
     backgroundColor: colors.surface,
+    ...shadows.lg,
   },
   primaryButton: {
     backgroundColor: colors.primary,
@@ -663,6 +775,80 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: typography.sizes.base,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.surface,
+  },
+  deleteButton: {
+    width: 55,
+    height: 55,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.error,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+  },
+  deleteModalContent: {
+    width: "85%",
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  deleteIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(233, 68, 53, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  deleteModalTitle: {
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.textPrimary,
+  },
+  deleteModalMessage: {
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.families.secondary,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  deleteModalActions: {
+    flexDirection: "row",
+    width: "100%",
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  cancelModalButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+  },
+  cancelModalButtonText: {
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.textSecondary,
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.error,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmDeleteButtonText: {
+    fontSize: typography.sizes.sm,
     fontFamily: typography.families.accent,
     fontWeight: typography.weights.bold,
     color: colors.surface,

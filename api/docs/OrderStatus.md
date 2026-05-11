@@ -41,4 +41,6 @@
 
 * `CancelledByCustomer` (value: `'cancelled_by_customer'`)
 
+* `NoItemsFound` (value: `'no_items_found'`)
+
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -32,7 +32,22 @@ export interface UpdateUserPayload {
      */
     'image'?: string;
     'online'?: boolean;
+    'replacementPreference'?: UpdateUserPayloadReplacementPreferenceEnum;
+    'measurementUnit'?: UpdateUserPayloadMeasurementUnitEnum;
+    'biometricEnabled'?: boolean;
 }
 
+export const UpdateUserPayloadReplacementPreferenceEnum = {
+    DontReplace: 'dont_replace',
+    SendRequest: 'send_request'
+} as const;
+
+export type UpdateUserPayloadReplacementPreferenceEnum = typeof UpdateUserPayloadReplacementPreferenceEnum[keyof typeof UpdateUserPayloadReplacementPreferenceEnum];
+export const UpdateUserPayloadMeasurementUnitEnum = {
+    Imperial: 'imperial',
+    Metric: 'metric'
+} as const;
+
+export type UpdateUserPayloadMeasurementUnitEnum = typeof UpdateUserPayloadMeasurementUnitEnum[keyof typeof UpdateUserPayloadMeasurementUnitEnum];
 
 

@@ -49,6 +49,11 @@ export default function OrderDetailsScreen() {
   const { mutate: startShopping, isPending: isStartingShopping } = useStartShopping();
   const isOrderCompleted = useMemo(() => !['accepted_for_shopping', 'currently_shopping', 'completed_bagging' ].includes(order?.orderStatus || ''), [order]);
 
+  const collectorName = useMemo(() => {
+    if (order?.deliveryMethod === 'customer_pickup') return order?.user?.name ?? 'Customer';
+    return order?.shopper?.name ?? 'Delivery Person';
+  }, [order]);
+
   useEffect(() =>{
     console.log("Vendor Product",order)
   }, [order])
@@ -101,22 +106,22 @@ export default function OrderDetailsScreen() {
     router.back();
   };
 
-  const handleCallCustomer = () => {
-    if (order?.user?.mobileNumber) {
-      Linking.openURL(`tel:${order.user.mobileNumber}`);
+  const handleCallUser = (phone?: string) => {
+    if (phone) {
+      Linking.openURL(`tel:${phone}`);
     } else {
-      toast.error('Customer phone number is not available.');
+      toast.error('Phone number is not available.');
     }
   };
 
-  const handleMessageCustomer = () => {
-    if (!order?.user) {
-      toast.error('Customer details not available');
+  const handleMessageUser = (user?: any) => {
+    if (!user) {
+      toast.error('Contact details not available');
       return;
     }
     router.push({
       pathname: '/(private)/orders/chat',
-      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+      params: { orderId: orderId!, customer: JSON.stringify(user) },
     });
   };
 
@@ -245,6 +250,16 @@ export default function OrderDetailsScreen() {
                 <Text style={styles.costLabel}>Shopping Fee</Text>
                 <Text style={styles.costAmount}>${order.shoppingFee?.toFixed(2) ?? '0.00'}</Text>
               </View>
+              <View style={styles.costRow}>
+                <Text style={styles.costLabel}>Fulfillment</Text>
+                <Text style={[styles.costAmount, { color: '#06888C' }]}>
+                  {order.deliveryMethod === 'customer_pickup' ? 'Customer Pickup' : 'Delivery Pickup'}
+                </Text>
+              </View>
+              <View style={styles.costRow}>
+                <Text style={styles.costLabel}>Shopper</Text>
+                <Text style={styles.costAmount}>{order.shopper?.name ?? 'Not Assigned'}</Text>
+              </View>
             </View>
           </View>
 
@@ -252,17 +267,26 @@ export default function OrderDetailsScreen() {
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
-            <Text style={styles.progressDistance}>4.5 Miles - {order.orderItems?.length ?? 0} Items</Text>
+            <Text style={styles.progressDistance}>
+              {order.vendor?.distance != null ? `${order.vendor.distance.toFixed(2)} Miles` : 'Distance N/A'} - {order.orderItems?.length ?? 0} Items
+            </Text>
             <Svg width={245} height={17} viewBox="0 0 245 17" fill="none">
               <Ellipse cx={8.167} cy={8} rx={8.167} ry={8} fill="#2CAF0B" />
               <Rect x={17} y={7.0125} width={211} height={2} fill="#D9D9D9" />
-              <Ellipse cx={236.21} cy={8} rx={8.167} ry={8} fill="#B4BED4" />
+              <Ellipse
+                cx={236.21}
+                cy={8}
+                rx={8.167}
+                ry={8}
+                fill={['picked_up_by_customer', 'en_route_to_delivery', 'arrived_at_customer_location', 'delivered'].includes(order.orderStatus || '') ? '#2CAF0B' : '#B4BED4'}
+              />
             </Svg>
 
             <View style={styles.progressDetails}>
               <View style={styles.progressLeft}>
-                <Text style={styles.customerNameProgress}>{order.user?.name ?? 'Customer'}</Text>
+                <Text style={styles.customerNameProgress}>{collectorName}</Text>
                 <View style={styles.timeDetails}>
+                  {/* Collector's pickup/delivery time */}
                   <View style={styles.timeItem}>
                     <TimeIcon />
                     <Text style={styles.timeDetailText}>{new Date(order.createdAt ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
@@ -274,8 +298,17 @@ export default function OrderDetailsScreen() {
                 </View>
               </View>
               <View style={styles.progressRight}>
-                <Text style={styles.deliveryAddress}>{order.deliveryAddress?.addressLine1}</Text>
-                <Text style={styles.deliveryLocation}>{order.deliveryAddress?.city}, {order.deliveryAddress?.state}, {order.deliveryAddress?.city}</Text>
+                <Text style={styles.storeNameProgress}>{order.vendor?.name ?? 'Store'}</Text>
+                <View style={[styles.timeDetails, { justifyContent: 'flex-end' }]}>
+                  <View style={styles.timeItem}>
+                    <TimeIcon />
+                    <Text style={styles.timeDetailText}>{new Date(order.scheduledDeliveryTime || order.createdAt || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                  </View>
+                  <View style={styles.timeItem}>
+                    <DateIcon />
+                    <Text style={styles.timeDetailText}>{new Date(order.scheduledDeliveryTime || order.createdAt || '').toLocaleDateString()}</Text>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
@@ -303,23 +336,59 @@ export default function OrderDetailsScreen() {
           </View>
             
 
-        {/* Customer Contact Card */}
-        <View style={styles.customerCard}>
-          <View style={styles.customerInfo}>
-            <Image 
-            source={{ uri: order.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
-              style={styles.customerAvatar}
-            />
-            <Text style={styles.customerName}>{order.user?.name ?? 'Customer'}</Text>
+        {/* Contact Cards Section */}
+        <View style={styles.contactsSection}>
+          {/* Customer Card (Always show) */}
+          <View style={styles.contactCardContainer}>
+            <Text style={styles.contactTypeLabel}>CUSTOMER</Text>
+            <View style={styles.customerCard}>
+              <View style={styles.customerInfo}>
+                <Image 
+                  source={{ uri: order.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
+                  style={styles.customerAvatar}
+                />
+                <View>
+                  <Text style={styles.customerName}>{order.user?.name ?? 'Customer'}</Text>
+                  <Text style={styles.roleLabel}>Buyer</Text>
+                </View>
+              </View>
+              <View style={styles.customerActions}>
+                <TouchableOpacity onPress={() => handleMessageUser(order.user)}>
+                  <ChatFilledSVG width={30} height={30} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleCallUser(order.user?.mobileNumber)}>
+                  <PhoneOutlineSVG width={30} height={30} />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          <View style={styles.customerActions}>
-            <TouchableOpacity onPress={handleMessageCustomer}>
-              <ChatFilledSVG width={30} height={30} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleCallCustomer}>
-              <PhoneOutlineSVG width={30} height={30} />
-            </TouchableOpacity>
-          </View>
+
+          {/* Delivery Person Card (Show if delivery pickup) */}
+          {order.deliveryMethod === 'delivery_person' && (
+            <View style={styles.contactCardContainer}>
+              <Text style={styles.contactTypeLabel}>DELIVERY PERSON</Text>
+              <View style={styles.customerCard}>
+                <View style={styles.customerInfo}>
+                  <Image 
+                    source={{ uri: order.shopper?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order.shopper?.name || 'Delivery')}&background=06888C&color=fff&size=60` }}
+                    style={styles.customerAvatar}
+                  />
+                  <View>
+                    <Text style={styles.customerName}>{order.shopper?.name ?? 'Not Assigned'}</Text>
+                    <Text style={styles.roleLabel}>Fulfillment Agent</Text>
+                  </View>
+                </View>
+                <View style={styles.customerActions}>
+                  <TouchableOpacity onPress={() => handleMessageUser(order.shopper)}>
+                    <ChatFilledSVG width={30} height={30} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleCallUser(order.shopper?.mobileNumber)}>
+                    <PhoneOutlineSVG width={30} height={30} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Shopping Items */}
@@ -551,6 +620,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#484C52',
   },
+  storeNameProgress: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#484C52',
+    textAlign: 'right',
+  },
   timeDetails: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -619,9 +695,28 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#B4BED4',
+    backgroundColor: '#FBFBFB',
+  },
+  contactsSection: {
     marginHorizontal: 22,
-    marginTop: 19,
-    marginBottom: 19,
+    marginTop: 10,
+    marginBottom: 20,
+    gap: 15,
+  },
+  contactCardContainer: {
+    gap: 8,
+  },
+  contactTypeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#7C7B7B',
+    marginLeft: 4,
+  },
+  roleLabel: {
+    fontSize: 10,
+    color: '#7C7B7B',
+    fontFamily: 'Open Sans',
   },
   reportIssueBtn: {
     marginHorizontal: 22,

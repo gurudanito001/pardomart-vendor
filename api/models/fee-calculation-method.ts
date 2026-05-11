@@ -14,9 +14,15 @@
 
 
 
-export interface TransactionWithRelationsAllOfOrder {
-    'id'?: string;
-    'orderCode'?: string;
-    'totalAmount'?: number;
-}
+
+export const FeeCalculationMethod = {
+    Flat: 'flat',
+    Percentage: 'percentage',
+    PerUnit: 'per_unit',
+    PerDistance: 'per_distance'
+} as const;
+
+export type FeeCalculationMethod = typeof FeeCalculationMethod[keyof typeof FeeCalculationMethod];
+
+
 

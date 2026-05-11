@@ -14,11 +14,10 @@
 
 
 
-export interface TransactionsCreatePaymentIntentPost200Response {
-    'success'?: boolean;
+export interface UsersMeDeleteAccountConfirmPostRequest {
     /**
-     * The Stripe client secret required by the frontend SDK.
+     * The OTP received via email.
      */
-    'clientSecret'?: string;
+    'otp': string;
 }
 

@@ -34,9 +34,11 @@ Name | Type | Description | Notes
 **orderCode** | **string** |  | [optional] [default to undefined]
 **pickupOtp** | **string** |  | [optional] [default to undefined]
 **subtotal** | **number** |  | [optional] [default to undefined]
-**budgetAmount** | **number** |  | [optional] [default to undefined]
+**budgetAmount** | **number** | The maximum amount authorized by the customer. Acts as a strict barrier during shopping updates. | [optional] [default to undefined]
 **shopperTip** | **number** |  | [optional] [default to undefined]
 **deliveryPersonTip** | **number** |  | [optional] [default to undefined]
+**replacementPreference** | **string** | Snapshot of customer preference at checkout. | [optional] [default to undefined]
+**measurementUnit** | **string** | Snapshot of customer units at checkout. | [optional] [default to undefined]
 **shopperId** | **string** |  | [optional] [default to undefined]
 **shoppingStartTime** | **string** |  | [optional] [default to undefined]
 **scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
@@ -81,6 +83,8 @@ const instance: Order = {
     budgetAmount,
     shopperTip,
     deliveryPersonTip,
+    replacementPreference,
+    measurementUnit,
     shopperId,
     shoppingStartTime,
     scheduledDeliveryTime,

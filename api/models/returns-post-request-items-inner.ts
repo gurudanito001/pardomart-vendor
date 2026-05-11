@@ -15,8 +15,21 @@
 
 
 export interface ReturnsPostRequestItemsInner {
+    /**
+     * The ID of the vendor product being returned.
+     */
     'vendorProductId': string;
+    /**
+     * The quantity of the product being returned.
+     */
     'quantity': number;
+    /**
+     * Optional reason for returning this specific item.
+     */
     'reason'?: string;
+    /**
+     * Whether the item was EBT eligible at the time of purchase (snapshotted).
+     */
+    'isEbtEligible'?: boolean;
 }
 

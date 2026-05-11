@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **weightUnit** | **string** |  | [optional] [default to undefined]
 **isAlcohol** | **boolean** |  | [optional] [default to undefined]
 **isAgeRestricted** | **boolean** |  | [optional] [default to undefined]
+**isEbtEligible** | **boolean** |  | [optional] [default to undefined]
 **isActive** | **boolean** |  | [optional] [default to undefined]
 
 ## Example
@@ -37,6 +38,7 @@ const instance: UpdateProductBasePayload = {
     weightUnit,
     isAlcohol,
     isAgeRestricted,
+    isEbtEligible,
     isActive,
 };
 ```

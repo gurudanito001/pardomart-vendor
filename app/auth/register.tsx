@@ -145,8 +145,14 @@ export default function RegisterScreen() {
             </TouchableOpacity>
             <Text style={styles.termsText}>
               I agree to the{' '}
-              <Text style={styles.linkText}>Terms of Service</Text> and{' '}
-              <Text style={styles.linkText}>Privacy Policy</Text>
+              <Text 
+                style={styles.linkText} 
+                onPress={() => router.push('/auth/termsCondition')}
+              >Terms of Service</Text> and{' '}
+              <Text 
+                style={styles.linkText} 
+                onPress={() => router.push('/auth/privacyPolicy')}
+              >Privacy Policy</Text>
             </Text>
           </View>
         </View>

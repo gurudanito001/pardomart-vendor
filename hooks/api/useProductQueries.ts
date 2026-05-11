@@ -1,4 +1,4 @@
-import { ProductApi } from '@/api';
+import { VendorApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import type { ProductVendorMyProductsGet200Response } from '@/api/models';
 import { useQuery } from '@tanstack/react-query';
@@ -11,13 +11,13 @@ const productKeys = {
 };
 
 export const useMyProducts = (vendorId?: string) => {
-  const productApi = useMemo(() => new ProductApi(apiConfig), []);
+  const vendorApi = useMemo(() => new VendorApi(apiConfig), []);
 
   return useQuery<ProductVendorMyProductsGet200Response, Error>({
     queryKey: productKeys.myProducts(vendorId),
     queryFn: async () => {
       try {
-        const response = await productApi.productVendorMyProductsGet(vendorId);
+        const response = await vendorApi.productVendorMyProductsGet(vendorId);
         return response.data;
       } catch (err: any) {
         const message =

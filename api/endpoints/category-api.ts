@@ -228,7 +228,7 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. - The `imageUrl` can be updated with either a standard secure URL or a base64 encoded image string. 
          * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
@@ -302,7 +302,7 @@ export const CategoryApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category. The `imageUrl` supports both standard secure URLs and base64 encoded image strings.
          * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
@@ -447,7 +447,7 @@ export const CategoryApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. - The `imageUrl` can be updated with either a standard secure URL or a base64 encoded image string. 
          * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
@@ -473,7 +473,7 @@ export const CategoryApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category. The `imageUrl` supports both standard secure URLs and base64 encoded image strings.
          * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
@@ -558,7 +558,7 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.categoryIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
-         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+         * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. - The `imageUrl` can be updated with either a standard secure URL or a base64 encoded image string. 
          * @summary Update a category (Admin)
          * @param {UpdateCategoryPayload} updateCategoryPayload 
          * @param {string} id The ID of the category to update.
@@ -578,7 +578,7 @@ export const CategoryApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.categoryParentsGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+         * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category. The `imageUrl` supports both standard secure URLs and base64 encoded image strings.
          * @summary Create a new category (Admin)
          * @param {CreateCategoryPayload} createCategoryPayload 
          * @param {*} [options] Override http request option.
@@ -660,7 +660,7 @@ export class CategoryApi extends BaseAPI {
     }
 
     /**
-     * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+     * Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. - The `imageUrl` can be updated with either a standard secure URL or a base64 encoded image string. 
      * @summary Update a category (Admin)
      * @param {UpdateCategoryPayload} updateCategoryPayload 
      * @param {string} id The ID of the category to update.
@@ -682,7 +682,7 @@ export class CategoryApi extends BaseAPI {
     }
 
     /**
-     * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+     * Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category. The `imageUrl` supports both standard secure URLs and base64 encoded image strings.
      * @summary Create a new category (Admin)
      * @param {CreateCategoryPayload} createCategoryPayload 
      * @param {*} [options] Override http request option.

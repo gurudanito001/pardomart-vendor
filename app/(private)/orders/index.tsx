@@ -7,6 +7,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -58,23 +59,32 @@ export default function OrdersScreen() {
   const { data: orders, isLoading, isError, error } = useVendorOrders(storeId);
   const { mutate: acceptOrder, isPending: isAcceptingOrder, data: acceptedOrderId } = useAcceptOrder();
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
-
-  const pendingStatuses = [
-    'pending',
-    'accepted_for_shopping',
-    'currently_shopping',
-    'completed_bagging',
-    'ready_for_delivery'
-  ];
+  const [activeTab, setActiveTab] = useState<'pending' | 'in_progress' | 'completed'>('pending');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
     return orders.filter((order) => {
-      const isPending = pendingStatuses.includes(order.orderStatus || '');
-      return activeTab === 'pending' ? isPending : !isPending;
+      const status = order.orderStatus || '';
+      const matchesSearch = searchQuery.trim() === '' || 
+        order.orderCode?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      if (activeTab === 'pending') {
+        return ['pending', 'accepted_for_shopping'].includes(status);
+      }
+      if (activeTab === 'in_progress') {
+        // Move currently_shopping and related active states here
+        return ['currently_shopping', 'completed_bagging'].includes(status);
+      }
+      if (activeTab === 'completed') {
+        // Handover states and terminal states
+        return ['ready_for_pickup', 'ready_for_delivery', 'delivered', 'picked_up_by_customer', 'cancelled'].includes(status);
+      }
+      return false;
     });
-  }, [orders, activeTab]);
+  }, [orders, activeTab, searchQuery]);
 
   const handleGoBack = () => {
     console.log('Go back');
@@ -179,10 +189,12 @@ export default function OrdersScreen() {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {formatStatus(order.orderStatus)}
-            </Text>
+          <View style={styles.statusAndCode}>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor + '15' }]}>
+              <Text style={[styles.statusText, { color: statusColor }]}>
+                {formatStatus(order.orderStatus)}
+              </Text>
+            </View>
           </View>
           <Svg width="7" height="12" viewBox="0 0 7 12" fill="none">
             <Path d="M0.866949 11.9985C0.66474 11.9988 0.468777 11.9292 0.313076 11.8017C0.225444 11.7299 0.153007 11.6418 0.0999113 11.5423C0.0468157 11.4428 0.0141058 11.3339 0.00365506 11.2219C-0.0067957 11.1098 0.00521815 10.9969 0.0390082 10.8895C0.0727983 10.7821 0.1277 10.6823 0.200571 10.5958L4.07768 6.01173L0.339039 1.41906C0.267152 1.33158 0.213468 1.23092 0.181074 1.12286C0.148679 1.01481 0.138213 0.901501 0.150276 0.789439C0.16234 0.677378 0.196694 0.568777 0.251367 0.469879C0.306039 0.370982 0.379951 0.283737 0.468853 0.213159C0.558395 0.135301 0.663255 0.0765731 0.776853 0.0406621C0.89045 0.00475112 1.01033 -0.00756759 1.12898 0.00447846C1.24762 0.0165245 1.36246 0.0526755 1.4663 0.110663C1.57014 0.16865 1.66072 0.247221 1.73237 0.341446L5.91238 5.47292C6.03967 5.62596 6.10925 5.81791 6.10925 6.01601C6.10925 6.2141 6.03967 6.40606 5.91238 6.55909L1.58525 11.6906C1.49843 11.7941 1.38815 11.8759 1.26335 11.9294C1.13854 11.9829 1.00274 12.0065 0.866949 11.9985Z" fill="#333333"/>
@@ -193,45 +205,38 @@ export default function OrdersScreen() {
       <View style={styles.divider} />
 
       {/* Order Details */}
-      <View style={styles.orderDetails}>
-        <View style={styles.totalSection}>
-          <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalAmount}>${order.total?.toFixed(2)}</Text>
-        </View>
-        <Text style={styles.customerName}>{order.customerName}</Text>
-        
-        {/* Order Info Row */}
-        <View style={styles.orderInfoRow}>
-          <View style={styles.infoItem}>
-            <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <Path d="M6 1C3.243 1 1 3.243 1 6C1 8.757 3.243 11 6 11C8.757 11 11 8.757 11 6C11 3.243 8.757 1 6 1ZM6 10C3.7945 10 2 8.2055 2 6C2 3.7945 3.7945 2 6 2C8.2055 2 10 3.7945 10 6C10 8.2055 8.2055 10 6 10Z" fill="#7C7B7B"/>
-              <Path d="M6.5 3.5H5.5V6.5H8.5V5.5H6.5V3.5Z" fill="#7C7B7B"/>
-            </Svg>
-            <Text style={styles.infoText}>{order.time}</Text>
+      <View style={styles.middleSection}>
+        <View style={styles.orderDetails}>
+          <View style={styles.totalSection}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalAmount}>${order.total?.toFixed(2)}</Text>
           </View>
+          <Text style={styles.customerName}>{order.customerName}</Text>
           
-          <View style={styles.infoItem}>
-            <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <Path d="M4.25 7C4.41576 7 4.57473 6.93415 4.69194 6.81694C4.80915 6.69973 4.875 6.54076 4.875 6.375C4.875 6.20924 4.80915 6.05027 4.69194 5.93306C4.57473 5.81585 4.41576 5.75 4.25 5.75C4.08424 5.75 3.92527 5.81585 3.80806 5.93306C3.69085 6.05027 3.625 6.20924 3.625 6.375C3.625 6.54076 3.69085 6.69973 3.80806 6.81694C3.92527 6.93415 4.08424 7 4.25 7ZM4.25 8.75C4.41576 8.75 4.57473 8.68415 4.69194 8.56694C4.80915 8.44973 4.875 8.29076 4.875 8.125C4.875 7.95924 4.80915 7.80027 4.69194 7.68306C4.57473 7.56585 4.41576 7.5 4.25 7.5C4.08424 7.5 3.92527 7.56585 3.80806 7.68306C3.69085 7.80027 3.625 7.95924 3.625 8.125C3.625 8.29076 3.69085 8.44973 3.80806 8.56694C3.92527 8.68415 4.08424 8.75 4.25 8.75ZM6.625 6.375C6.625 6.54076 6.55915 6.69973 6.44194 6.81694C6.32473 6.93415 6.16576 7 6 7C5.83424 7 5.67527 6.93415 5.55806 6.81694C5.44085 6.69973 5.375 6.54076 5.375 6.375C5.375 6.20924 5.44085 6.05027 5.55806 5.93306C5.67527 5.81585 5.83424 5.75 6 5.75C6.16576 5.75 6.32473 5.81585 6.44194 5.93306C6.55915 6.05027 6.625 6.20924 6.625 6.375ZM6 8.75C6.16576 8.75 6.32473 8.68415 6.44194 8.56694C6.55915 8.44973 6.625 8.29076 6.625 8.125C6.625 7.95924 6.55915 7.80027 6.44194 7.68306C6.32473 7.56585 6.16576 7.5 6 7.5C5.83424 7.5 5.67527 7.56585 5.55806 7.68306C5.44085 7.80027 5.375 7.95924 5.375 8.125C5.375 8.29076 5.44085 8.44973 5.55806 8.56694C5.67527 8.68415 5.83424 8.75 6 8.75ZM8.375 6.375C8.375 6.54076 8.30915 6.69973 8.19194 6.81694C8.07473 6.93415 7.91576 7 7.75 7C7.58424 7 7.42527 6.93415 7.30806 6.81694C7.19085 6.69973 7.125 6.54076 7.125 6.375C7.125 6.20924 7.19085 6.05027 7.30806 5.93306C7.42527 5.81585 7.58424 5.75 7.75 5.75C7.91576 5.75 8.07473 5.81585 8.19194 5.93306C8.30915 6.05027 8.375 6.20924 8.375 6.375Z" fill="#7C7B7B"/>
-              <Path fillRule="evenodd" clipRule="evenodd" d="M4 1.625C4.09946 1.625 4.19484 1.66451 4.26516 1.73483C4.33549 1.80516 4.375 1.90054 4.375 2V2.375H7.625V2C7.625 1.90054 7.66451 1.80516 7.73484 1.73483C7.80516 1.66451 7.90054 1.625 8 1.625C8.09946 1.625 8.19484 1.66451 8.26517 1.73483C8.33549 1.80516 8.375 1.90054 8.375 2V2.379C8.451 2.381 8.52183 2.38467 8.5875 2.39C8.7775 2.405 8.9555 2.439 9.124 2.525C9.38278 2.65684 9.59316 2.86722 9.725 3.126C9.811 3.2945 9.845 3.4725 9.86 3.6625C9.875 3.845 9.875 4.0675 9.875 4.335V8.165C9.875 8.4325 9.875 8.655 9.86 8.8375C9.845 9.0275 9.811 9.2055 9.725 9.374C9.5933 9.6327 9.38309 9.84308 9.1245 9.975C8.9555 10.061 8.7775 10.095 8.5875 10.11C8.405 10.125 8.1825 10.125 7.9155 10.125H4.085C3.8175 10.125 3.595 10.125 3.4125 10.11C3.2225 10.095 3.0445 10.061 2.876 9.975C2.61738 9.84343 2.40701 9.6334 2.275 9.375C2.189 9.206 2.155 9.028 2.14 8.838C2.125 8.6555 2.125 8.433 2.125 8.166V4.335C2.125 4.0675 2.125 3.845 2.14 3.6625C2.155 3.4725 2.189 3.2945 2.275 3.126C2.40684 2.86722 2.61722 2.65684 2.876 2.525C3.0445 2.439 3.2225 2.405 3.4125 2.39C3.47817 2.38467 3.549 2.381 3.625 2.379V2C3.625 1.95075 3.6347 1.90199 3.65355 1.85649C3.67239 1.811 3.70001 1.76966 3.73483 1.73483C3.76966 1.70001 3.811 1.67239 3.85649 1.65355C3.90199 1.6347 3.95075 1.625 4 1.625ZM3.625 3.25V3.129C3.57444 3.13056 3.52392 3.13339 3.4735 3.1375C3.33 3.149 3.2615 3.17 3.2165 3.193C3.09871 3.25295 3.00295 3.34871 2.943 3.4665C2.92 3.5115 2.899 3.58 2.8875 3.7235C2.8755 3.8715 2.875 4.0635 2.875 4.35V4.625H9.125V4.35C9.125 4.064 9.125 3.8715 9.1125 3.7235C9.101 3.58 9.08 3.5115 9.057 3.4665C8.99705 3.34871 8.90129 3.25295 8.7835 3.193C8.7385 3.17 8.67 3.149 8.526 3.1375C8.47575 3.1334 8.4254 3.13056 8.375 3.129V3.25C8.375 3.34946 8.33549 3.44484 8.26517 3.51517C8.19484 3.58549 8.09946 3.625 8 3.625C7.90054 3.625 7.80516 3.58549 7.73484 3.51517C7.66451 3.44484 7.625 3.34946 7.625 3.25V3.125H4.375V3.25C4.375 3.34946 4.33549 3.44484 4.26516 3.51517C4.19484 3.58549 4.09946 3.625 4 3.625C3.90054 3.625 3.80516 3.58549 3.73483 3.51517C3.66451 3.44484 3.625 3.34946 3.625 3.25ZM9.125 5.125H2.875V8.15C2.875 8.436 2.875 8.6285 2.8875 8.776C2.899 8.92 2.92 8.9885 2.943 9.0335C3.003 9.1515 3.0985 9.247 3.2165 9.307C3.2615 9.33 3.33 9.351 3.4735 9.3625C3.6215 9.3745 3.8135 9.375 4.1 9.375H7.9C8.186 9.375 8.3785 9.375 8.526 9.3625C8.67 9.351 8.7385 9.33 8.7835 9.307C8.90129 9.24705 8.99705 9.15129 9.057 9.0335C9.08 8.9885 9.101 8.92 9.1125 8.776C9.1245 8.6285 9.125 8.436 9.125 8.15V5.125Z" fill="#7C7B7B"/>
-              <Path fillRule="evenodd" clipRule="evenodd" d="M4.875 3.875C4.875 3.77554 4.91451 3.68016 4.98484 3.60983C5.05516 3.53951 5.15054 3.5 5.25 3.5H6.75C6.84946 3.5 6.94484 3.53951 7.01516 3.60983C7.08549 3.68016 7.125 3.77554 7.125 3.875C7.125 3.97446 7.08549 4.06984 7.01516 4.14016C6.94484 4.21049 6.84946 4.25 6.75 4.25H5.25C5.15054 4.25 5.05516 4.21049 4.98484 4.14016C4.91451 4.06984 4.875 3.97446 4.875 3.875Z" fill="#7C7B7B"/>
-            </Svg>
-            <Text style={styles.infoText}>{order.date}</Text>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <Path d="M10.911 3.71551C10.865 3.64904 10.8036 3.59472 10.732 3.55719C10.6604 3.51965 10.5808 3.50003 10.5 3.50001H3.6665L3.0895 2.11501C3.01407 1.93246 2.88601 1.77649 2.72164 1.66697C2.55727 1.55745 2.36402 1.49933 2.1665 1.50001H1V2.50001H2.1665L4.5385 8.19251C4.57649 8.28358 4.64059 8.36138 4.72271 8.4161C4.80484 8.47082 4.90132 8.50001 5 8.50001H9C9.2085 8.50001 9.395 8.37051 9.4685 8.17601L10.9685 4.17601C10.9968 4.10032 11.0064 4.01888 10.9964 3.93868C10.9864 3.85848 10.9571 3.7819 10.911 3.71551ZM8.6535 7.50001H5.3335L4.0835 4.50001H9.7785L8.6535 7.50001Z" fill="#7C7B7B"/>
-              <Path d="M5.25 10.5C5.66421 10.5 6 10.1642 6 9.75C6 9.33579 5.66421 9 5.25 9C4.83579 9 4.5 9.33579 4.5 9.75C4.5 10.1642 4.83579 10.5 5.25 10.5Z" fill="#7C7B7B"/>
-              <Path d="M8.75 10.5C9.16421 10.5 9.5 10.1642 9.5 9.75C9.5 9.33579 9.16421 9 8.75 9C8.33579 9 8 9.33579 8 9.75C8 10.1642 8.33579 10.5 8.75 10.5Z" fill="#7C7B7B"/>
-            </Svg>
-            <Text style={styles.infoText}>{order.date}</Text>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <Text style={styles.infoText}>{order.units} units</Text>
+          {/* Order Info Row */}
+          <View style={styles.orderInfoRow}>
+            <View style={styles.infoItem}>
+              <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <Path d="M6 1C3.243 1 1 3.243 1 6C1 8.757 3.243 11 6 11C8.757 11 11 8.757 11 6C11 3.243 8.757 1 6 1ZM6 10C3.7945 10 2 8.2055 2 6C2 3.7945 3.7945 2 6 2C8.2055 2 10 3.7945 10 6C10 8.2055 8.2055 10 6 10Z" fill="#7C7B7B"/>
+                <Path d="M6.5 3.5H5.5V6.5H8.5V5.5H6.5V3.5Z" fill="#7C7B7B"/>
+              </Svg>
+              <Text style={styles.infoText}>{order.time}</Text>
+            </View>
+            
+            <View style={styles.infoItem}>
+              <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <Path d="M4.25 7C4.41576 7 4.57473 6.93415 4.69194 6.81694C4.80915 6.69973 4.875 6.54076 4.875 6.375C4.875 6.20924 4.80915 6.05027 4.69194 5.93306C4.57473 5.81585 4.41576 5.75 4.25 5.75C4.08424 5.75 3.92527 5.81585 3.80806 5.93306C3.69085 6.05027 3.625 6.20924 3.625 6.375C3.625 6.54076 3.69085 6.69973 3.80806 6.81694C3.92527 6.93415 4.08424 7 4.25 7ZM4.25 8.75C4.41576 8.75 4.57473 8.68415 4.69194 8.56694C4.80915 8.44973 4.875 8.29076 4.875 8.125C4.875 7.95924 4.80915 7.80027 4.69194 7.68306C4.57473 7.56585 4.41576 7.5 4.25 7.5C4.08424 7.5 3.92527 7.56585 3.80806 7.68306C3.69085 7.80027 3.625 7.95924 3.625 8.125C3.625 8.29076 3.69085 8.44973 3.80806 8.56694C3.92527 8.68415 4.08424 8.75 4.25 8.75ZM6.625 6.375C6.625 6.54076 6.55915 6.69973 6.44194 6.81694C6.32473 6.93415 6.16576 7 6 7C5.83424 7 5.67527 6.93415 5.55806 6.81694C5.44085 6.69973 5.375 6.54076 5.375 6.375C5.375 6.20924 5.44085 6.05027 5.55806 5.93306C5.67527 5.81585 5.83424 5.75 6 5.75C6.16576 5.75 6.32473 5.81585 6.44194 5.93306C6.55915 6.05027 6.625 6.20924 6.625 6.375ZM6 8.75C6.16576 8.75 6.32473 8.68415 6.44194 8.56694C6.55915 8.44973 6.625 8.29076 6.625 8.125C6.625 7.95924 6.55915 7.80027 6.44194 7.68306C6.32473 7.56585 6.16576 7.5 6 7.5C5.83424 7.5 5.67527 7.56585 5.55806 7.68306C5.44085 7.80027 5.375 7.95924 5.375 8.125C5.375 8.29076 5.44085 8.44973 5.55806 8.56694C5.67527 8.68415 5.83424 8.75 6 8.75ZM8.375 6.375C8.375 6.54076 8.30915 6.69973 8.19194 6.81694C8.07473 6.93415 7.91576 7 7.75 7C7.58424 7 7.42527 6.93415 7.30806 6.81694C7.19085 6.69973 7.125 6.54076 7.125 6.375C7.125 6.20924 7.19085 6.05027 7.30806 5.93306C7.42527 5.81585 7.58424 5.75 7.75 5.75C7.91576 5.75 8.07473 5.81585 8.19194 5.93306C8.30915 6.05027 8.375 6.20924 8.375 6.375Z" fill="#7C7B7B"/>
+                <Path fillRule="evenodd" clipRule="evenodd" d="M4 1.625C4.09946 1.625 4.19484 1.66451 4.26516 1.73483C4.33549 1.80516 4.375 1.90054 4.375 2V2.375H7.625V2C7.625 1.90054 7.66451 1.80516 7.73484 1.73483C7.80516 1.66451 7.90054 1.625 8 1.625C8.09946 1.625 8.19484 1.66451 8.26517 1.73483C8.33549 1.80516 8.375 1.90054 8.375 2V2.379C8.451 2.381 8.52183 2.38467 8.5875 2.39C8.7775 2.405 8.9555 2.439 9.124 2.525C9.38278 2.65684 9.59316 2.86722 9.725 3.126C9.811 3.2945 9.845 3.4725 9.86 3.6625C9.875 3.845 9.875 4.0675 9.875 4.335V8.165C9.875 8.4325 9.875 8.655 9.86 8.8375C9.845 9.0275 9.811 9.2055 9.725 9.374C9.5933 9.6327 9.38309 9.84308 9.1245 9.975C8.9555 10.061 8.7775 10.095 8.5875 10.11C8.405 10.125 8.1825 10.125 7.9155 10.125H4.085C3.8175 10.125 3.595 10.125 3.4125 10.11C3.2225 10.095 3.0445 10.061 2.876 9.975C2.61738 9.84343 2.40701 9.6334 2.275 9.375C2.189 9.206 2.155 9.028 2.14 8.838C2.125 8.6555 2.125 8.433 2.125 8.166V4.335C2.125 4.0675 2.125 3.845 2.14 3.6625C2.155 3.4725 2.189 3.2945 2.275 3.126C2.40684 2.86722 2.61722 2.65684 2.876 2.525C3.0445 2.439 3.2225 2.405 3.4125 2.39C3.47817 2.38467 3.549 2.381 3.625 2.379V2C3.625 1.95075 3.6347 1.90199 3.65355 1.85649C3.67239 1.811 3.70001 1.76966 3.73483 1.73483C3.76966 1.70001 3.811 1.67239 3.85649 1.65355C3.90199 1.6347 3.95075 1.625 4 1.625ZM3.625 3.25V3.129C3.57444 3.13056 3.52392 3.13339 3.4735 3.1375C3.33 3.149 3.2615 3.17 3.2165 3.193C3.09871 3.25295 3.00295 3.34871 2.943 3.4665C2.92 3.5115 2.899 3.58 2.8875 3.7235C2.8755 3.8715 2.875 4.0635 2.875 4.35V4.625H9.125V4.35C9.125 4.064 9.125 3.8715 9.1125 3.7235C9.101 3.58 9.08 3.5115 9.057 3.4665C8.99705 3.34871 8.90129 3.25295 8.7835 3.193C8.7385 3.17 8.67 3.149 8.526 3.1375C8.47575 3.1334 8.4254 3.13056 8.375 3.129V3.25C8.375 3.34946 8.33549 3.44484 8.26517 3.51517C8.19484 3.58549 8.09946 3.625 8 3.625C7.90054 3.625 7.80516 3.58549 7.73484 3.51517C7.66451 3.44484 7.625 3.34946 7.625 3.25V3.125H4.375V3.25C4.375 3.34946 4.33549 3.44484 4.26516 3.51517C4.19484 3.58549 4.09946 3.625 4 3.625C3.90054 3.625 3.80516 3.58549 3.73483 3.51517C3.66451 3.44484 3.625 3.34946 3.625 3.25ZM9.125 5.125H2.875V8.15C2.875 8.436 2.875 8.6285 2.8875 8.776C2.899 8.92 2.92 8.9885 2.943 9.0335C3.003 9.1515 3.0985 9.247 3.2165 9.307C3.2615 9.33 3.33 9.351 3.4735 9.3625C3.6215 9.3745 3.8135 9.375 4.1 9.375H7.9C8.186 9.375 8.3785 9.375 8.526 9.3625C8.67 9.351 8.7385 9.33 8.7835 9.307C8.90129 9.24705 8.99705 9.15129 9.057 9.0335C9.08 8.9885 9.101 8.92 9.1125 8.776C9.1245 8.6285 9.125 8.436 9.125 8.15V5.125Z" fill="#7C7B7B"/>
+              </Svg>
+              <Text style={styles.infoText}>{order.date}</Text>
+            </View>
+            
+            <View style={styles.infoItem}>
+              <Text style={styles.infoText}>{order.units} units</Text>
+            </View>
           </View>
         </View>
+        <Text style={styles.orderCode}>#{order.orderCode}</Text>
       </View>
 
       <View style={styles.divider} />
@@ -303,6 +308,18 @@ export default function OrdersScreen() {
           </View>
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by order code..."
+            placeholderTextColor="rgba(255, 255, 255, 0.6)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+          />
+        </View>
+
         {/* Tabs */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -310,6 +327,12 @@ export default function OrdersScreen() {
             onPress={() => setActiveTab('pending')}
           >
             <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'in_progress' && styles.activeTab]}
+            onPress={() => setActiveTab('in_progress')}
+          >
+            <Text style={[styles.tabText, activeTab === 'in_progress' && styles.activeTabText]}>In Progress</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'completed' && styles.activeTab]}
@@ -351,6 +374,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#06888C',
     paddingTop: 20,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 25,
+    marginBottom: 15,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#FFF',
+    padding: 0,
+  },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,15 +432,15 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 25,
+    paddingHorizontal: 15,
     paddingBottom: 15,
-    gap: 10,
+    gap: 8,
   },
   tab: {
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -407,7 +450,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#FFF',
     fontFamily: 'Open Sans',
@@ -487,6 +530,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  middleSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  statusAndCode: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  orderCode: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#7C7B7B',
   },
   orderTypeContainer: {
     flexDirection: 'row',

@@ -16,6 +16,9 @@ Name | Type | Description | Notes
 **referralCode** | **string** |  | [optional] [default to undefined]
 **image** | **string** | Base64 encoded image or URL | [optional] [default to undefined]
 **online** | **boolean** |  | [optional] [default to undefined]
+**replacementPreference** | **string** |  | [optional] [default to ReplacementPreferenceEnum_SendRequest]
+**measurementUnit** | **string** |  | [optional] [default to MeasurementUnitEnum_Metric]
+**biometricEnabled** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -34,6 +37,9 @@ const instance: UpdateUserPayload = {
     referralCode,
     image,
     online,
+    replacementPreference,
+    measurementUnit,
+    biometricEnabled,
 };
 ```
 

@@ -71,9 +71,20 @@ export interface Order {
     'orderCode'?: string;
     'pickupOtp'?: string | null;
     'subtotal'?: number;
+    /**
+     * The maximum amount authorized by the customer. Acts as a strict barrier during shopping updates.
+     */
     'budgetAmount'?: number | null;
     'shopperTip'?: number | null;
     'deliveryPersonTip'?: number | null;
+    /**
+     * Snapshot of customer preference at checkout.
+     */
+    'replacementPreference'?: OrderReplacementPreferenceEnum;
+    /**
+     * Snapshot of customer units at checkout.
+     */
+    'measurementUnit'?: OrderMeasurementUnitEnum;
     'shopperId'?: string | null;
     'shoppingStartTime'?: string | null;
     'scheduledDeliveryTime'?: string | null;
@@ -81,5 +92,17 @@ export interface Order {
     'pickupOtpVerifiedAt'?: string | null;
 }
 
+export const OrderReplacementPreferenceEnum = {
+    DontReplace: 'dont_replace',
+    SendRequest: 'send_request'
+} as const;
+
+export type OrderReplacementPreferenceEnum = typeof OrderReplacementPreferenceEnum[keyof typeof OrderReplacementPreferenceEnum];
+export const OrderMeasurementUnitEnum = {
+    Imperial: 'imperial',
+    Metric: 'metric'
+} as const;
+
+export type OrderMeasurementUnitEnum = typeof OrderMeasurementUnitEnum[keyof typeof OrderMeasurementUnitEnum];
 
 

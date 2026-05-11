@@ -15,6 +15,9 @@ All URIs are relative to *http://localhost:5000/api/v1*
 |[**usersGet**](#usersget) | **GET** /users | Get a paginated list of users|
 |[**usersIdDelete**](#usersiddelete) | **DELETE** /users/{id} | Delete a user|
 |[**usersIdGet**](#usersidget) | **GET** /users/{id} | Get a user by their ID|
+|[**usersMeDeleteAccountConfirmPost**](#usersmedeleteaccountconfirmpost) | **POST** /users/me/delete-account/confirm | Confirm account deletion for the authenticated user|
+|[**usersMeDeleteAccountInitiatePost**](#usersmedeleteaccountinitiatepost) | **POST** /users/me/delete-account/initiate | Initiate account deletion for the authenticated user|
+|[**usersMeSettingsPatch**](#usersmesettingspatch) | **PATCH** /users/me/settings | Update authenticated user\&#39;s settings|
 |[**usersUpdatePut**](#usersupdateput) | **PUT** /users/update | Update the authenticated user\&#39;s details|
 |[**usersVerificationCodesGet**](#usersverificationcodesget) | **GET** /users/verificationCodes | Get all verification codes|
 
@@ -490,6 +493,7 @@ const { status, data } = await apiInstance.usersGet(
 # **usersIdDelete**
 > usersIdDelete()
 
+Permanently deletes the user account.  This operation will fail if the user has active orders (orders not in a terminal state). For administrative deletion of other users, admin privileges are required.  For self-deletion, use the authenticated route. 
 
 ### Example
 
@@ -502,7 +506,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new UserApi(configuration);
 
-let id: string; //The ID of the user to delete. (default to undefined)
+let id: string; //The ID of the user to delete. (Must match authenticated user ID unless admin). (default to undefined)
 
 const { status, data } = await apiInstance.usersIdDelete(
     id
@@ -513,7 +517,7 @@ const { status, data } = await apiInstance.usersIdDelete(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **id** | [**string**] | The ID of the user to delete. | defaults to undefined|
+| **id** | [**string**] | The ID of the user to delete. (Must match authenticated user ID unless admin). | defaults to undefined|
 
 
 ### Return type
@@ -534,7 +538,9 @@ void (empty response body)
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | The deleted user. |  -  |
+|**400** | Bad Request (e.g., active orders exist). |  -  |
 |**404** | User not found. |  -  |
+|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -586,6 +592,164 @@ const { status, data } = await apiInstance.usersIdGet(
 |-------------|-------------|------------------|
 |**200** | The requested user. |  -  |
 |**404** | User not found. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **usersMeDeleteAccountConfirmPost**
+> usersMeDeleteAccountConfirmPost(usersMeDeleteAccountConfirmPostRequest)
+
+Completes the account deletion process using the email OTP.  Upon success, the account is soft-deleted (active: false).  Note: This will fail if the user has active, incomplete orders. 
+
+### Example
+
+```typescript
+import {
+    UserApi,
+    Configuration,
+    UsersMeDeleteAccountConfirmPostRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new UserApi(configuration);
+
+let usersMeDeleteAccountConfirmPostRequest: UsersMeDeleteAccountConfirmPostRequest; //
+
+const { status, data } = await apiInstance.usersMeDeleteAccountConfirmPost(
+    usersMeDeleteAccountConfirmPostRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **usersMeDeleteAccountConfirmPostRequest** | **UsersMeDeleteAccountConfirmPostRequest**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Account soft-deleted successfully. |  -  |
+|**400** | Invalid or expired OTP, or active orders exist. |  -  |
+|**401** | Unauthorized. |  -  |
+|**404** | User not found or email not registered. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **usersMeDeleteAccountInitiatePost**
+> usersMeDeleteAccountInitiatePost()
+
+Starts the account deletion process by sending a 6-digit One-Time Password (OTP)  to the user\'s registered email address. This OTP must be used in the confirmation endpoint. The request will fail if the user has no registered email. 
+
+### Example
+
+```typescript
+import {
+    UserApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new UserApi(configuration);
+
+const { status, data } = await apiInstance.usersMeDeleteAccountInitiatePost();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OTP sent successfully to your email. |  -  |
+|**401** | Unauthorized. |  -  |
+|**404** | User not found or email not registered. |  -  |
+|**500** | Internal server error. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **usersMeSettingsPatch**
+> User usersMeSettingsPatch(usersMeSettingsPatchRequest)
+
+Allows users to manage their preferences, such as how product replacements are handled and their preferred unit system. 
+
+### Example
+
+```typescript
+import {
+    UserApi,
+    Configuration,
+    UsersMeSettingsPatchRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new UserApi(configuration);
+
+let usersMeSettingsPatchRequest: UsersMeSettingsPatchRequest; //
+
+const { status, data } = await apiInstance.usersMeSettingsPatch(
+    usersMeSettingsPatchRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **usersMeSettingsPatchRequest** | **UsersMeSettingsPatchRequest**|  | |
+
+
+### Return type
+
+**User**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | User settings updated successfully. |  -  |
+|**401** | Unauthorized. |  -  |
+|**404** | User not found. |  -  |
+|**500** | Internal server error. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

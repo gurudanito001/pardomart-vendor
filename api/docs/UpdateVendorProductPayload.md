@@ -16,11 +16,13 @@ Name | Type | Description | Notes
 **description** | **string** |  | [optional] [default to undefined]
 **categoryIds** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
 **tagIds** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**effectivePrice** | **number** | The actual price to be paid (prioritizes discountedPrice). | [optional] [default to undefined]
 **weight** | **number** |  | [optional] [default to undefined]
 **weightUnit** | **string** |  | [optional] [default to undefined]
 **published** | **boolean** |  | [optional] [default to undefined]
 **isAlcohol** | **boolean** |  | [optional] [default to undefined]
 **isAgeRestricted** | **boolean** |  | [optional] [default to undefined]
+**isEbtEligible** | **boolean** |  | [optional] [default to undefined]
 **meta** | **object** |  | [optional] [default to undefined]
 
 ## Example
@@ -40,11 +42,13 @@ const instance: UpdateVendorProductPayload = {
     description,
     categoryIds,
     tagIds,
+    effectivePrice,
     weight,
     weightUnit,
     published,
     isAlcohol,
     isAgeRestricted,
+    isEbtEligible,
     meta,
 };
 ```

@@ -113,6 +113,10 @@ export default function ReceiptScreen() {
             <div class="label">Payment Method:</div>
             <div class="value">${order?.paymentMethod || 'Card'}</div>
           </div>
+          <div class="row">
+            <div class="label">Shopper:</div>
+            <div class="value">${order?.shopper?.name || 'N/A'}</div>
+          </div>
           <div class="divider"></div>
           <div class="section-title">Items</div>
           ${itemsHtml}
@@ -234,6 +238,10 @@ export default function ReceiptScreen() {
             <View style={styles.metadataRow}>
               <Text style={styles.metadataLabel}>Payment Method:</Text>
               <Text style={styles.metadataValue}>{order.paymentMethod || 'Card'}</Text>
+            </View>
+            <View style={styles.metadataRow}>
+              <Text style={styles.metadataLabel}>Shopper:</Text>
+              <Text style={styles.metadataValue}>{order.shopper?.name ?? 'N/A'}</Text>
             </View>
           </View>
 

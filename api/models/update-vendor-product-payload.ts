@@ -26,11 +26,16 @@ export interface UpdateVendorProductPayload {
     'description'?: string | null;
     'categoryIds'?: Array<string>;
     'tagIds'?: Array<string>;
+    /**
+     * The actual price to be paid (prioritizes discountedPrice).
+     */
+    'effectivePrice'?: number;
     'weight'?: number | null;
     'weightUnit'?: string | null;
     'published'?: boolean;
     'isAlcohol'?: boolean;
     'isAgeRestricted'?: boolean;
+    'isEbtEligible'?: boolean;
     'meta'?: object | null;
 }
 

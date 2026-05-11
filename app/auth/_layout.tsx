@@ -10,6 +10,8 @@ export default function AuthLayout() {
       <Stack.Screen name="verified" />
       <Stack.Screen name="take-photo" />
       <Stack.Screen name="online" />
+      <Stack.Screen name="privacyPolicy" />
+      <Stack.Screen name="termsCondition" />
     </Stack>
   );
 }

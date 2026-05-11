@@ -44,6 +44,7 @@ export default function EditProductScreen() {
   const [published, setPublished] = useState(false);
   const [isAlcohol, setIsAlcohol] = useState(false);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
+  const [isEbtEligible, setIsEbtEligible] = useState(false);
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
@@ -71,6 +72,7 @@ export default function EditProductScreen() {
     setPublished(productData.published ?? false);
     setIsAlcohol(productData.isAlcohol ?? false);
     setIsAgeRestricted(productData.isAgeRestricted ?? false);
+    setIsEbtEligible(productData.isEbtEligible ?? false);
     setWeight(productData.weight != null ? String(productData.weight) : '');
     setWeightUnit(productData.weightUnit || '');
     (async () => {
@@ -171,6 +173,7 @@ export default function EditProductScreen() {
       published,
       isAlcohol,
       isAgeRestricted,
+      isEbtEligible,
       weight: weight ? parseFloat(weight) : null,
       weightUnit: weightUnit.trim() || null,
       categoryIds: categoryIds.map((c: any) => (typeof c === 'object' ? c.id || c.value : c)),
@@ -295,22 +298,22 @@ export default function EditProductScreen() {
               </View>
             </View>
 
-            <View style={styles.row}>
-              <View style={[styles.fieldContainer, { flex: 1 }]}>
-                <Text style={styles.fieldLabel}>Weight</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput style={styles.textInput} placeholder="e.g., 0.5" placeholderTextColor="#7C8BA0" value={weight} onChangeText={setWeight} keyboardType="numeric" />
-                </View>
-              </View>
-              <View style={[styles.fieldContainer, { flex: 1 }]}>
-                <Text style={styles.fieldLabel}>Unit</Text>
-                <View style={styles.inputContainer}>
-                  <TouchableOpacity onPress={() => setIsWeightUnitModalVisible(true)}>
-                    <Text style={[styles.textInput, !weightUnit && { color: '#7C8BA0' }]}>
-                      {weightUnit || "Select Unit"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Weight & Unit</Text>
+              <View style={[styles.inputContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+                <TextInput
+                  style={[styles.textInput, { flex: 1 }]}
+                  placeholder="e.g., 0.5"
+                  placeholderTextColor="#7C8BA0"
+                  value={weight}
+                  onChangeText={setWeight}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity onPress={() => setIsWeightUnitModalVisible(true)} style={styles.unitSelectButton}>
+                  <Text style={[styles.unitDisplayText, !weightUnit && { color: '#7C8BA0' }]}>
+                    {weightUnit || "Unit"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -339,6 +342,10 @@ export default function EditProductScreen() {
             <View style={styles.switchContainer}>
               <Text style={styles.fieldLabel}>Age Restricted?</Text>
               <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isAgeRestricted ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsAgeRestricted} value={isAgeRestricted} />
+            </View>
+            <View style={styles.switchContainer}>
+              <Text style={styles.fieldLabel}>EBT Eligible?</Text>
+              <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isEbtEligible ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsEbtEligible} value={isEbtEligible} />
             </View>
           </View>
 
@@ -626,6 +633,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  unitSelectButton: {
+    paddingLeft: 10,
+    borderLeftWidth: 1,
+    borderLeftColor: '#B4BED4',
+    marginLeft: 10,
+  },
+  unitDisplayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#000',
   },
   modalOverlay: {
     flex: 1,

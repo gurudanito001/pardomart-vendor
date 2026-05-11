@@ -4,6 +4,7 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -22,17 +23,32 @@ export default function StoreScreen() {
   const { state: authState } = useAuth();
   const userId = authState.user?.id;
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
   const { fetchVendors } = useVendors();
 
   const { 
     data: vendorsData, 
     isLoading, 
-    error 
+    error,
+    refetch
   } = useQuery({
-    queryKey: ['vendors', userId],
-    queryFn: () => fetchVendors({ userId, page: 1, size: 20 }),
+    queryKey: ['vendors', 'management', userId],
+    queryFn: () => fetchVendors({ 
+      userId, 
+      page: 1, 
+      size: 20, 
+      // Ensure we explicitly request both published and unpublished
+      isPublished: undefined 
+    } as any),
     enabled: !!userId && authState.isReady,
   });
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const handleGoBack = () => {
     router.back();
@@ -61,14 +77,19 @@ export default function StoreScreen() {
     storeName, 
     address, 
     image,
-    onPress 
+    onPress,
+    isPublished
   }: {
     storeName: string;
     address: string;
     image: string;
+    isPublished?: boolean;
     onPress: () => void;
   }) => (
-    <TouchableOpacity style={styles.storeCard} onPress={onPress}>
+    <TouchableOpacity 
+      style={[styles.storeCard, !isPublished && styles.unpublishedStoreCard]} 
+      onPress={onPress}
+    >
       <View style={styles.storeCardContent}>
         <View style={styles.logoContainer}>
           <Image 
@@ -80,6 +101,11 @@ export default function StoreScreen() {
         <View style={styles.storeInfo}>
           <Text style={styles.storeName}>{storeName}</Text>
           <Text style={styles.storeAddress}>{address}</Text>
+          {!isPublished && (
+            <View style={styles.unpublishedBadge}>
+              <Text style={styles.unpublishedText}>Unpublished</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -124,7 +150,18 @@ export default function StoreScreen() {
         </View>
       </View>
 
-      <ScrollView style={[styles.scrollView, { backgroundColor: '#FFF' }]} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={[styles.scrollView, { backgroundColor: '#FFF' }]} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#06888C']}
+            tintColor="#06888C"
+          />
+        }
+      >
         <View style={styles.content}>
           {/* Stores Count */}
           <Text style={styles.storesCount}>You have {totalStores} {totalStores === 1 ? 'store' : 'stores'} added</Text>
@@ -146,6 +183,7 @@ export default function StoreScreen() {
                         storeName={name}
                         address={address}
                         image={image}
+                        isPublished={(vendor as any).isPublished}
                         onPress={() => handleStorePress(vendor.id!)}
                       />
                     );

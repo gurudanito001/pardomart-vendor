@@ -35,6 +35,14 @@ export default function VerifyScreen() {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    // Guard: If user is already authenticated, move them away from verification
+    if (state.isAuthenticated && !state.isLoading) {
+      const target = fromScreen === 'register' ? '/auth/take-photo' : '/(private)/home';
+      router.replace(target as any);
+    }
+  }, [state.isAuthenticated, state.isLoading, fromScreen]);
+
   const handleVerify = async () => {
     const code = otp.join('');
     if (code.length !== 6) {
@@ -57,7 +65,7 @@ export default function VerifyScreen() {
 
       // Navigate to the next step based on the flow
       if (fromScreen === 'register') {
-        router.push('/auth/take-photo');
+        router.replace('/auth/take-photo');
       } else {
         // For sign-in, the root layout will handle the redirect
         // to the main app stack automatically.

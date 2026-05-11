@@ -16,10 +16,23 @@
 // May contain unused imports in some cases
 // @ts-ignore
 import type { CalculateFeesPayloadOrderItemsInner } from './calculate-fees-payload-order-items-inner';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { DeliveryMethod } from './delivery-method';
 
 export interface CalculateFeesPayload {
     'orderItems': Array<CalculateFeesPayloadOrderItemsInner>;
     'vendorId': string;
-    'deliveryAddressId': string;
+    /**
+     * Required if deliveryType is not \'customer_pickup\'.
+     */
+    'deliveryAddressId': string | null;
+    'deliveryType'?: DeliveryMethod;
+    /**
+     * Opt-in flag. If true, calculates the subtotal and fees using the highest price among each item and its selected replacements.
+     */
+    'useMaxPricesForBudget'?: boolean;
 }
+
+
 

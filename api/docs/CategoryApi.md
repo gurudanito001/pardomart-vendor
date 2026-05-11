@@ -273,7 +273,7 @@ No authorization required
 # **categoryIdPut**
 > Category categoryIdPut(updateCategoryPayload, )
 
-Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. 
+Updates a category\'s details. This can be used to change its name, description, or move it within the hierarchy. - To change a sub-category\'s parent, provide a new `parentId`. - To promote a sub-category to a parent category, set `parentId` to `null`. - The `imageUrl` can be updated with either a standard secure URL or a base64 encoded image string. 
 
 ### Example
 
@@ -374,7 +374,7 @@ No authorization required
 # **categoryPost**
 > Category categoryPost(createCategoryPayload)
 
-Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category.
+Creates a new category. To create a parent category, omit the `parentId`. To create a sub-category, provide the `parentId` of an existing category. The `imageUrl` supports both standard secure URLs and base64 encoded image strings.
 
 ### Example
 

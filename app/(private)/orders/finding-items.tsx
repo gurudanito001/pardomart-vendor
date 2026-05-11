@@ -1,5 +1,6 @@
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useUpdateOrderItemStatus } from '@/hooks/api/useOrderMutations';
+import { useQueryClient } from '@tanstack/react-query';
 import { Camera, CameraView } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -60,6 +61,7 @@ export default function FindingItemsScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
   const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useUpdateOrderItemStatus();
+  const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
@@ -70,9 +72,16 @@ export default function FindingItemsScreen() {
   const [manualBarcode, setManualBarcode] = useState('');
   const [isSubstituting, setIsSubstituting] = useState(false);
 
-  const pendingOrderItems = useMemo(() => {
+  const { pendingOrderItems, foundCount, notFoundCount } = useMemo(() => {
     const items = order?.orderItems ?? [];
-    return items.filter((item: { status: string; }) => item.status !== 'FOUND' && item.status !== 'REPLACED' && item.status !== 'NOT_FOUND');
+    const pending = items.filter((item: { status: string; }) => item.status !== 'FOUND' && item.status !== 'REPLACED' && item.status !== 'NOT_FOUND');
+    const found = items.filter((item: { status: string; }) => item.status === 'FOUND' || item.status === 'REPLACED').length;
+    const notFound = items.filter((item: { status: string; }) => item.status === 'NOT_FOUND').length;
+    return {
+      pendingOrderItems: pending,
+      foundCount: found,
+      notFoundCount: notFound
+    };
   }, [order]);
 
   const currentItem = useMemo(() => {
@@ -149,6 +158,10 @@ export default function FindingItemsScreen() {
     updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
       onSuccess: () => {
         toast.info(`"${currentItem.vendorProduct?.name}" marked as not found.`);
+        // Invalidate query to trigger a refresh of the order data and move to the next item
+        queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+        setScanned(false);
+        setIsSubstituting(false);
       },
       onError: () => toast.error('Failed to update item status.')
     });
@@ -196,6 +209,8 @@ export default function FindingItemsScreen() {
         onSuccess: () => {
           toast.success(`Item substituted successfully.`);
           setIsSubstituting(false);
+          queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+          setScanned(false);
         },
         onError: (err) => {
           toast.error(`Substitution failed: ${err.message}`);
@@ -252,6 +267,7 @@ export default function FindingItemsScreen() {
         setShowQuantityInput(false);
         setScanned(false); // Reset for the next item
         setIsSubstituting(false); // Exit substitution mode
+        queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         if (currentItemIndex >= pendingOrderItems.length - 1) {
           toast.success('All items have been found!');
         }      }
@@ -420,9 +436,10 @@ export default function FindingItemsScreen() {
             </>
           ) : (
             <View style={styles.completionContainer}>
-              <Text style={styles.completionTitle}>All Items Found!</Text>
+              <Text style={styles.completionTitle}>Shopping Complete</Text>
               <Text style={styles.completionText}>
-                You have successfully scanned all items for this order.
+                You have processed all items for this order.{"\n"}
+                ({foundCount} items found, {notFoundCount} out of stock)
               </Text>
             </View>
           )}

@@ -1,18 +1,18 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-    ArrowBackButtonSVG,
-    ArrowBackSVG
+  ArrowBackButtonSVG,
+  ArrowBackSVG
 } from '../../../components/icons';
 import NotificationBell from '../../../components/NotificationBell';
 // Removed legacy types import
@@ -27,7 +27,10 @@ export default function MyStoresScreen() {
   const handleNotifications = () => {};
 
   const handleStoreSelect = (storeId: string) => {
-    router.push(`/(private)/store/select-category?storeId=${storeId}`);
+    router.push({
+      pathname: "/(private)/store/select-category" as any,
+      params: { storeId }
+    });
   };
 
   const StoreCard = ({ store }: { store: StoreItem }) => (

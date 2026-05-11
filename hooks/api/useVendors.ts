@@ -51,6 +51,10 @@ export const useVendors = () => {
     latitude?: number;
     longitude?: number;
     userId?: string;
+    isVerified?: boolean;
+    isPublished?: boolean;
+    createdAtStart?: string;
+    createdAtEnd?: string;
     page?: number;
     size?: number;
   }) => {
@@ -62,6 +66,10 @@ export const useVendors = () => {
         params?.latitude,
         params?.longitude,
         params?.userId,
+        params?.isVerified,
+        params?.isPublished,
+        params?.createdAtStart,
+        params?.createdAtEnd,
         params?.page,
         params?.size
       );

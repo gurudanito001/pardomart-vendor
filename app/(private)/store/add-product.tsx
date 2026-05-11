@@ -63,6 +63,7 @@ export default function AddProductScreen() {
   const [published, setPublished] = useState(false);
   const [isAlcohol, setIsAlcohol] = useState(false);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
+  const [isEbtEligible, setIsEbtEligible] = useState(false);
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('');
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] = useState(false);
@@ -142,6 +143,7 @@ export default function AddProductScreen() {
         setPublished(product.isActive ?? false);
         setIsAlcohol(product.isAlcohol ?? false);
         setIsAgeRestricted(product.isAgeRestricted ?? false);
+        setIsEbtEligible(product.isEbtEligible ?? false);
         setWeight(product.weight != null ? String(product.weight) : '');
         setWeightUnit(product.weightUnit || '');
         
@@ -211,6 +213,7 @@ export default function AddProductScreen() {
       published,
       isAlcohol,
       isAgeRestricted,
+      isEbtEligible,
       weight: weight ? parseFloat(weight) : undefined,
       weightUnit: weightUnit.trim() || undefined,
       tags: tagIds.map((t: any) => (typeof t === 'object' ? t.id || t.value : t)), // Ensure tags are sent as IDs
@@ -357,7 +360,7 @@ export default function AddProductScreen() {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter store's name"
+                placeholder="Enter product name"
                 placeholderTextColor="#7C8BA0"
                 value={name}
                 onChangeText={setName}
@@ -514,6 +517,17 @@ export default function AddProductScreen() {
           <View style={styles.switchContainer}>
             <Text style={styles.fieldLabel}>Age Restricted?</Text>
             <Switch trackColor={{ false: "#767577", true: "#06888C" }} thumbColor={isAgeRestricted ? "#f4f3f4" : "#f4f3f4"} ios_backgroundColor="#3e3e3e" onValueChange={setIsAgeRestricted} value={isAgeRestricted} />
+          </View>
+
+          <View style={styles.switchContainer}>
+            <Text style={styles.fieldLabel}>EBT Eligible?</Text>
+            <Switch
+              trackColor={{ false: "#767577", true: "#06888C" }}
+              thumbColor={isEbtEligible ? "#f4f3f4" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={setIsEbtEligible}
+              value={isEbtEligible}
+            />
           </View>
         </View>
 
@@ -803,6 +817,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway',
     color: '#FFF',
     lineHeight: 25,
+  },
+  unitSelectButton: {
+    paddingLeft: 10,
+    borderLeftWidth: 1,
+    borderLeftColor: '#B4BED4',
+    marginLeft: 10,
+  },
+  unitDisplayText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'Open Sans',
+    color: '#000',
   },
   scannerContainer: {
     flex: 1,

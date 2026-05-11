@@ -344,6 +344,11 @@ export default function UploadDocumentsScreen() {
       setOtherDocumentsImages(null);
 
       toast.success("Documents uploaded successfully.");
+
+      router.replace({
+        pathname: "/(private)/store/store-homepage",
+        params: { storeId }
+      } as any);
     } catch (err: any) {
       // Log extended details to help troubleshoot network errors
       console.error("Failed to upload documents", {

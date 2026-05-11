@@ -2,18 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toast } from 'sonner-native';
 import { apiConfig } from '../../api/config';
-import { OrderApi } from '../../api/endpoints/order-api';
+import { VendorApi } from '../../api/endpoints/vendor-api';
 import type { Order, OrderStatus } from '../../api/models';
 
 export const useVendorOrders = (vendorId?: string, status?: OrderStatus) => {
-  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+  const vendorApi = useMemo(() => new VendorApi(apiConfig), []);
 
   return useQuery<Order[], Error>({
     queryKey: ['vendorOrders', vendorId, status],
     queryFn: async () => {
       try {
-        // The user requested to use the "orders/vendor" endpoint.
-        const response = await orderApi.orderVendorGet(vendorId, status);
+        // Using the consolidated vendor-specific order endpoint
+        const response = await vendorApi.orderVendorGet(vendorId, status);
         console.log("vendor orders", response.data)
         return response.data;
       } catch (err: any) {

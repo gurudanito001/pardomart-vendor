@@ -163,6 +163,18 @@ export default function VerifyOrderCode() {
     console.log('Order data:', order);
   }, [order]);
 
+  useEffect(() => {
+    // Guard: If the order status indicates verification is already complete, redirect to success
+    if (order) {
+      const verifiedStatuses = ['picked_up_by_customer', 'en_route_to_delivery', 'arrived_at_customer_location', 'delivered'];
+      if (verifiedStatuses.includes(order.orderStatus || '')) {
+        router.replace({
+          pathname: '/(private)/orders/order-verified',
+          params: { orderId },
+        });
+      }
+    }
+  }, [order, orderId]);
 
   const verifyCodeMutation = useMutation({
     mutationFn: (code: string) => {
@@ -173,7 +185,7 @@ export default function VerifyOrderCode() {
       toast.success('Order verified successfully!');
       queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
       queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
-      router.push({
+      router.replace({
         pathname: '/(private)/orders/order-verified',
         params: { orderId },
       });

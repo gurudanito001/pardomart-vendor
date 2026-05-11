@@ -21,6 +21,8 @@ Name | Type | Description | Notes
 **paymentMethod** | [**PaymentMethods**](PaymentMethods.md) |  | [optional] [default to undefined]
 **paymentStatus** | [**PaymentStatus**](PaymentStatus.md) |  | [optional] [default to undefined]
 **orderStatus** | [**OrderStatus**](OrderStatus.md) |  | [optional] [default to undefined]
+**replacementPreference** | **string** |  | [optional] [default to undefined]
+**measurementUnit** | **string** |  | [optional] [default to undefined]
 **deliveryAddressId** | **string** |  | [optional] [default to undefined]
 **deliveryInstructions** | **string** |  | [optional] [default to undefined]
 **shopperId** | **string** |  | [optional] [default to undefined]
@@ -63,6 +65,8 @@ const instance: OrderWithRelations = {
     paymentMethod,
     paymentStatus,
     orderStatus,
+    replacementPreference,
+    measurementUnit,
     deliveryAddressId,
     deliveryInstructions,
     shopperId,

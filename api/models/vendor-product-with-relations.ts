@@ -35,12 +35,6 @@ import type { VendorSummary } from './vendor-summary';
 /**
  * @type VendorProductWithRelations
  */
-export type VendorProductWithRelations = VendorProduct & {
-    categories?: CategorySummary[] | null;
-    tags?: TagSummary[] | null;
-    rating?: VendorProductWithRelationsAllOfRating | null;
-    vendor?: VendorSummary | null;
-    product?: Product | null;
-};
+export type VendorProductWithRelations = VendorProduct;
 
 

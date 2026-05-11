@@ -117,8 +117,14 @@ export default function SignInScreen() {
         <View style={styles.termsContainer}>
           <Text style={styles.termsText}>
             By continuing, you agree to our{' '}
-            <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-            <Text style={styles.linkText}>Privacy Policy</Text>
+            <Text 
+              style={styles.linkText} 
+              onPress={() => router.push('/auth/termsCondition')}
+            >Terms of Service</Text>,{' '}
+            <Text 
+              style={styles.linkText} 
+              onPress={() => router.push('/auth/privacyPolicy')}
+            >Privacy Policy</Text>
           </Text>
         </View>
 
