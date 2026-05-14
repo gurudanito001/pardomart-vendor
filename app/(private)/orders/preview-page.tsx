@@ -4,7 +4,7 @@ import type { OrderItem, OrderStatus } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -34,6 +34,20 @@ export default function PreviewPage() {
   const queryClient = useQueryClient();
   const orderApi = useMemo(() => new OrderApi(apiConfig), []);
 
+  // State guard: Redirect if bagging is already complete or order is ready
+  useEffect(() => {
+    if (order && !isLoading) {
+      const status = order.orderStatus;
+      if (status === 'completed_bagging') {
+        router.replace({ pathname: '/(private)/orders/complete-shopping', params: { orderId } });
+      } else if (status === 'ready_for_pickup' || status === 'ready_for_delivery') {
+        router.replace({ pathname: '/(private)/orders/success', params: { orderId } });
+      } else if (['picked_up_by_customer', 'en_route_to_delivery', 'delivered'].includes(status || '')) {
+        router.replace({ pathname: '/(private)/orders/order-details', params: { orderId } });
+      }
+    }
+  }, [order, isLoading, orderId]);
+
   const updateOrderStatusMutation = useMutation({
     mutationFn: ({ newStatus }: { newStatus: OrderStatus }) => {
       if (!orderId) throw new Error('Order ID is missing');
@@ -43,8 +57,8 @@ export default function PreviewPage() {
       toast.success('Order status updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
       queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
-      router.push({
-        pathname: '/(private)/orders/success',
+      router.replace({
+        pathname: '/(private)/orders/complete-shopping',
         params: { orderId },
       });
     },
@@ -174,12 +188,15 @@ export default function PreviewPage() {
 
             {/* Items List */}
             {Object.keys(groupedItems).length > 0 ? (
-              Object.entries(groupedItems).map(([category, items]) => (
-                <View key={category} style={styles.categorySection}>
-                  <Text style={styles.categoryTitle}>{category}</Text>
-                  {items.map((item: OrderItem) => <PreviewItemCard key={item.id} item={item} />)}
-                </View>
-              ))
+              Object.entries(groupedItems).map(([category, items]) => {
+                const typedItems = items as OrderItem[];
+                return (
+                  <View key={category} style={styles.categorySection}>
+                    <Text style={styles.categoryTitle}>{category}</Text>
+                    {typedItems.map((item: OrderItem) => <PreviewItemCard key={item.id} item={item} />)}
+                  </View>
+                );
+              })
             ) : (
               <Text style={styles.emptyText}>No items have been found for this order yet.</Text>
             )}
@@ -201,8 +218,8 @@ export default function PreviewPage() {
                 fill="white"
               />
             </Svg>
-            <Text style={styles.proceedButtonText}>
-              {updateOrderStatusMutation.isPending ? 'Processing...' : 'Completed Bagging'}
+            <Text style={styles.proceedButtonText}> 
+              {updateOrderStatusMutation.isPending ? 'Processing...' : 'Proceed to Bagging'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -264,7 +281,7 @@ const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
           <Text style={styles.itemName} numberOfLines={2}>{item.vendorProduct?.name}</Text>
           
           <View style={styles.itemFooter}>
-            <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
+            <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
             {(item.vendorProduct as any)?.isPerishable && (
               <View style={styles.perishableBadge}>
                 <Text style={styles.perishableText}>Perishable</Text>

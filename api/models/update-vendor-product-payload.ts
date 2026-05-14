@@ -34,6 +34,7 @@ export interface UpdateVendorProductPayload {
     'weightUnit'?: string | null;
     'published'?: boolean;
     'isAlcohol'?: boolean;
+    'isPerishable'?: boolean;
     'isAgeRestricted'?: boolean;
     'isEbtEligible'?: boolean;
     'meta'?: object | null;

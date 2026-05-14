@@ -1,4 +1,5 @@
 import type { Order } from '@/api/models';
+import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -57,6 +58,7 @@ export default function OrdersScreen() {
   const params = useLocalSearchParams<{ storeId?: string }>();
   const storeId = params.storeId;
   const { data: orders, isLoading, isError, error } = useVendorOrders(storeId);
+  const queryClient = useQueryClient();
   const { mutate: acceptOrder, isPending: isAcceptingOrder, data: acceptedOrderId } = useAcceptOrder();
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'in_progress' | 'completed'>('pending');
@@ -72,15 +74,15 @@ export default function OrdersScreen() {
       if (!matchesSearch) return false;
 
       if (activeTab === 'pending') {
-        return ['pending', 'accepted_for_shopping'].includes(status);
+        return ['pending'].includes(status);
       }
       if (activeTab === 'in_progress') {
         // Move currently_shopping and related active states here
-        return ['currently_shopping', 'completed_bagging'].includes(status);
+        return [ 'accepted_for_shopping', 'currently_shopping', 'completed_bagging'].includes(status);
       }
       if (activeTab === 'completed') {
         // Handover states and terminal states
-        return ['ready_for_pickup', 'ready_for_delivery', 'delivered', 'picked_up_by_customer', 'cancelled'].includes(status);
+        return ['ready_for_pickup', 'ready_for_delivery', 'delivered', 'picked_up_by_customer', 'cancelled', 'no_items_found'].includes(status);
       }
       return false;
     });
@@ -122,6 +124,8 @@ export default function OrdersScreen() {
     if (status === 'pending') {
       acceptOrder(order.id, {
         onSuccess: (data) => {
+          queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
+          queryClient.invalidateQueries({ queryKey: ['orderDetails', data.id] });
           router.push({
             pathname: '/(private)/orders/order-details',
             params: { orderId: data.id },

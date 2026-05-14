@@ -1,5 +1,10 @@
-import { router } from 'expo-router';
-import React from 'react';
+import { OrderApi } from '@/api';
+import { apiConfig } from '@/api/config';
+import { OrderStatus } from '@/api/models';
+import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -8,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { Path, Svg } from 'react-native-svg';
 
@@ -16,13 +22,21 @@ import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { colors, shadows, spacing, typography } from '@/styles/theme';
 
-// Delivery truck icon component
-const DeliveryTruckIcon = () => (
-  <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-    <Path d="M15 60H60V67.5H15V60ZM7.5 41.25H45V48.75H7.5V41.25Z" fill="black"/>
-    <Path d="M112.196 62.2725L100.946 36.0225C100.657 35.3481 100.176 34.7733 99.5635 34.3694C98.9509 33.9654 98.2333 33.7501 97.4995 33.75H86.2495V26.25C86.2495 25.2554 85.8545 24.3016 85.1512 23.5984C84.4479 22.8951 83.4941 22.5 82.4995 22.5H22.4995V30H78.7495V77.085C77.0418 78.0785 75.5472 79.3996 74.3515 80.9724C73.1558 82.5452 72.2826 84.3388 71.782 86.25H48.217C47.3043 82.715 45.1337 79.6343 42.112 77.5852C39.0903 75.5362 35.4251 74.6595 31.8033 75.1196C28.1815 75.5796 24.8518 77.3447 22.4383 80.0841C20.0249 82.8235 18.6934 86.3491 18.6934 90C18.6934 93.6509 20.0249 97.1765 22.4383 99.9159C24.8518 102.655 28.1815 104.42 31.8033 104.88C35.4251 105.34 39.0903 104.464 42.112 102.415C45.1337 100.366 47.3043 97.285 48.217 93.75H71.782C72.5978 96.9684 74.4634 99.8229 77.0837 101.862C79.704 103.901 82.9294 105.008 86.2495 105.008C89.5697 105.008 92.7951 103.901 95.4154 101.862C98.0357 99.8229 99.9013 96.9684 100.717 93.75H108.75C109.744 93.75 110.698 93.3549 111.401 92.6517C112.104 91.9484 112.5 90.9946 112.5 90V63.75C112.499 63.242 112.396 62.7393 112.196 62.2725ZM33.7495 97.5C32.2662 97.5 30.8161 97.0601 29.5828 96.236C28.3494 95.4119 27.3881 94.2406 26.8204 92.8701C26.2528 91.4997 26.1043 89.9917 26.3937 88.5368C26.683 87.082 27.3974 85.7456 28.4462 84.6967C29.4951 83.6478 30.8315 82.9335 32.2864 82.6441C33.7412 82.3547 35.2492 82.5032 36.6197 83.0709C37.9901 83.6386 39.1615 84.5999 39.9856 85.8332C40.8097 87.0666 41.2495 88.5166 41.2495 90C41.2495 91.9891 40.4594 93.8968 39.0528 95.3033C37.6463 96.7098 35.7387 97.5 33.7495 97.5ZM86.2495 41.25H95.0246L103.065 60H86.2495V41.25ZM86.2495 97.5C84.7662 97.5 83.3161 97.0601 82.0828 96.236C80.8494 95.4119 79.8881 94.2406 79.3205 92.8701C78.7528 91.4997 78.6043 89.9917 78.8937 88.5368C79.183 87.082 79.8974 85.7456 80.9462 84.6967C81.9951 83.6478 83.3315 82.9335 84.7864 82.6441C86.2412 82.3547 87.7492 82.5032 89.1197 83.0709C90.4901 83.6386 91.6615 84.5999 92.4856 85.8332C93.3097 87.0666 93.7495 88.5166 93.7495 90C93.7495 91.9891 92.9594 93.8968 91.5528 95.3033C90.1463 96.7098 88.2387 97.5 86.2495 97.5ZM105 86.25H100.717C99.891 83.0379 98.0224 80.1907 95.4042 78.1547C92.786 76.1188 89.5662 75.0092 86.2495 75V67.5H105V86.25Z" fill="black"/>
-  </Svg>
-);
+const DeliveryMethodIcon = ({ method }: { method?: string }) => {
+  if (method === 'customer_pickup') {
+    return (
+      <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+        <Path d="M60 52.5C68.2843 52.5 75 45.7843 75 37.5C75 29.2157 68.2843 22.5 60 22.5C51.7157 22.5 45 29.2157 45 37.5C45 45.7843 51.7157 52.5 60 52.5ZM60 60C43.4315 60 30 73.4315 30 90V97.5H90V90C90 73.4315 76.5685 60 60 60Z" fill="black"/>
+      </Svg>
+    );
+  }
+  return (
+    <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+      <Path d="M15 60H60V67.5H15V60ZM7.5 41.25H45V48.75H7.5V41.25Z" fill="black"/>
+      <Path d="M112.196 62.2725L100.946 36.0225C100.657 35.3481 100.176 34.7733 99.5635 34.3694C98.9509 33.9654 98.2333 33.7501 97.4995 33.75H86.2495V26.25C86.2495 25.2554 85.8545 24.3016 85.1512 23.5984C84.4479 22.8951 83.4941 22.5 82.4995 22.5H22.4995V30H78.7495V77.085C77.0418 78.0785 75.5472 79.3996 74.3515 80.9724C73.1558 82.5452 72.2826 84.3388 71.782 86.25H48.217C47.3043 82.715 45.1337 79.6343 42.112 77.5852C39.0903 75.5362 35.4251 74.6595 31.8033 75.1196C28.1815 75.5796 24.8518 77.3447 22.4383 80.0841C20.0249 82.8235 18.6934 86.3491 18.6934 90C18.6934 93.6509 20.0249 97.1765 22.4383 99.9159C24.8518 102.655 28.1815 104.42 31.8033 104.88C35.4251 105.34 39.0903 104.464 42.112 102.415C45.1337 100.366 47.3043 97.285 48.217 93.75H71.782C72.5978 96.9684 74.4634 99.8229 77.0837 101.862C79.704 103.901 82.9294 105.008 86.2495 105.008C89.5697 105.008 92.7951 103.901 95.4154 101.862C98.0357 99.8229 99.9013 96.9684 100.717 93.75H108.75C109.744 93.75 110.698 93.3549 111.401 92.6517C112.104 91.9484 112.5 90.9946 112.5 90V63.75C112.499 63.242 112.396 62.7393 112.196 62.2725ZM33.7495 97.5C32.2662 97.5 30.8161 97.0601 29.5828 96.236C28.3494 95.4119 27.3881 94.2406 26.8204 92.8701C26.2528 91.4997 26.1043 89.9917 26.3937 88.5368C26.683 87.082 27.3974 85.7456 28.4462 84.6967C29.4951 83.6478 30.8315 82.9335 32.2864 82.6441C33.7412 82.3547 35.2492 82.5032 36.6197 83.0709C37.9901 83.6386 39.1615 84.5999 39.9856 85.8332C40.8097 87.0666 41.2495 88.5166 41.2495 90C41.2495 91.9891 40.4594 93.8968 39.0528 95.3033C37.6463 96.7098 35.7387 97.5 33.7495 97.5ZM86.2495 41.25H95.0246L103.065 60H86.2495V41.25ZM86.2495 97.5C84.7662 97.5 83.3161 97.0601 82.0828 96.236C80.8494 95.4119 79.8881 94.2406 79.3205 92.8701C78.7528 91.4997 78.6043 89.9917 78.8937 88.5368C79.183 87.082 79.8974 85.7456 80.9462 84.6967C81.9951 83.6478 83.3315 82.9335 84.7864 82.6441C86.2412 82.3547 87.7492 82.5032 89.1197 83.0709C90.4901 83.6386 91.6615 84.5999 92.4856 85.8332C93.3097 87.0666 93.7495 88.5166 93.7495 90C93.7495 91.9891 92.9594 93.8968 91.5528 95.3033C90.1463 96.7098 88.2387 97.5 86.2495 97.5ZM105 86.25H100.717C99.891 83.0379 98.0224 80.1907 95.4042 78.1547C92.786 76.1188 89.5662 75.0092 86.2495 75V67.5H105V86.25Z" fill="black"/>
+    </Svg>
+  );
+};
 
 // Shopping bag icon for the info card
 const ShoppingBagIcon = () => (
@@ -32,12 +46,62 @@ const ShoppingBagIcon = () => (
 );
 
 export default function CompleteShoppingScreen() {
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { data: order, isLoading } = useOrderDetails(orderId);
+  const queryClient = useQueryClient();
+  const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+
+  // State guard: If order is already completed, skip to success screen
+  useEffect(() => {
+    if (order && !isLoading) {
+      const status = order.orderStatus;
+      if (status === 'ready_for_pickup' || status === 'ready_for_delivery') {
+        router.replace({ pathname: '/(private)/orders/success', params: { orderId } });
+      } else if (['picked_up_by_customer', 'en_route_to_delivery', 'delivered'].includes(status || '')) {
+        router.replace({ pathname: '/(private)/orders/order-details', params: { orderId } });
+      } else if (status === 'currently_shopping' || status === 'accepted_for_shopping') {
+        router.replace({ pathname: '/(private)/orders/shopping-list', params: { orderId } });
+      }
+    }
+  }, [order, isLoading, orderId]);
+
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: ({ status }: { status: OrderStatus }) => {
+      if (!orderId) throw new Error('Order ID is missing');
+      return orderApi.orderIdStatusPatch({ status }, orderId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['vendorOrders'] });
+      router.replace({
+        pathname: '/(private)/orders/success',
+        params: { orderId },
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to update order status.');
+    },
+  });
+
   const handleBackPress = () => {
     router.back();
   };
 
   const handleCompleteShoppingPress = () => {
-    router.push('/(private)/orders/success');
+    if (!order) return;
+
+    let nextStatus: OrderStatus | undefined;
+    if (order.deliveryMethod === 'customer_pickup') {
+      nextStatus = 'ready_for_pickup';
+    } else if (order.deliveryMethod === 'delivery_person') {
+      nextStatus = 'ready_for_delivery';
+    }
+
+    if (nextStatus) {
+      updateOrderStatusMutation.mutate({ status: nextStatus });
+    } else {
+      toast.error('Invalid delivery method');
+    }
   };
 
   return (
@@ -50,7 +114,7 @@ export default function CompleteShoppingScreen() {
           <ArrowBackSVG width={30} height={30} color="white" />
         </TouchableOpacity>
         
-        <Text style={styles.headerTitle}>Delivery</Text>
+        <Text style={styles.headerTitle}>Complete Shopping</Text>
         
         <View style={styles.headerIcons}>
           <TouchableOpacity style={styles.iconButton}>
@@ -65,7 +129,7 @@ export default function CompleteShoppingScreen() {
         {/* Delivery Icon */}
         <View style={styles.iconContainer}>
           <View style={styles.deliveryIconCircle}>
-            <DeliveryTruckIcon />
+            <DeliveryMethodIcon method={order?.deliveryMethod} />
           </View>
         </View>
 
@@ -78,7 +142,9 @@ export default function CompleteShoppingScreen() {
           </View>
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoText}>
-              The delivery mode for this Order is to push to delivery guys to deliver.
+              {order?.deliveryMethod === 'customer_pickup'
+                ? 'The customer will come to pick up his order.'
+                : 'The order will be pushed to delivery persons to deliver to the customer.'}
             </Text>
           </View>
         </View>
@@ -93,6 +159,8 @@ export default function CompleteShoppingScreen() {
           size="large"
           fullWidth
           style={styles.completeButton}
+          loading={updateOrderStatusMutation.isPending}
+          disabled={updateOrderStatusMutation.isPending}
         />
       </View>
       </View>

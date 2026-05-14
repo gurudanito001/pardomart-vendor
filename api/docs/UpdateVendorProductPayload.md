@@ -21,6 +21,7 @@ Name | Type | Description | Notes
 **weightUnit** | **string** |  | [optional] [default to undefined]
 **published** | **boolean** |  | [optional] [default to undefined]
 **isAlcohol** | **boolean** |  | [optional] [default to undefined]
+**isPerishable** | **boolean** |  | [optional] [default to undefined]
 **isAgeRestricted** | **boolean** |  | [optional] [default to undefined]
 **isEbtEligible** | **boolean** |  | [optional] [default to undefined]
 **meta** | **object** |  | [optional] [default to undefined]
@@ -47,6 +48,7 @@ const instance: UpdateVendorProductPayload = {
     weightUnit,
     published,
     isAlcohol,
+    isPerishable,
     isAgeRestricted,
     isEbtEligible,
     meta,

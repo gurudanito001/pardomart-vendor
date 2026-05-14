@@ -10,13 +10,14 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Platform,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -38,6 +39,11 @@ export default function ShoppingListScreen() {
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
   const { updateOrderItemStatus } = useVendor();
   const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>();
+  const [isQuantityModalVisible, setIsQuantityModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<OrderItem | null>(null);
+  const [isRescanModalVisible, setIsRescanModalVisible] = useState(false);
+  const [rescanItem, setRescanItem] = useState<OrderItem | null>(null);
+  const [newQuantity, setNewQuantity] = useState('');
   const queryClient = useQueryClient();
   const orderApi = useMemo(() => new OrderApi(apiConfig), []);
 
@@ -121,7 +127,7 @@ export default function ShoppingListScreen() {
       completedItems: groupByCategory(completed),
       completedCount: completed.length,
       itemsLeft: pending.length + not_found.length,
-      isShoppingComplete: pending.length === 0 && not_found.length === 0,
+      isShoppingComplete: pending.length === 0,
       isPostBagging: postBaggingStatuses.includes(order?.orderStatus as OrderStatus),
     };
   }, [order]);
@@ -161,6 +167,8 @@ export default function ShoppingListScreen() {
   const handleUpdateItemStatus = async (itemId: string, payload: any) => {
     try {
       const result = await updateOrderItemStatus(orderId!, itemId, payload);
+      // Refetch order details to ensure the UI is in sync with the backend
+      queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
 
       // II. Check for Terminal Failure (Nothing Found)
       if (result?.isTerminal) {
@@ -179,80 +187,27 @@ export default function ShoppingListScreen() {
   };
 
   const handleEditQuantity = (item: OrderItem) => {
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        "Edit Quantity",
-        `Enter quantity found for ${item.vendorProduct?.product?.name || 'this item'} (Max: ${item.quantity})`,
-        [
-          { text: "Cancel", style: "cancel" },
-          { 
-            text: "Update", 
-            onPress: (value) => {
-              const qty = parseInt(value || '', 10);
-              if (!isNaN(qty) && qty >= 0 && qty <= (item.quantity || 0)) {
-                handleUpdateItemStatus(item.id!, { status: item.status, quantityFound: qty });
-              } else {
-                toast.error("Invalid quantity entered.");
-              }
-            }
-          }
-        ],
-        'plain-text',
-        String(item.quantityFound ?? item.quantity)
-      );
-    } else {
-      toast.info("Quantity editing is coming soon to Android. Please use 'Mark as Found' to reset to the full requested amount.");
-    }
+    setEditingItem(item);
+    setNewQuantity(String(item.quantityFound ?? item.quantity));
+    setIsQuantityModalVisible(true);
   };
 
-  const handleMarkAsNotFound = (itemId: string, itemName: string) => {
-    Alert.alert(
-      "Mark as Out of Stock",
-      `Are you sure "${itemName}" is unavailable? This will notify the customer.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Yes, Out of Stock", 
-          style: "destructive", 
-          onPress: () => handleUpdateItemStatus(itemId, { status: 'NOT_FOUND' }) 
-        }
-      ]
-    );
-  };
-
-  const handleCompletedBagging = () => {
-    if (!orderId) {
-      toast.error('Order ID is missing.');
-      return;
-    }
-    updateOrderStatusMutation.mutate({ status: 'completed_bagging' });
-  };
-
-  const handleCompleteOrder = () => {
-    if (!order) return;
-
-    let nextStatus: OrderStatus | undefined;
-    if (order.deliveryMethod === 'customer_pickup') {
-      nextStatus = 'ready_for_pickup';
-    } else if (order.deliveryMethod === 'delivery_person') {
-      nextStatus = 'ready_for_delivery';
-    }
-
-    if (nextStatus) {
-      updateOrderStatusMutation.mutate({ status: nextStatus }, {
-        onSuccess: () => {
-          router.push({
-            pathname: '/(private)/orders/success',
-            params: { orderId },
-          });
-        },
+  const handleConfirmQuantityUpdate = () => {
+    if (!editingItem) return;
+    const qty = parseInt(newQuantity || '', 10);
+    if (!isNaN(qty) && qty >= 0 && qty <= (editingItem.quantity || 0)) {
+      handleUpdateItemStatus(editingItem.id!, { 
+        status: editingItem.status, 
+        quantityFound: qty 
       });
+      setIsQuantityModalVisible(false);
+      setEditingItem(null);
     } else {
-      toast.error('Unable to complete order: Invalid delivery method.');
+      toast.error(`Please enter a valid quantity between 0 and ${editingItem.quantity}`);
     }
   };
 
-  const handlePreviewOrder = () => {
+  const handleProceedToReview = () => {
     if (!orderId) {
       toast.error('Order ID is missing.');
       return;
@@ -262,34 +217,54 @@ export default function ShoppingListScreen() {
       params: { orderId },
     });
   };
+
+  const handleContinueToBagging = () => {
+    if (!orderId) {
+      toast.error('Order ID is missing.');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/complete-shopping',
+      params: { orderId },
+    });
+  };
+
+  const handleMarkForRescan = (item: OrderItem) => {
+    setRescanItem(item);
+    setIsRescanModalVisible(true);
+  };
+
+  const handleConfirmRescan = async () => {
+    if (!rescanItem?.id) return;
+    await handleUpdateItemStatus(rescanItem.id, { status: 'PENDING' });
+    router.push({
+      pathname: '/(private)/orders/finding-items',
+      params: { orderId },
+    });
+    setRescanItem(null);
+    setIsRescanModalVisible(false);
+  };
+
   const renderOrderItem = (item: OrderItem) => (
     <View key={item.id} style={styles.itemCard}>
       <Image 
-        source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.product?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
+        source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
         style={styles.itemImage} 
       />
       <View style={styles.itemDetails}>
         <Text style={styles.itemName} numberOfLines={2}>
-          {item.vendorProduct?.product?.name}
+          {item.vendorProduct?.name}
         </Text>
         <View style={styles.itemMeta}>
           <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-          <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
+          <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
         </View>
-        {activeTab === 'pending' && (
-          <TouchableOpacity 
-            style={styles.outOfStockButton} 
-            onPress={() => handleMarkAsNotFound(item.id!, item.vendorProduct?.product?.name || 'this item')}
-          >
-            <Text style={styles.outOfStockText}>Out of Stock</Text>
-          </TouchableOpacity>
-        )}
         {activeTab === 'not_found' && (
           <TouchableOpacity 
             style={styles.foundButton} 
-            onPress={() => handleMarkForRescan(item.id!)}
+            onPress={() => handleMarkForRescan(item)}
           >
-            <Text style={styles.foundButtonText}>Mark as Found</Text>
+            <Text style={styles.foundButtonText}>found item?</Text>
           </TouchableOpacity>
         )}
         {activeTab === 'completed' && (
@@ -430,39 +405,90 @@ export default function ShoppingListScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        {isShoppingComplete ? (
-          isPostBagging ? (
-            null
-          ) : (
-            order?.orderStatus === 'completed_bagging' ? (
-              <TouchableOpacity 
-                style={[styles.continueButton, updateOrderStatusMutation.isPending && styles.disabledButton]} 
-                onPress={handleCompleteOrder}
-                disabled={updateOrderStatusMutation.isPending}
-              >
-                <Text style={styles.continueButtonText}>
-                  {updateOrderStatusMutation.isPending ? 'Processing...' : 'Complete Order'}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity 
-                style={[styles.continueButton, updateOrderStatusMutation.isPending && styles.disabledButton]} 
-                onPress={handleCompletedBagging}
-                disabled={updateOrderStatusMutation.isPending}
-              >
-                <Text style={styles.continueButtonText}>
-                  {updateOrderStatusMutation.isPending ? 'Processing...' : 'Completed Bagging'}
-                </Text>
-              </TouchableOpacity>
-            )
-          )
-        ) : (
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinueShopping}>
-            <Text style={styles.continueButtonText}>Continue Shopping</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[styles.continueButton, updateOrderStatusMutation.isPending && styles.disabledButton]}
+          onPress={() => {
+            if (order?.orderStatus === 'completed_bagging') {
+              handleContinueToBagging();
+            } else if (isShoppingComplete) {
+              handleProceedToReview();
+            } else {
+              handleContinueShopping();
+            }
+          }}
+          disabled={updateOrderStatusMutation.isPending}
+        >
+          <Text style={styles.continueButtonText}>
+            {order?.orderStatus === 'completed_bagging'
+              ? 'Continue'
+              : isShoppingComplete
+              ? 'Proceed to Review'
+              : 'Continue Shopping'}
+          </Text>
+        </TouchableOpacity>
       </View>
       </View>
+
+      {/* Edit Quantity Modal */}
+      <Modal
+        visible={isQuantityModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsQuantityModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Edit Quantity</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter quantity found for {editingItem?.vendorProduct?.name || 'this item'} (Max: {editingItem?.quantity})
+            </Text>
+            
+            <TextInput
+              style={styles.quantityInput}
+              value={newQuantity}
+              onChangeText={setNewQuantity}
+              keyboardType="number-pad"
+              autoFocus
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelModalButton]} onPress={() => setIsQuantityModalVisible(false)}>
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.confirmModalButton]} onPress={handleConfirmQuantityUpdate}>
+                <Text style={styles.confirmModalButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Rescan Confirmation Modal */}
+      <Modal
+        visible={isRescanModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsRescanModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Rescan Item?</Text>
+            <Text style={styles.modalSubtitle}>
+              Are you sure you want to rescan {rescanItem?.vendorProduct?.name || 'this item'}? 
+              It will be moved back to pending items.
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelModalButton]} onPress={() => setIsRescanModalVisible(false)}>
+                <Text style={styles.cancelModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.confirmModalButton]} onPress={handleConfirmRescan}>
+                <Text style={styles.confirmModalButtonText}>Rescan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -738,5 +764,70 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     fontFamily: 'Raleway',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 398,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Raleway',
+    color: '#000',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Open Sans',
+    marginBottom: 20,
+  },
+  quantityInput: {
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    fontFamily: 'Open Sans',
+    color: '#000',
+    backgroundColor: '#F9F9F9',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelModalButton: {
+    backgroundColor: '#EEE',
+  },
+  confirmModalButton: {
+    backgroundColor: '#06888C',
+  },
+  cancelModalButtonText: {
+    color: '#333',
+    fontWeight: '600',
+  },
+  confirmModalButtonText: {
+    color: '#FFF',
+    fontWeight: '600',
   },
 });

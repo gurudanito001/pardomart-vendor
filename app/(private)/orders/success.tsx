@@ -1,12 +1,14 @@
 import { OrderApi } from '@/api';
 import { apiConfig } from '@/api/config';
+import { Role } from '@/api/models';
 import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
 import { Button } from '@/components/ui';
+import { useAuth } from '@/context/AppProvider';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { colors, spacing, typography } from '@/styles/theme';
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -19,12 +21,31 @@ import ConfettiSVG from '../../../assets/images/confetti_15552843 1.svg';
 
 export default function SuccessScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const { state: authState } = useAuth();
   const { data: order, isLoading } = useOrderDetails(orderId);
   const queryClient = useQueryClient();
   const orderApi = useMemo(() => new OrderApi(apiConfig), []);
 
+  // State guard: Prevent access if order is not actually ready for pickup/delivery
+  useEffect(() => {
+    if (order && !isLoading) {
+      const status = order.orderStatus;
+      if (status === 'completed_bagging') {
+        router.replace({ pathname: '/(private)/orders/complete-shopping', params: { orderId } });
+      } else if (status === 'currently_shopping' || status === 'accepted_for_shopping') {
+        router.replace({ pathname: '/(private)/orders/shopping-list', params: { orderId } });
+      } else if (['picked_up_by_customer', 'en_route_to_delivery', 'delivered'].includes(status || '')) {
+        router.replace({ pathname: '/(private)/orders/order-details', params: { orderId } });
+      }
+    }
+  }, [order, isLoading, orderId]);
+
   const handleBackPress = () => {
     router.back();
+  };
+
+  const handleGoToMyOrders = () => {
+    router.push('/(private)/orders');
   };
 
   const handleVerifyPickupPress = () => {
@@ -68,15 +89,27 @@ export default function SuccessScreen() {
       </View>
 
       {/* Verify Pickup Button */}
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Verify Pickup"
-          onPress={handleVerifyPickupPress}
-          variant="primary"
-          size="large"
-          fullWidth
-          style={styles.ordersButton}
-        />
+      <View style={styles.buttonContainer}> 
+        {order?.deliveryMethod === 'customer_pickup' && (
+          <Button
+            title="Verify Pickup"
+            onPress={handleVerifyPickupPress}
+            variant="primary"
+            size="large"
+            fullWidth
+            style={styles.ordersButton}
+          />
+        )}
+        {authState.user?.role === Role.Vendor && (
+          <Button
+            title="Go to My Orders"
+            onPress={handleGoToMyOrders}
+            variant="secondary"
+            size="large"
+            fullWidth
+            style={styles.ordersButton}
+          />
+        )}
       </View>
       </View>
     </SafeAreaView>

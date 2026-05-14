@@ -20,6 +20,7 @@ Name | Type | Description | Notes
 **tagIds** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
 **published** | **boolean** |  | [optional] [default to false]
 **isAlcohol** | **boolean** |  | [optional] [default to false]
+**isPerishable** | **boolean** |  | [optional] [default to false]
 **isAgeRestricted** | **boolean** |  | [optional] [default to false]
 **isEbtEligible** | **boolean** |  | [optional] [default to false]
 **weight** | **number** |  | [optional] [default to undefined]
@@ -47,6 +48,7 @@ const instance: CreateVendorProductPayload = {
     tagIds,
     published,
     isAlcohol,
+    isPerishable,
     isAgeRestricted,
     isEbtEligible,
     weight,

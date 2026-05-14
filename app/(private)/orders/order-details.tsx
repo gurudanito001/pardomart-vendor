@@ -1,6 +1,7 @@
 import type { CartItem, OrderItem } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useStartShopping } from '@/hooks/api/useOrderMutations';
+import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
 import {
@@ -47,6 +48,7 @@ export default function OrderDetailsScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
   const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
   const { mutate: startShopping, isPending: isStartingShopping } = useStartShopping();
+  const queryClient = useQueryClient();
   const isOrderCompleted = useMemo(() => !['accepted_for_shopping', 'currently_shopping', 'completed_bagging' ].includes(order?.orderStatus || ''), [order]);
 
   const collectorName = useMemo(() => {
@@ -94,6 +96,7 @@ export default function OrderDetailsScreen() {
     // Otherwise, call the API to update the status and then navigate.
     startShopping(orderId, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         router.push({
           pathname: '/(private)/orders/finding-items',
           params: { orderId },
@@ -169,7 +172,7 @@ export default function OrderDetailsScreen() {
           )}
           <View style={styles.itemPricing}>
             <Text style={styles.itemQuantity}>qty {item.quantity ?? 1}</Text>
-            <Text style={styles.itemPrice}>${item.vendorProduct?.price?.toFixed(2)}</Text>
+            <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
           </View>
         </View>
       </View>
@@ -298,15 +301,11 @@ export default function OrderDetailsScreen() {
                 </View>
               </View>
               <View style={styles.progressRight}>
-                <Text style={styles.storeNameProgress}>{order.vendor?.name ?? 'Store'}</Text>
+                <Text style={styles.customerNameProgress}>{order.shopper?.name ?? 'Shopper'}</Text>
                 <View style={[styles.timeDetails, { justifyContent: 'flex-end' }]}>
                   <View style={styles.timeItem}>
-                    <TimeIcon />
-                    <Text style={styles.timeDetailText}>{new Date(order.scheduledDeliveryTime || order.createdAt || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                  </View>
-                  <View style={styles.timeItem}>
-                    <DateIcon />
-                    <Text style={styles.timeDetailText}>{new Date(order.scheduledDeliveryTime || order.createdAt || '').toLocaleDateString()}</Text>
+                    {/* <TimeIcon /> */}
+                    <Text style={styles.timeDetailText}>Assigned Shopper</Text>
                   </View>
                 </View>
               </View>
@@ -324,7 +323,7 @@ export default function OrderDetailsScreen() {
           {/* View Receipt Button */}
           <TouchableOpacity style={styles.viewReceiptButton} onPress={handleViewReceipt}>
             <Text style={styles.viewReceiptButtonText}>View Receipt</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> 
         </View>
           <View style={styles.reportIssueBtn}>
             <TouchableOpacity
@@ -348,8 +347,8 @@ export default function OrderDetailsScreen() {
                   style={styles.customerAvatar}
                 />
                 <View>
-                  <Text style={styles.customerName}>{order.user?.name ?? 'Customer'}</Text>
-                  <Text style={styles.roleLabel}>Buyer</Text>
+                  <Text style={styles.customerName}>{order.user?.name ?? 'Customer Name'}</Text>
+                  <Text style={styles.roleLabel}>Customer</Text>
                 </View>
               </View>
               <View style={styles.customerActions}>

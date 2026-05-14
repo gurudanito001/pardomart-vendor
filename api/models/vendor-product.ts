@@ -12,6 +12,9 @@
  * Do not edit the class manually.
  */
 
+import { Category } from "./category";
+import { Tag } from "./tag";
+
 
 
 export interface VendorProduct {
@@ -24,6 +27,7 @@ export interface VendorProduct {
     'discountedPrice'?: number | null;
     'images'?: Array<string>;
     'isAvailable'?: boolean;
+    'isEbtEligible'?: boolean;
     'createdAt'?: string;
     'updatedAt'?: string;
     'weight'?: number | null;
@@ -32,8 +36,13 @@ export interface VendorProduct {
     'isAgeRestricted'?: boolean;
     'attributes'?: object | null;
     'categoryIds'?: Array<string>;
+    'categories'?: Array<Category>;
+    'tagIds'?: Array<string>;
+    'tags'?: Array<Tag>;
+    'barcode'?: string | null;
     'stock'?: number | null;
     'published'?: boolean;
+    'isPerishable'?: boolean;
     'meta'?: object | null;
 }
 

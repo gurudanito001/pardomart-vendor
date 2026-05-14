@@ -64,6 +64,7 @@ export default function AddProductScreen() {
   const [isAlcohol, setIsAlcohol] = useState(false);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
   const [isEbtEligible, setIsEbtEligible] = useState(false);
+  const [isPerishable, setIsPerishable] = useState(false);
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('');
   const [isWeightUnitModalVisible, setIsWeightUnitModalVisible] = useState(false);
@@ -143,6 +144,7 @@ export default function AddProductScreen() {
         setPublished(product.isActive ?? false);
         setIsAlcohol(product.isAlcohol ?? false);
         setIsAgeRestricted(product.isAgeRestricted ?? false);
+        setIsPerishable(product.isPerishable ?? false);
         setIsEbtEligible(product.isEbtEligible ?? false);
         setWeight(product.weight != null ? String(product.weight) : '');
         setWeightUnit(product.weightUnit || '');
@@ -200,19 +202,27 @@ export default function AddProductScreen() {
     if (!price) return toast.error('Price is required.');
     if (categoryIds.length === 0) return toast.error('At least one Category is required.');
 
+    const priceNum = parseFloat(price);
+    const discountedPriceNum = discountedPrice ? parseFloat(discountedPrice) : undefined;
+
+    if (discountedPriceNum !== undefined && discountedPriceNum >= priceNum) {
+      return toast.error('Discounted price must be strictly less than the regular price.');
+    }
+
     const payload = {
       vendorId: storeId,
       barcode: barcode.trim(),
       name: name.trim(),
-      price: parseFloat(price),
+      price: priceNum,
       categoryIds: categoryIds.map((c: any) => (typeof c === 'object' ? c.id || c.value : c)),
       description: description.trim() || undefined,
-      discountedPrice: discountedPrice ? parseFloat(discountedPrice) : undefined,
+      discountedPrice: discountedPriceNum,
       stock: stock ? parseInt(stock, 10) : undefined,
       isAvailable,
       published,
       isAlcohol,
       isAgeRestricted,
+      isPerishable,
       isEbtEligible,
       weight: weight ? parseFloat(weight) : undefined,
       weightUnit: weightUnit.trim() || undefined,
@@ -517,6 +527,17 @@ export default function AddProductScreen() {
           <View style={styles.switchContainer}>
             <Text style={styles.fieldLabel}>Age Restricted?</Text>
             <Switch trackColor={{ false: "#767577", true: "#06888C" }} thumbColor={isAgeRestricted ? "#f4f3f4" : "#f4f3f4"} ios_backgroundColor="#3e3e3e" onValueChange={setIsAgeRestricted} value={isAgeRestricted} />
+          </View>
+
+          <View style={styles.switchContainer}>
+            <Text style={styles.fieldLabel}>Is Perishable?</Text>
+            <Switch
+              trackColor={{ false: "#767577", true: "#06888C" }}
+              thumbColor={isPerishable ? "#f4f3f4" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={setIsPerishable}
+              value={isPerishable}
+            />
           </View>
 
           <View style={styles.switchContainer}>

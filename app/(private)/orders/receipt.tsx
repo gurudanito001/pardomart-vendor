@@ -45,7 +45,7 @@ export default function ReceiptScreen() {
   // Calculate the raw item subtotal based on the items in the order
   const itemSubtotal = order?.orderItems?.reduce((sum: number, item: any) => {
     const product = item.chosenReplacement?.vendorProduct || item.vendorProduct;
-    return sum + ((product?.price || 0) * (item.quantityFound ?? item.quantity ?? 1));
+    return sum + (((product?.discountedPrice || product?.price) || 0) * (item.quantityFound ?? item.quantity ?? 1));
   }, 0) || 0;
 
   const tip = (order?.shopperTip || 0) + (order?.deliveryPersonTip || 0);
@@ -63,7 +63,7 @@ export default function ReceiptScreen() {
     const itemsHtml = order?.orderItems?.map((item: any) => {
       const product = item.chosenReplacement?.vendorProduct || item.vendorProduct || {};
       const qty = item.quantityFound ?? item.quantity ?? 1;
-      const price = product.price || 0;
+      const price = product.discountedPrice || product.price || 0;
       const lineTotal = qty * price;
       return `
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -253,7 +253,7 @@ export default function ReceiptScreen() {
             {order.orderItems?.map((item: any) => {
               const product = item.chosenReplacement?.vendorProduct || item.vendorProduct || {};
               const qty = item.quantityFound ?? item.quantity ?? 1;
-              const price = product.price || 0;
+              const price = product.discountedPrice || product.price || 0;
               const lineTotal = qty * price;
               
               return (

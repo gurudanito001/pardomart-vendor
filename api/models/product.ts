@@ -12,11 +12,15 @@
  * Do not edit the class manually.
  */
 
+import { Category } from "./category";
+import { Tag } from "./tag";
+
 
 
 export interface Product {
     'id'?: string;
     'name'?: string;
+    'isEbtEligible'?: boolean;
     'description'?: string | null;
     'barcode'?: string | null;
     'imageUrl'?: string | null;
@@ -26,9 +30,13 @@ export interface Product {
     'attributes'?: object | null;
     'meta'?: object | null;
     'categoryIds'?: Array<string>;
+    'categories'?: Array<Category>;
+    'tagIds'?: Array<string>;
+    'tags'?: Array<Tag>;
     'isAlcohol'?: boolean;
     'isAgeRestricted'?: boolean;
     'isActive'?: boolean;
+    'isPerishable'?: boolean;
     'createdAt'?: string;
     'updatedAt'?: string;
 }

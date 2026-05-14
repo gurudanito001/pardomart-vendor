@@ -1,5 +1,7 @@
+import { OrderItemStatus } from '@/api';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useUpdateOrderItemStatus } from '@/hooks/api/useOrderMutations';
+import { useQueryClient } from '@tanstack/react-query';
 import { Camera, CameraView } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -39,12 +41,17 @@ export default function ItemSubstitutionScreen() {
   const { orderId, itemId } = useLocalSearchParams<{ orderId: string; itemId: string }>();
   const { data: order, isLoading } = useOrderDetails(orderId);
   const { mutate: updateItemStatus, isPending: isUpdating } = useUpdateOrderItemStatus();
+  const queryClient = useQueryClient();
 
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [quantity, setQuantity] = useState('');
   const [initialized, setInitialized] = useState(false);
+
+    const currentItem = useMemo(() => {
+    return order?.orderItems?.find((i: { id: string; }) => i.id === itemId);
+  }, [order, itemId]);
 
   useEffect(() => {
     if (currentItem && !initialized) {
@@ -53,9 +60,7 @@ export default function ItemSubstitutionScreen() {
     }
   }, [currentItem, initialized]);
 
-  const currentItem = useMemo(() => {
-    return order?.orderItems?.find(i => i.id === itemId);
-  }, [order, itemId]);
+
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -80,10 +85,11 @@ export default function ItemSubstitutionScreen() {
   const handleNoSubstitution = () => {
     if (!orderId || !itemId) return;
 
-    const payload = { status: 'NOT_FOUND' };
+    const payload = { status: 'NOT_FOUND' as OrderItemStatus };
 
     updateItemStatus({ orderId, itemId, payload }, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         toast.success("Item marked as not found");
         router.back();
       },
@@ -123,7 +129,7 @@ export default function ItemSubstitutionScreen() {
     console.log('Found Replacement:', replacement);
 
     const payload: any = {
-      status: 'REPLACED',
+      status: 'REPLACED' as OrderItemStatus,
       quantityFound: parseInt(quantity, 10) || 1,
       // If we found a matching replacement in the suggestions, send its ID.
       // Otherwise send the barcode so backend can handle ad-hoc substitution.
@@ -134,6 +140,7 @@ export default function ItemSubstitutionScreen() {
 
     updateItemStatus({ orderId, itemId, payload }, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         toast.success("Item substituted successfully");
         router.back();
       },
@@ -209,7 +216,7 @@ export default function ItemSubstitutionScreen() {
                 <Text style={styles.itemLabel}>{currentItem?.vendorProduct?.name}</Text>
                 <Text style={styles.itemDescription}>{currentItem?.vendorProduct?.description}</Text>
                 <View style={styles.itemBottomRow}>
-                  <Text style={styles.itemPrice}>${currentItem?.vendorProduct?.price?.toFixed(2)}</Text>
+                  <Text style={styles.itemPrice}>${(currentItem?.vendorProduct?.discountedPrice || currentItem?.vendorProduct?.price)?.toFixed(2)}</Text>
                   <Text style={styles.quantityFound}>
                     {currentItem?.quantityFound ?? 0} of {currentItem?.quantity} found
                   </Text>

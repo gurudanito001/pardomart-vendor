@@ -1,6 +1,6 @@
 import { apiConfig } from '@/api/config';
 import { ProductApi } from '@/api/endpoints/product-api';
-import { CreateVendorProductWithBarcodePayload, PaginatedVendorProducts, VendorProduct, VendorProductWithRelations, UpdateVendorProductPayload } from '@/api/models';
+import { CreateVendorProductWithBarcodePayload, PaginatedVendorProducts, UpdateVendorProductPayload, VendorProduct, VendorProductWithRelations } from '@/api/models';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner-native';
 
@@ -47,16 +47,14 @@ export const useProducts = () => {
   ): Promise<PaginatedVendorProducts> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const response = await productApi.productVendorGet(
-        params?.name,
+      const response = await productApi.productVendorAppListGet(
         storeId,
-        undefined, // productId
-        params?.categoryIds,
-        undefined, // tagIds
+        params?.name,
+        undefined, // isPerishable - not currently exposed in fetchProductsByStore params
         params?.page,
         params?.size
       );
-      const data = response.data as PaginatedVendorProducts;
+      const data = response.data as unknown as PaginatedVendorProducts;
       
       setState({
         products: data.data || [],
@@ -129,11 +127,30 @@ export const useProducts = () => {
     }
   }, [productApi, handleError, showSuccess]);
 
+  const deleteProduct = useCallback(async (productId: string): Promise<boolean> => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      await productApi.productVendorIdDelete(productId);
+      setState(prev => ({
+        ...prev,
+        products: prev.products.filter(p => p.id !== productId),
+        loading: false,
+      }));
+      showSuccess('Product deleted successfully!');
+      return true;
+    } catch (error: any) {
+      handleError(error, 'Failed to delete product');
+      setState(prev => ({ ...prev, loading: false, error: 'Failed to delete product' }));
+      return false;
+    }
+  }, [productApi, handleError, showSuccess]);
+
   return {
     ...state,
     fetchProductsByStore,
     createProductWithBarcode,
     getProductById,
     updateProduct,
+    deleteProduct,
   };
 };

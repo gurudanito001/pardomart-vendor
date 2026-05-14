@@ -84,6 +84,9 @@ export default function FindingItemsScreen() {
     };
   }, [order]);
 
+  useEffect(() => {console.log("Here are the order items",order.orderItems)}, [order])
+
+
   const currentItem = useMemo(() => {
     if (!pendingOrderItems || pendingOrderItems.length === 0) return null;
     return pendingOrderItems[currentItemIndex];
@@ -99,6 +102,26 @@ export default function FindingItemsScreen() {
 
     getCameraPermissions();
   }, []);
+
+  // State guard: Prevent access if order has progressed past shopping
+  useEffect(() => {
+    if (order) {
+      const status = order.orderStatus;
+      if (status === 'completed_bagging') {
+        router.replace({ pathname: '/(private)/orders/shopping-list', params: { orderId } });
+      } else if (status === 'ready_for_pickup' || status === 'ready_for_delivery') {
+        router.replace({ pathname: '/(private)/orders/success', params: { orderId } });
+      } else if ([
+        'picked_up_by_customer', 
+        'en_route_to_delivery', 
+        'delivered', 
+        'cancelled', 
+        'no_items_found'
+      ].includes(status || '')) {
+        router.replace({ pathname: '/(private)/orders/order-details', params: { orderId } });
+      }
+    }
+  }, [order, orderId]);
 
   useEffect(() => {
     // When the quantity input becomes visible, ensure it's empty.
@@ -162,6 +185,12 @@ export default function FindingItemsScreen() {
         queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         setScanned(false);
         setIsSubstituting(false);
+        if (currentItemIndex >= pendingOrderItems.length - 1) {
+          router.replace({
+            pathname: '/(private)/orders/shopping-list',
+            params: { orderId },
+          });
+        }
       },
       onError: () => toast.error('Failed to update item status.')
     });
@@ -211,6 +240,12 @@ export default function FindingItemsScreen() {
           setIsSubstituting(false);
           queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
           setScanned(false);
+          if (currentItemIndex >= pendingOrderItems.length - 1) {
+            router.replace({
+              pathname: '/(private)/orders/shopping-list',
+              params: { orderId },
+            });
+          }
         },
         onError: (err) => {
           toast.error(`Substitution failed: ${err.message}`);
@@ -270,6 +305,10 @@ export default function FindingItemsScreen() {
         queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
         if (currentItemIndex >= pendingOrderItems.length - 1) {
           toast.success('All items have been found!');
+          router.replace({
+            pathname: '/(private)/orders/shopping-list',
+            params: { orderId },
+          });
         }      }
     });
   };
@@ -398,7 +437,7 @@ export default function FindingItemsScreen() {
                 </View>
                 <View style={styles.itemDetails}>
                   <View style={styles.itemPriceRow}>
-                    <Text style={styles.priceLabel}>Price <Text style={styles.priceValue}>${currentItem.vendorProduct?.price?.toFixed(2)}</Text></Text>
+                    <Text style={styles.priceLabel}>Price <Text style={styles.priceValue}>${(currentItem.vendorProduct?.discountedPrice || currentItem.vendorProduct?.price)?.toFixed(2)}</Text></Text>
                     <Text style={styles.quantityText}>{currentItem.quantity} qty</Text>
                   </View>
 

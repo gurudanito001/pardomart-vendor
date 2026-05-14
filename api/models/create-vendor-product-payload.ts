@@ -36,6 +36,7 @@ export interface CreateVendorProductPayload {
     'tagIds'?: Array<string> | null;
     'published'?: boolean;
     'isAlcohol'?: boolean;
+    'isPerishable'?: boolean;
     'isAgeRestricted'?: boolean;
     'isEbtEligible'?: boolean;
     'weight'?: number | null;

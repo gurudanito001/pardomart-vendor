@@ -164,17 +164,22 @@ export default function VerifyOrderCode() {
   }, [order]);
 
   useEffect(() => {
-    // Guard: If the order status indicates verification is already complete, redirect to success
-    if (order) {
+    // Guard: If verification is complete, go to the verified confirmation screen
+    if (order && !isLoading) {
+      const currentStatus = order.orderStatus || '';
       const verifiedStatuses = ['picked_up_by_customer', 'en_route_to_delivery', 'arrived_at_customer_location', 'delivered'];
-      if (verifiedStatuses.includes(order.orderStatus || '')) {
+      
+      if (verifiedStatuses.includes(currentStatus)) {
         router.replace({
           pathname: '/(private)/orders/order-verified',
           params: { orderId },
         });
+      }else if (currentStatus === 'currently_shopping' || currentStatus === 'completed_bagging') {
+        // If they somehow got here but aren't even ready for pickup, send them back to the list
+        router.replace({ pathname: '/(private)/orders/shopping-list', params: { orderId } });
       }
     }
-  }, [order, orderId]);
+  }, [order, isLoading, orderId]);
 
   const verifyCodeMutation = useMutation({
     mutationFn: (code: string) => {
@@ -319,9 +324,9 @@ export default function VerifyOrderCode() {
                 </View>
               </View>
               
-              <View style={styles.toLocation}>
-                <Text style={styles.locationName}>{order.deliveryAddress?.addressLine1}</Text>
-                <Text style={styles.locationAddress}>{order.deliveryAddress?.city}, {order.deliveryAddress?.state} {order.deliveryAddress?.postalCode}</Text>
+              <View style={[styles.toLocation, { alignItems: 'flex-end' }]}>
+                <Text style={styles.locationName}>{order.shopper?.name ?? 'Shopper'}</Text>
+                <Text style={styles.locationAddress}>Assigned Shopper</Text>
               </View>
             </View>
           </View>

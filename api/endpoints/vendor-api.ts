@@ -402,6 +402,67 @@ export const VendorApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Dedicated endpoint for the vendor app to list products under a store. Allows viewing of unpublished products. Restricted to admin, vendor owners, store admins, and shoppers. 
+         * @summary Get products for the vendor app (includes unpublished)
+         * @param {string} vendorId The ID of the store to fetch products for.
+         * @param {string} [name] Filter by product name.
+         * @param {boolean} [isPerishable] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorAppListGet: async (vendorId: string, name?: string, isPerishable?: boolean, page?: number, size?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'vendorId' is not null or undefined
+            assertParamExists('productVendorAppListGet', 'vendorId', vendorId)
+            const localVarPath = `/product/vendor-app/list`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (vendorId !== undefined) {
+                localVarQueryParameter['vendorId'] = vendorId;
+            }
+
+            if (name !== undefined) {
+                localVarQueryParameter['name'] = name;
+            }
+
+            if (isPerishable !== undefined) {
+                localVarQueryParameter['isPerishable'] = isPerishable;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (size !== undefined) {
+                localVarQueryParameter['size'] = size;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
          * @summary Get all products from all stores owned by the authenticated vendor
          * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
@@ -1290,6 +1351,23 @@ export const VendorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Dedicated endpoint for the vendor app to list products under a store. Allows viewing of unpublished products. Restricted to admin, vendor owners, store admins, and shoppers. 
+         * @summary Get products for the vendor app (includes unpublished)
+         * @param {string} vendorId The ID of the store to fetch products for.
+         * @param {string} [name] Filter by product name.
+         * @param {boolean} [isPerishable] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async productVendorAppListGet(vendorId: string, name?: string, isPerishable?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.productVendorAppListGet(vendorId, name, isPerishable, page, size, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['VendorApi.productVendorAppListGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
          * @summary Get all products from all stores owned by the authenticated vendor
          * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
@@ -1634,6 +1712,20 @@ export const VendorApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.orderVendorOrdersGet(status, options).then((request) => request(axios, basePath));
         },
         /**
+         * Dedicated endpoint for the vendor app to list products under a store. Allows viewing of unpublished products. Restricted to admin, vendor owners, store admins, and shoppers. 
+         * @summary Get products for the vendor app (includes unpublished)
+         * @param {string} vendorId The ID of the store to fetch products for.
+         * @param {string} [name] Filter by product name.
+         * @param {boolean} [isPerishable] 
+         * @param {number} [page] 
+         * @param {number} [size] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        productVendorAppListGet(vendorId: string, name?: string, isPerishable?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.productVendorAppListGet(vendorId, name, isPerishable, page, size, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Retrieves a complete list of all vendor-specific products from all stores owned by the authenticated vendor user.
          * @summary Get all products from all stores owned by the authenticated vendor
          * @param {string} [vendorId] Optional. Filter products by a specific store ID owned by the vendor.
@@ -1927,6 +2019,21 @@ export class VendorApi extends BaseAPI {
      */
     public orderVendorOrdersGet(status?: OrderStatus, options?: RawAxiosRequestConfig) {
         return VendorApiFp(this.configuration).orderVendorOrdersGet(status, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Dedicated endpoint for the vendor app to list products under a store. Allows viewing of unpublished products. Restricted to admin, vendor owners, store admins, and shoppers. 
+     * @summary Get products for the vendor app (includes unpublished)
+     * @param {string} vendorId The ID of the store to fetch products for.
+     * @param {string} [name] Filter by product name.
+     * @param {boolean} [isPerishable] 
+     * @param {number} [page] 
+     * @param {number} [size] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public productVendorAppListGet(vendorId: string, name?: string, isPerishable?: boolean, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+        return VendorApiFp(this.configuration).productVendorAppListGet(vendorId, name, isPerishable, page, size, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

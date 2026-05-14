@@ -130,11 +130,13 @@ const apiInstance = new CategoryApi(configuration);
 let parentId: string; //Filter categories by their parent ID. (optional) (default to undefined)
 let type: 'top' | 'sub'; //Filter categories by their type. (optional) (default to undefined)
 let name: string; //Filter categories by name (case-insensitive search). (optional) (default to undefined)
+let vendorId: string; //Filter categories that have products associated with a specific vendor. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.categoryGet(
     parentId,
     type,
-    name
+    name,
+    vendorId
 );
 ```
 
@@ -145,6 +147,7 @@ const { status, data } = await apiInstance.categoryGet(
 | **parentId** | [**string**] | Filter categories by their parent ID. | (optional) defaults to undefined|
 | **type** | [**&#39;top&#39; | &#39;sub&#39;**]**Array<&#39;top&#39; &#124; &#39;sub&#39;>** | Filter categories by their type. | (optional) defaults to undefined|
 | **name** | [**string**] | Filter categories by name (case-insensitive search). | (optional) defaults to undefined|
+| **vendorId** | [**string**] | Filter categories that have products associated with a specific vendor. | (optional) defaults to undefined|
 
 
 ### Return type

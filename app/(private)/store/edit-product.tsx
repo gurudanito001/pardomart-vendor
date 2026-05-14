@@ -45,6 +45,7 @@ export default function EditProductScreen() {
   const [isAlcohol, setIsAlcohol] = useState(false);
   const [isAgeRestricted, setIsAgeRestricted] = useState(false);
   const [isEbtEligible, setIsEbtEligible] = useState(false);
+  const [isPerishable, setIsPerishable] = useState(false);
   const [weight, setWeight] = useState('');
   const [weightUnit, setWeightUnit] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
@@ -72,6 +73,7 @@ export default function EditProductScreen() {
     setPublished(productData.published ?? false);
     setIsAlcohol(productData.isAlcohol ?? false);
     setIsAgeRestricted(productData.isAgeRestricted ?? false);
+    setIsPerishable(productData.isPerishable ?? false);
     setIsEbtEligible(productData.isEbtEligible ?? false);
     setWeight(productData.weight != null ? String(productData.weight) : '');
     setWeightUnit(productData.weightUnit || '');
@@ -163,16 +165,24 @@ export default function EditProductScreen() {
     if (!price) return toast.error('Price is required.');
     if (categoryIds.length === 0) return toast.error('At least one Category is required.');
 
+    const priceNum = parseFloat(price);
+    const discountedPriceNum = discountedPrice ? parseFloat(discountedPrice) : null;
+
+    if (discountedPriceNum !== null && discountedPriceNum >= priceNum) {
+      return toast.error('Discounted price must be strictly less than the regular price.');
+    }
+
     const payload: any = {
       name: name.trim(),
       description: description.trim() || null,
-      price: parseFloat(price),
-      discountedPrice: discountedPrice ? parseFloat(discountedPrice) : null,
+      price: priceNum,
+      discountedPrice: discountedPriceNum,
       stock: stock ? parseInt(stock, 10) : null,
       isAvailable,
       published,
       isAlcohol,
       isAgeRestricted,
+      isPerishable,
       isEbtEligible,
       weight: weight ? parseFloat(weight) : null,
       weightUnit: weightUnit.trim() || null,
@@ -342,6 +352,10 @@ export default function EditProductScreen() {
             <View style={styles.switchContainer}>
               <Text style={styles.fieldLabel}>Age Restricted?</Text>
               <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isAgeRestricted ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsAgeRestricted} value={isAgeRestricted} />
+            </View>
+            <View style={styles.switchContainer}>
+              <Text style={styles.fieldLabel}>Is Perishable?</Text>
+              <Switch trackColor={{ false: '#767577', true: '#06888C' }} thumbColor={isPerishable ? '#f4f3f4' : '#f4f3f4'} ios_backgroundColor="#3e3e3e" onValueChange={setIsPerishable} value={isPerishable} />
             </View>
             <View style={styles.switchContainer}>
               <Text style={styles.fieldLabel}>EBT Eligible?</Text>
