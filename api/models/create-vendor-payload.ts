@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { UpdateOpeningHoursPayload } from './update-opening-hours-payload';
 
 export interface CreateVendorPayload {
     'name': string;
@@ -24,8 +27,10 @@ export interface CreateVendorPayload {
     'longitude': number | null;
     'latitude': number | null;
     'meta'?: { [key: string]: any; } | null;
+    'timezone'?: string | null;
     'mobileNumber'?: string | null;
     'mobileVerified'?: boolean;
     'availableForShopping'?: boolean;
+    'openingHours'?: Array<UpdateOpeningHoursPayload>;
 }
 

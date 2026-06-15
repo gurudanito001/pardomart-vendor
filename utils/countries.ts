@@ -1,4 +1,9 @@
+import { apiConfig } from '../api/config';
+import { GeneralApi } from '../api/endpoints/general-api';
+
 export interface Country {
+ // The API returns a simplified Country object directly.
+ // No need for RestCountry mapping.
   name: string;
   iso2: string; // ISO 3166-1 alpha-2
   dialCode: string; // E.164 country calling code with leading +
@@ -19,63 +24,40 @@ export const isoToFlagEmoji = (iso2: string): string => {
 let cachedCountries: Country[] | null = null;
 let lastFetchError: string | null = null;
 
-// Minimal shapes supported (prefer v2 for callingCodes and flags)
- type RestCountry = {
-  name?: string | { common?: string };
-  alpha2Code?: string; // v2
-  callingCodes?: string[]; // v2
-  flags?: { png?: string; svg?: string } | string; // v2 can be string or object in some mirrors
-};
 
-const mapRestToCountry = (rc: RestCountry): Country | null => {
-  const iso2 = ((rc.alpha2Code || '').toString()).toUpperCase();
-  if (!iso2 || iso2.length !== 2) return null;
-
-  const name = typeof rc.name === 'string' ? rc.name : (rc.name?.common || iso2);
-
-  // Use callingCodes (add leading + if missing)
-  let dial = '';
-  if (rc.callingCodes && rc.callingCodes.length > 0) {
-    const cc = rc.callingCodes.find((c) => !!c);
-    if (cc) dial = cc.trim().startsWith('+') ? cc.trim() : `+${cc.trim()}`;
-  }
-  if (!dial) return null;
-
-  let flagPng: string | undefined;
-  let flagSvg: string | undefined;
-  if (typeof rc.flags === 'string') {
-    if (rc.flags.endsWith('.png')) flagPng = rc.flags;
-    if (rc.flags.endsWith('.svg')) flagSvg = rc.flags;
-  } else if (rc.flags) {
-    flagPng = rc.flags.png;
-    flagSvg = rc.flags.svg;
-  }
-
-  return { name, iso2, dialCode: dial, flagPng, flagSvg };
-};
 
 export const fetchCountriesFromAPI = async (): Promise<Country[]> => {
-  // Using v2 to leverage callingCodes and flags; still apply fields limit (<= 10)
-  const url = 'https://restcountries.com/v2/all?fields=name,alpha2Code,callingCodes,flags';
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`REST Countries error ${res.status}`);
+  const generalApi = new GeneralApi(apiConfig);
+  const response = await generalApi.authStaticCountriesGet();
+
+  // Map API model to local Country type and ensure required fields are strings
+  const apiCountries = response.data;
+
+  if (!apiCountries || apiCountries.length === 0) {
+    throw new Error('No countries could be fetched from the API');
   }
-  const json: RestCountry[] = await res.json();
-  const mapped: Country[] = [];
-  const seen = new Set<string>();
-  for (const rc of json) {
-    const c = mapRestToCountry(rc);
-    if (c && !seen.has(c.iso2)) {
-      seen.add(c.iso2);
-      mapped.push(c);
-    }
+
+  const countries: Country[] = [];
+  const seenIso2 = new Set<string>();
+
+  for (const c of apiCountries) {
+    const iso2 = (c.iso2 ?? '').toUpperCase();
+    // Skip if ISO code is missing or we've already processed this country
+    if (!iso2 || seenIso2.has(iso2)) continue;
+
+    seenIso2.add(iso2);
+    countries.push({
+      name: c.name ?? '',
+      iso2: iso2,
+      dialCode: `+${c.dialCode ?? ''}`,
+      flagPng: c.flagPng ?? undefined,
+      flagSvg: c.flagSvg ?? undefined,
+    });
   }
-  mapped.sort((a, b) => a.name.localeCompare(b.name));
-  if (mapped.length === 0) {
-    throw new Error('No countries could be parsed from API response');
-  }
-  return mapped;
+
+  // Sort alphabetically by name for a better user experience in pickers
+  countries.sort((a, b) => a.name.localeCompare(b.name));
+  return countries;
 };
 
 export const getCountries = async (forceRefresh = false): Promise<Country[]> => {

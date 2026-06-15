@@ -67,6 +67,7 @@ export interface OrderWithRelations {
     'shoppingMethod'?: ShoppingMethod;
     'deliveryMethod'?: DeliveryMethod;
     'shoppingStartTime'?: string | null;
+    'orderAcceptedAt'?: string | null;
     'scheduledDeliveryTime'?: string | null;
     'actualDeliveryTime'?: string | null;
     'pickupOtpVerifiedAt'?: string | null;

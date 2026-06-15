@@ -20,6 +20,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Rect, Svg } from 'react-native-svg';
 import { toast } from 'sonner-native';
+import { apiConfig } from '../../../api/config';
+import { ProductApi } from '../../../api/endpoints/product-api';
 import { ArrowBackButtonSVG, PhoneOutlineSVG } from '../../../components/icons';
 import NotificationBell from '../../../components/NotificationBell';
 
@@ -59,7 +61,7 @@ const CloseIcon = () => (
 
 export default function FindingItemsScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId, { refetchInterval: 10000 });
   const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useUpdateOrderItemStatus();
   const queryClient = useQueryClient();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -70,7 +72,12 @@ export default function FindingItemsScreen() {
   const [showQuantityInput, setShowQuantityInput] = useState(false);
   const [foundQuantity, setFoundQuantity] = useState('');
   const [manualBarcode, setManualBarcode] = useState('');
+  const [substitutedBarcode, setSubstitutedBarcode] = useState('');
   const [isSubstituting, setIsSubstituting] = useState(false);
+  const [maxAllowedQuantity, setMaxAllowedQuantity] = useState(0);
+  const [substituteProduct, setSubstituteProduct] = useState<any | null>(null);
+  const [isFetchingBarcode, setIsFetchingBarcode] = useState(false);
+  const productApi = useMemo(() => new ProductApi(apiConfig), []);
 
   const { pendingOrderItems, foundCount, notFoundCount } = useMemo(() => {
     const items = order?.orderItems ?? [];
@@ -210,49 +217,56 @@ export default function FindingItemsScreen() {
     setIsScannerVisible(true);
   };
 
-  const processBarcode = (barcode: string) => {
+  const processBarcode = async (barcode: string) => {
     if (!barcode) {
       toast.error('Barcode cannot be empty.');
       return;
     }
 
-    // Prevent multiple scans
     if (scanned) {
       return;
     }
     setScanned(true);
-    setIsScannerVisible(false);
-    setManualBarcode(''); // Clear manual input
 
     if (isSubstituting) {
-      if (!orderId || !currentItem?.id) {
-        toast.error('Missing order or item ID for substitution.');
-        return;
+      try {
+        if (!order?.vendorId) {
+          toast.error('Vendor information is missing.');
+          setScanned(false);
+          return;
+        }
+        setIsFetchingBarcode(true);
+        const res = await productApi.productVendorBarcodeGet(barcode, order.vendorId);
+        const subProd = res.data;
+        setIsFetchingBarcode(false);
+
+        const originalPrice = currentItem?.vendorProduct?.discountedPrice || currentItem?.vendorProduct?.price || 0;
+        const budget = originalPrice * (currentItem?.quantity || 1);
+        const subPrice = subProd.discountedPrice || subProd.price || 0;
+
+        const maxQty = Math.floor(budget / (subPrice || 1));
+
+        if (maxQty === 0) {
+          setMaxAllowedQuantity(0); // Ensure it's reset if no quantity is allowed
+          toast.error(`Substitution failed: This item ($${subPrice.toFixed(2)}) exceeds the budget ($${budget.toFixed(2)}) for "${currentItem?.vendorProduct?.name}".`);
+          setScanned(false);
+          return;
+        }
+
+        setSubstitutedBarcode(barcode);
+        setSubstituteProduct(subProd);
+        setMaxAllowedQuantity(maxQty); // Store the calculated max quantity
+        setIsScannerVisible(false);
+        setManualBarcode(''); 
+        toast.success(`Substitute item found!`);
+        setShowQuantityInput(true);
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || 'Item not found in this store catalog.');
+        setScanned(false);
       }
-      const payload = {
-        status: 'REPLACED' as const,
-        replacementBarcode: barcode,
-        quantityFound: currentItem?.quantity,
-      };
-      updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
-        onSuccess: () => {
-          toast.success(`Item substituted successfully.`);
-          setIsSubstituting(false);
-          queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
-          setScanned(false);
-          if (currentItemIndex >= pendingOrderItems.length - 1) {
-            router.replace({
-              pathname: '/(private)/orders/shopping-list',
-              params: { orderId },
-            });
-          }
-        },
-        onError: (err) => {
-          toast.error(`Substitution failed: ${err.message}`);
-          setScanned(false);
-        },
-      });
     } else if (barcode === currentItem?.vendorProduct?.product?.barcode) {
+      setIsScannerVisible(false);
+      setManualBarcode('');
       toast.success(`Item "${currentItem?.vendorProduct?.name}" matched!`);
       setShowQuantityInput(true); // Show quantity input for the current item
     } else {
@@ -287,24 +301,50 @@ export default function FindingItemsScreen() {
       return;
     }
 
-    if (quantityNum > (currentItem.quantity || 0)) {
-      toast.error(`Quantity cannot be more than the requested ${currentItem.quantity}.`);
+    if (isSubstituting && substituteProduct) {
+      if (quantityNum > maxAllowedQuantity) {
+        toast.error(`Exceeds budget! Based on the original item cost, you can only take up to ${maxAllowedQuantity} of this substitute.`);
+        return;
+      }
+      const originalPrice = currentItem?.vendorProduct?.discountedPrice || currentItem?.vendorProduct?.price || 0;
+      const budget = originalPrice * (currentItem?.quantity || 1);
+      const subPrice = substituteProduct.discountedPrice || substituteProduct.price || 0;
+      const maxQty = Math.floor(budget / (subPrice || 1));
+
+      if (quantityNum > maxQty) {
+        // This check is redundant if maxAllowedQuantity is correctly set in processBarcode
+        // and used above. Keeping it for now but it could be simplified.
+      }
+    } else if (quantityNum > (currentItem?.quantity || 0)) {
+      toast.error(`Quantity cannot be more than the maximum allowed ${currentItem?.quantity}.`);
       return;
     }
 
-    const payload = {
-      status: 'FOUND' as const,
+    const payload: any = {
       quantityFound: quantityNum,
     };
+
+    if (isSubstituting) {
+      payload.status = 'REPLACED';
+      payload.replacementBarcode = substitutedBarcode;
+    } else {
+      payload.status = 'FOUND';
+    }
 
     updateItemStatus({ orderId, itemId: currentItem.id, payload }, {
       onSuccess: () => {
         setShowQuantityInput(false);
         setScanned(false); // Reset for the next item
-        setIsSubstituting(false); // Exit substitution mode
+        setSubstitutedBarcode('');
+        setMaxAllowedQuantity(0); // Reset max allowed quantity
+        setSubstituteProduct(null);
         queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
+        
+        const wasSubstituting = isSubstituting;
+        setIsSubstituting(false); // Exit substitution mode
+        
         if (currentItemIndex >= pendingOrderItems.length - 1) {
-          toast.success('All items have been found!');
+          toast.success(wasSubstituting ? 'Item substituted successfully!' : 'Item found successfully!');
           router.replace({
             pathname: '/(private)/orders/shopping-list',
             params: { orderId },
@@ -453,7 +493,34 @@ export default function FindingItemsScreen() {
 
                   {showQuantityInput ? (
                     <View style={styles.quantityConfirmSection}>
-                      <Text style={styles.quantityConfirmLabel}>How many did you find?</Text>
+                      {isSubstituting && substituteProduct && (
+                        <View style={styles.substitutePreviewContainer}>
+                          <View style={styles.substitutePreviewHeader}>
+                            <Text style={styles.substitutePreviewBadge}>Substitute Product</Text>
+                            <Text style={styles.budgetWarning}>
+                              Max allowed: {maxAllowedQuantity}
+                            </Text>
+                          </View>
+                          <View style={styles.substitutePreviewContent}>
+                            <Image 
+                              source={{ uri: substituteProduct.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(substituteProduct.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }}
+                              style={styles.substitutePreviewImage}
+                            />
+                            <View style={styles.substitutePreviewText}>
+                              <Text style={styles.substitutePreviewName} numberOfLines={1}>{substituteProduct.name}</Text>
+                              <Text style={styles.substitutePreviewPrice}>Price: ${ (substituteProduct.discountedPrice || substituteProduct.price || 0).toFixed(2) }</Text>
+                              {substituteProduct.description ? (
+                                <Text style={styles.substitutePreviewDesc} numberOfLines={1}>
+                                  {substituteProduct.description}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </View>
+                        </View>
+                      )}
+                      <Text style={styles.quantityConfirmLabel}>
+                        {isSubstituting ? "How many substitutes did you find?" : "How many did you find?"}
+                      </Text>
                       <TextInput
                         style={styles.quantityInput}
                         value={foundQuantity}
@@ -602,13 +669,18 @@ export default function FindingItemsScreen() {
                   onChangeText={setManualBarcode}
                   keyboardType="number-pad"
                 />
-                <TouchableOpacity style={styles.manualSubmitButton} onPress={handleManualBarcodeSubmit}>
-                  <Text style={styles.manualSubmitText}>Submit</Text>
+                <TouchableOpacity 
+                  style={[styles.manualSubmitButton, isFetchingBarcode && styles.disabledButton]} 
+                  onPress={handleManualBarcodeSubmit}
+                  disabled={isFetchingBarcode}
+                >
+                  {isFetchingBarcode ? <ActivityIndicator color="#FFF" /> : <Text style={styles.manualSubmitText}>Submit</Text>}
                 </TouchableOpacity>
               </View>
               <TouchableOpacity style={styles.scannerCloseButton} onPress={() => {
                 setIsScannerVisible(false);
                 setIsSubstituting(false); // Also cancel substitution mode
+                setSubstituteProduct(null);
               }}>
                 <Text style={styles.scannerCloseText}>Cancel</Text>
               </TouchableOpacity>
@@ -1173,5 +1245,65 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     fontSize: 14,
     paddingVertical: 20,
+  },
+  substitutePreviewContainer: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#06888C',
+    padding: 12,
+    marginBottom: 16,
+  },
+  substitutePreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  substitutePreviewBadge: {
+    fontSize: 10,
+    fontFamily: 'Raleway-Bold',
+    color: '#06888C',
+    backgroundColor: 'rgba(6, 136, 140, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    textTransform: 'uppercase',
+  },
+  budgetWarning: {
+    fontSize: 10,
+    fontFamily: 'OpenSans-Bold',
+    color: '#C43D28',
+  },
+  substitutePreviewContent: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  substitutePreviewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+  },
+  substitutePreviewText: {
+    flex: 1,
+    gap: 2,
+  },
+  substitutePreviewName: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Bold',
+    color: '#000',
+  },
+  substitutePreviewPrice: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-SemiBold',
+    color: '#484C52',
+  },
+  substitutePreviewDesc: {
+    fontSize: 10,
+    fontFamily: 'OpenSans-Regular',
+    color: '#7C7B7B',
+    lineHeight: 14,
   },
 });

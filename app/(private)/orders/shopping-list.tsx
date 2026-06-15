@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Modal,
   ScrollView,
   StatusBar,
@@ -22,7 +23,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { toast } from 'sonner-native';
-import { ArrowBackSVG, NotificationSVG } from '../../../components/icons';
+import { ArrowBackSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG } from '../../../components/icons';
 import { CompletedOrdersSVG } from '../../../components/icons/CompletedOrdersSVG';
 
 type GroupedItems = Record<string, OrderItem[]>;
@@ -36,7 +37,7 @@ const OrderIcon = () => (
 
 export default function ShoppingListScreen() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  const { data: order, isLoading, isError, error } = useOrderDetails(orderId);
+  const { data: order, isLoading, isError, error } = useOrderDetails(orderId, { refetchInterval: 10000 });
   const { updateOrderItemStatus } = useVendor();
   const [activeTab, setActiveTab] = useState<'not_found' | 'pending' | 'completed'>();
   const [isQuantityModalVisible, setIsQuantityModalVisible] = useState(false);
@@ -85,7 +86,7 @@ export default function ShoppingListScreen() {
 
     const groupByCategory = (filteredItems: OrderItem[]): GroupedItems =>
       filteredItems.reduce((acc, item) => {
-        const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Uncategorized';
+        const categoryName = item.vendorProduct?.categories?.[0]?.name || 'Other';
         if (!acc[categoryName]) {
           acc[categoryName] = [];
         }
@@ -93,11 +94,29 @@ export default function ShoppingListScreen() {
         return acc;
       }, {} as GroupedItems);
 
-    const pending = items.filter((item: { status: string; }) => !item.status || item.status === 'PENDING');
-    const not_found = items.filter((item: { status: string; }) => item.status === 'NOT_FOUND');
-    const completed = items.filter((item: { status: string; }) => item.status === 'FOUND' || item.status === 'REPLACED');
+    // 1. Pending: Scanned/Initial state OR Ad-hoc replacements awaiting approval (null)
+    const pending = items.filter(item => 
+      (!item.status || item.status === 'PENDING') ||
+      (item.status === 'REPLACED' && (item as any).isReplacementApproved === null)
+    );
 
-      const postBaggingStatuses: OrderStatus[] = [
+    // 2. Not Found: Explicitly marked NOT_FOUND, partial finds, OR rejected ad-hoc replacements (false)
+    const not_found = items.filter(item => 
+      item.status === 'NOT_FOUND' || 
+      (item.status === 'REPLACED' && (item as any).isReplacementApproved === false) ||
+      (item.status === 'FOUND' && (item.quantityFound ?? 0) < (item.quantity ?? 0))
+    );
+
+    // 3. Completed: Found all units OR Approved replacements (true - covers both predefined and ad-hoc)
+    const completed = items.filter(item => 
+      (item.status === 'FOUND' && (item.quantityFound ?? 0) === (item.quantity ?? 0)) || 
+      (item.status === 'REPLACED' && (item as any).isReplacementApproved === true)
+    );
+
+    // Calculate items left based on items that are not fully completed
+    const itemsStillNeedingAttention = pending.length + not_found.length;
+
+    const postBaggingStatuses: OrderStatus[] = [
       // Handoff States
       'ready_for_pickup',
       'ready_for_delivery',
@@ -126,7 +145,7 @@ export default function ShoppingListScreen() {
       pendingCount: pending.length,
       completedItems: groupByCategory(completed),
       completedCount: completed.length,
-      itemsLeft: pending.length + not_found.length,
+      itemsLeft: itemsStillNeedingAttention,
       isShoppingComplete: pending.length === 0,
       isPostBagging: postBaggingStatuses.includes(order?.orderStatus as OrderStatus),
     };
@@ -161,6 +180,25 @@ export default function ShoppingListScreen() {
       pathname: '/(private)/orders/finding-items',
       params: { orderId },
     });
+  };
+
+  const handleChatCustomer = () => {
+    if (!order?.user) {
+      toast.error('Customer details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+    });
+  };
+
+  const handleCallCustomer = () => {
+    if (order?.user?.mobileNumber) {
+      Linking.openURL(`tel:${order.user.mobileNumber}`);
+    } else {
+      toast.error('Customer phone number is not available.');
+    }
   };
 
   // Logic to handle individual item updates (e.g., if triggered from this list)
@@ -245,39 +283,86 @@ export default function ShoppingListScreen() {
     setIsRescanModalVisible(false);
   };
 
-  const renderOrderItem = (item: OrderItem) => (
-    <View key={item.id} style={styles.itemCard}>
-      <Image 
-        source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
-        style={styles.itemImage} 
-      />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName} numberOfLines={2}>
-          {item.vendorProduct?.name}
-        </Text>
-        <View style={styles.itemMeta}>
-          <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-          <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
+  const renderOrderItem = (item: OrderItem) => {
+    const replacement = (item as any).chosenReplacement;
+    const isReplacementApproved = (item as any).isReplacementApproved;
+
+    const getReplacementStatus = () => {
+      if (isReplacementApproved === true) return { text: 'Approved', color: '#01891C', bg: 'rgba(1, 137, 28, 0.1)' };
+      if (isReplacementApproved === false) return { text: 'Rejected', color: '#C43D28', bg: 'rgba(196, 61, 40, 0.1)' };
+      return { text: 'Not Approved', color: '#F48022', bg: 'rgba(244, 128, 34, 0.1)' };
+    };
+
+    const renderProductInfo = (product: any, isRepl: boolean = false) => {
+      const status = getReplacementStatus();
+      return (
+        <View style={styles.productRow}>
+          <Image 
+            source={{ uri: product?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(product?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
+            style={styles.itemImage} 
+          />
+          <View style={styles.itemDetails}>
+            <View style={styles.itemHeaderRow}>
+              <Text style={styles.itemName} numberOfLines={1}>{product?.name}</Text>
+              {isRepl && (
+                <View style={[styles.replBadge, { backgroundColor: status.bg }]}>
+                  <Text style={[styles.replBadgeText, { color: status.color }]}>{status.text}</Text>
+                </View>
+              )}
+            </View>
+            
+            <View style={styles.itemMeta}>
+              <Text style={styles.itemQuantity}>Requested: {item.quantity}</Text>
+              {(!isRepl || isReplacementApproved === true) && (
+                <Text style={styles.itemQuantity}>
+                  {item.quantityFound ?? 0}/{item.quantity} found
+                </Text>
+              )}
+            </View>
+          </View>
         </View>
-        {activeTab === 'not_found' && (
-          <TouchableOpacity 
-            style={styles.foundButton} 
-            onPress={() => handleMarkForRescan(item)}
-          >
-            <Text style={styles.foundButtonText}>found item?</Text>
-          </TouchableOpacity>
+      );
+    };
+
+    return (
+      <View key={item.id} style={styles.itemCardContainer}>
+        {replacement ? (
+          <View style={styles.replacementStack}>
+            {renderProductInfo(replacement, true)}
+            <View style={styles.internalDivider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ORIGINAL ITEM</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            {renderProductInfo(item.vendorProduct, false)}
+          </View>
+        ) : (
+          renderProductInfo(item.vendorProduct, false)
         )}
-        {activeTab === 'completed' && (
-          <TouchableOpacity 
-            style={styles.editButton} 
-            onPress={() => handleEditQuantity(item)}
-          >
-            <Text style={styles.editButtonText}>Edit Quantity</Text>
-          </TouchableOpacity>
+
+        {(activeTab === 'not_found' || activeTab === 'completed') && (
+          <View style={styles.actionButtonsRow}>
+            {activeTab === 'not_found' && (
+              <TouchableOpacity
+                style={styles.foundButton} 
+                onPress={() => handleMarkForRescan(item)}
+              >
+                <Text style={styles.foundButtonText}>found item?</Text>
+              </TouchableOpacity>
+            )}
+            {activeTab === 'completed' && (
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={() => handleEditQuantity(item)}
+              >
+                <Text style={styles.editButtonText}>Edit Quantity</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderCategoryGroup = (title: string, items: OrderItem[]) => (
     <View key={title}>
@@ -359,6 +444,23 @@ export default function ShoppingListScreen() {
             <TouchableOpacity onPress={handleNotifications} style={styles.headerAction}>
               <NotificationSVG />
             </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Customer Contact Card */}
+      <View style={styles.customerCard}>
+        <View style={styles.customerInfo}>
+          <Image
+            source={{ uri: order?.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order?.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
+            style={styles.customerAvatar}
+          />
+          <View style={styles.customerDetailsMain}>
+            <Text style={styles.customerNameText}>{order?.user?.name ?? 'Customer'}</Text>
+          </View>
+          <View style={styles.customerActions}>
+            <TouchableOpacity onPress={handleChatCustomer}><ChatFilledSVG width={30} height={30} /></TouchableOpacity>
+            <TouchableOpacity onPress={handleCallCustomer}><PhoneOutlineSVG width={30} height={30} /></TouchableOpacity>
           </View>
         </View>
       </View>
@@ -623,14 +725,16 @@ const styles = StyleSheet.create({
   itemsGrid: {
     gap: 12,
   },
-  itemCard: {
-    flexDirection: 'row',
+  itemCardContainer: {
     backgroundColor: '#F9F9F9',
     borderRadius: 12,
     padding: 10,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#EEE',
+  },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   itemImage: {
     width: 60,
@@ -642,14 +746,59 @@ const styles = StyleSheet.create({
   },
   itemDetails: {
     flex: 1,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  replBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  replBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+  },
+  replacementStack: {
+    gap: 8,
+  },
+  internalDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+    paddingHorizontal: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#BBB',
+    marginHorizontal: 8,
+    fontFamily: 'Raleway',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
   },
   itemName: {
     fontSize: 14,
     fontWeight: '600',
     fontFamily: 'Open Sans',
     color: '#484C52',
-    marginBottom: 8,
+    flex: 1,
   },
   itemMeta: {
     flexDirection: 'row',
@@ -695,6 +844,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Raleway',
     color: '#FFF',
+  },
+  customerCard: {
+    marginHorizontal: 21,
+    marginTop: -20,
+    marginBottom: 5,
+    padding: 15,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FBFBFB',
+    zIndex: 10,
+  },
+  customerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  customerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  customerDetailsMain: {
+    flex: 1,
+  },
+  customerNameText: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#000',
+  },
+  customerActions: {
+    flexDirection: 'row',
+    gap: 10,
   },
   disabledButton: {
     backgroundColor: '#A9A9A9',

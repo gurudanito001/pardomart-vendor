@@ -87,6 +87,7 @@ export interface Order {
     'measurementUnit'?: OrderMeasurementUnitEnum;
     'shopperId'?: string | null;
     'shoppingStartTime'?: string | null;
+    'orderAcceptedAt'?: string | null;
     'scheduledDeliveryTime'?: string | null;
     'actualDeliveryTime'?: string | null;
     'pickupOtpVerifiedAt'?: string | null;

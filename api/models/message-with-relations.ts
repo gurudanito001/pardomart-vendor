@@ -18,6 +18,9 @@
 import type { Message } from './message';
 // May contain unused imports in some cases
 // @ts-ignore
+import type { MessageType } from './message-type';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { UserSummary } from './user-summary';
 
 /**

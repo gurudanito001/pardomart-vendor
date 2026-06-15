@@ -30,6 +30,7 @@ Name | Type | Description | Notes
 **shoppingMethod** | [**ShoppingMethod**](ShoppingMethod.md) |  | [optional] [default to undefined]
 **deliveryMethod** | [**DeliveryMethod**](DeliveryMethod.md) |  | [optional] [default to undefined]
 **shoppingStartTime** | **string** |  | [optional] [default to undefined]
+**orderAcceptedAt** | **string** |  | [optional] [default to undefined]
 **scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
 **actualDeliveryTime** | **string** |  | [optional] [default to undefined]
 **pickupOtpVerifiedAt** | **string** |  | [optional] [default to undefined]
@@ -74,6 +75,7 @@ const instance: OrderWithRelations = {
     shoppingMethod,
     deliveryMethod,
     shoppingStartTime,
+    orderAcceptedAt,
     scheduledDeliveryTime,
     actualDeliveryTime,
     pickupOtpVerifiedAt,

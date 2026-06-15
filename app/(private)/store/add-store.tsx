@@ -1,9 +1,13 @@
+import { CreateVendorPayload, GeneralApi } from '@/api';
+import { apiConfig } from '@/api/config';
 import toast from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -15,12 +19,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
-// import { CreateVendorPayload } from '../../../api/models';
-import { CreateVendorPayload } from '@/api';
 import AddressAutocompleteEnhanced from '../../../components/AddressAutocompleteEnhanced';
 import PhoneInputWithCountry from '../../../components/PhoneInputWithCountry';
+import Accordion from '../../../components/ui/Accordion';
 import { Input } from '../../../components/ui/Input';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
+import OpeningHoursInput from '../../../components/ui/OpeningHoursInput';
 import { useVendors } from '../../../hooks/api/useVendors';
 import { useImagePicker } from '../../../hooks/useImagePicker';
 import { GooglePlacesSuggestion } from '../../../utils/googleMapsLocation';
@@ -36,11 +40,41 @@ export default function AddStoreScreen() {
   const [mobileNumber, setMobileNumber] = useState('');
   const [availableForShopping, setAvailableForShopping] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
+  const [timezone, setTimezone] = useState('');
+  const [isTimezoneModalVisible, setIsTimezoneModalVisible] = useState(false);
+
+  type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+  interface VendorOpeningHoursState {
+    day: DayOfWeek;
+    label: string;
+    open: string;
+    close: string;
+    isClosed: boolean;
+  }
+  const daysOfWeek: { day: DayOfWeek; label: string }[] = [
+    { day: 'MONDAY', label: 'Monday' }, { day: 'TUESDAY', label: 'Tuesday' }, { day: 'WEDNESDAY', label: 'Wednesday' },
+    { day: 'THURSDAY', label: 'Thursday' }, { day: 'FRIDAY', label: 'Friday' }, { day: 'SATURDAY', label: 'Saturday' },
+    { day: 'SUNDAY', label: 'Sunday' },
+  ];
+  const [openingHours, setOpeningHours] = useState<VendorOpeningHoursState[]>(
+    () => daysOfWeek.map(d => ({ day: d.day, label: d.label, open: '09:00', close: '21:00', isClosed: false }))
+  );
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const { createVendor } = useVendors();
+  const generalApi = useMemo(() => new GeneralApi(apiConfig), []);
+
+  // Fetch timezones
+  const { data: timezones } = useQuery({
+    queryKey: ['timezones'],
+    queryFn: async () => {
+      const res = await generalApi.authTimeZonesGet();
+      return res.data.data as string[] || [];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
 
   const {
     selectedImage,
@@ -60,6 +94,30 @@ export default function AddStoreScreen() {
     }
   }, [imageError]);
 
+  // Auto-detect device timezone on mount
+  useEffect(() => {
+    try {
+      const deviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setTimezone(deviceTimezone);
+    } catch (e) {
+      console.error('Failed to detect device timezone', e);
+    }
+  }, []);
+
+  const handleOpeningHoursChange = useCallback((dayLabel: string, open: string, close: string, isClosed: boolean) => {
+    setOpeningHours(prevHours =>
+      prevHours.map(oh =>
+        oh.label === dayLabel && (oh.open !== open || oh.close !== close || oh.isClosed !== isClosed)
+          ? { ...oh, open, close, isClosed }
+          : oh
+      )
+    );
+  }, []);
+
+  const validateOpeningHours = (): boolean => {
+    return openingHours.every(oh => oh.isClosed || (oh.open && oh.close && oh.open < oh.close));
+  };
+
   const handleGoBack = () => {
     router.back();
   };
@@ -78,6 +136,11 @@ export default function AddStoreScreen() {
       toast.error('Store name is required');
       return;
     }
+    if (!validateOpeningHours()) {
+      toast.error('Please ensure all opening hours are valid (Open time before Close time).');
+      return;
+    }
+
 
     setSubmitting(true);
 
@@ -93,7 +156,13 @@ export default function AddStoreScreen() {
         latitude: latitude === null ? undefined : latitude,
         longitude: longitude === null ? undefined : longitude,
         image: selectedImage?.base64,
-        ...({ isPublished } as any),
+        openingHours: openingHours.map(oh => ({
+          day: oh.day,
+          open: oh.isClosed ? null : oh.open,
+          close: oh.isClosed ? null : oh.close,
+          // id, vendorId, createdAt, updatedAt will be handled by the backend
+        })),
+        ...({ isPublished, timezone } as any),
       };
       console.log('Prepared vendor payload', payload);
       const newVendor = await createVendor(payload);
@@ -295,6 +364,39 @@ export default function AddStoreScreen() {
                 />
               </View>
 
+              {/* Store Timezone */}
+              <View style={[styles.fieldContainer, { zIndex: 1 }]}>
+                <Text style={styles.fieldLabel}>Store Time Zone</Text>
+                <TouchableOpacity 
+                  style={styles.dropdownContainer} 
+                  onPress={() => setIsTimezoneModalVisible(true)}
+                >
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <Text style={{ fontSize: 14, color: timezone ? '#000' : '#7C8BA0', fontFamily: 'Open Sans' }}>
+                      {timezone || 'Select Time Zone'}
+                    </Text>
+                    <Svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <Path d="M1 1.5L6 6.5L11 1.5" stroke="#484C52" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+
+                {/* Vendor Opening Times */}
+              <Accordion title="Vendor Opening Times">
+                {openingHours.map((oh) => (
+                  <OpeningHoursInput
+                    key={oh.day}
+                    dayLabel={oh.label}
+                    initialOpenTime={oh.open}
+                    initialCloseTime={oh.close}
+                    initialIsClosed={oh.isClosed}
+                    onTimeChange={handleOpeningHoursChange}
+                  />
+                ))}
+              </Accordion>
+
               {/* Available For Shopping - zIndex 1 */}
               <View style={[styles.fieldContainer, styles.switchContainer, { zIndex: 1 }]}>
                 <Text style={styles.fieldLabel}>Available for Shopping</Text>
@@ -330,6 +432,40 @@ export default function AddStoreScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Timezone Select Modal */}
+      <Modal 
+        transparent 
+        visible={isTimezoneModalVisible} 
+        animationType="fade" 
+        onRequestClose={() => setIsTimezoneModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setIsTimezoneModalVisible(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select Time Zone</Text>
+            <ScrollView style={{ maxHeight: 400 }}>
+              {timezones?.map((tz) => (
+                <TouchableOpacity
+                  key={tz}
+                  style={[styles.optionItem, timezone === tz && styles.selectedOption]}
+                  onPress={() => {
+                    setTimezone(tz);
+                    setIsTimezoneModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.optionText, timezone === tz && styles.selectedOptionText]}>
+                    {tz}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -542,5 +678,47 @@ const styles = StyleSheet.create({
     color: '#FF4D4F',
     marginTop: 8,
     fontSize: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxHeight: '80%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: 'Raleway',
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#111827',
+    fontFamily: 'Open Sans',
+  },
+  selectedOption: {
+    backgroundColor: '#06888C',
+  },
+  selectedOptionText: {
+    color: '#FFF',
+    fontWeight: '600',
   },
 });

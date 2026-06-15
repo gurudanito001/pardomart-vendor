@@ -13,6 +13,9 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import type { MessageType } from './message-type';
 
 export interface OrderOrderIdMessagesPostRequest {
     /**
@@ -20,8 +23,11 @@ export interface OrderOrderIdMessagesPostRequest {
      */
     'recipientId': string;
     /**
-     * The text content of the message.
+     * The text content of the message or base64 image string.
      */
     'content': string;
+    'type'?: MessageType;
 }
+
+
 

@@ -1,4 +1,5 @@
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AppProvider';
+import { useImagePicker } from '@/hooks/useImagePicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -8,11 +9,13 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,15 +24,27 @@ import { apiConfig } from '../../../api/config';
 import { OrderApi } from '../../../api/endpoints/order-api';
 import { MessageWithRelations, User } from '../../../api/models';
 
-const MessageItem = ({ item, currentUserId }: { item: MessageWithRelations; currentUserId?: string }) => {
+const MessageItem = ({ item, currentUserId }: { item: MessageWithRelations & { isPending?: boolean }; currentUserId?: string }) => {
   const isMyMessage = item.senderId === currentUserId;
   const date = new Date(item.createdAt || Date.now());
   const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const isImage = item.type === 'image';
 
   return (
     <View style={[styles.messageRow, isMyMessage ? styles.myMessageRow : styles.otherMessageRow]}>
-      <View style={[styles.messageBubble, isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble]}>
-        <Text style={isMyMessage ? styles.myMessageText : styles.otherMessageText}>{item.content}</Text>
+      <View style={[
+        styles.messageBubble, 
+        isMyMessage ? styles.myMessageBubble : styles.otherMessageBubble,
+        isImage && styles.imageBubble
+      ]}>
+        {isImage ? (
+          <View style={styles.imageContainerMessage}>
+            <Image source={{ uri: item.content }} style={styles.chatImage} resizeMode="cover" />
+            {item.isPending && <View style={styles.imageLoadingOverlay}><ActivityIndicator color="#FFF" /></View>}
+          </View>
+        ) : (
+          <Text style={isMyMessage ? styles.myMessageText : styles.otherMessageText}>{item.content}</Text>
+        )}
         <Text style={styles.timestamp}>{timeString}</Text>
       </View>
     </View>
@@ -42,6 +57,13 @@ export default function MessagesScreen() {
   const { state } = useAuth();
   const queryClient = useQueryClient();
   const flatListRef = useRef<FlatList>(null);
+  const [isOptionModalVisible, setOptionModalVisible] = useState(false);
+  const [inputText, setInputText] = useState('');
+
+  const { selectedImage, pickFromGallery, pickFromCamera, reset: resetImage } = useImagePicker({
+    base64: true,
+    allowsEditing: true,
+  });
   
   const customer = useMemo(() => {
     try {
@@ -77,16 +99,18 @@ export default function MessagesScreen() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, type = 'text' }: { content: string; type?: string }) => {
       if (!orderId || !customer?.id) throw new Error('Missing data');
-      // Call the API endpoint: /order/{orderId}/messages
-      console.log('Sending message:', { content, recipientId: customer.id, orderId });
-      return orderApi.orderOrderIdMessagesPost({ content, recipientId: customer.id }, orderId);
+      const payload: any = { content, recipientId: customer.id };
+      if (type === 'image') payload.type = 'image';
+      
+      return orderApi.orderOrderIdMessagesPost(payload, orderId);
     },
     onSuccess: () => {
       // Invalidate and refetch messages
       queryClient.invalidateQueries({ queryKey: ['messages', orderId] });
       setInputText('');
+      resetImage();
       // Scroll to the bottom (which is the top of the inverted list)
       flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     },
@@ -101,11 +125,23 @@ export default function MessagesScreen() {
     }
   });
 
-  const [inputText, setInputText] = useState('');
-
   const handleSend = () => {
     if (inputText.trim().length > 0) {
-      sendMessageMutation.mutate(inputText);
+      sendMessageMutation.mutate({ content: inputText });
+    }
+  };
+
+  const handleSendImage = () => {
+    if (selectedImage?.base64) {
+      // Ensure we have the correct data URI prefix
+      const base64Content = selectedImage.base64.startsWith('data:') 
+        ? selectedImage.base64 
+        : `data:image/jpeg;base64,${selectedImage.base64}`;
+        
+      sendMessageMutation.mutate({ 
+        content: base64Content, 
+        type: 'image' 
+      });
     }
   };
 
@@ -168,7 +204,7 @@ export default function MessagesScreen() {
             onChangeText={setInputText}
             multiline
           />
-          <Pressable style={styles.inputButton}>
+          <Pressable style={styles.inputButton} onPress={() => setOptionModalVisible(true)}>
             <Ionicons name="camera-outline" size={24} color="#484C52" />
           </Pressable>
           <Pressable 
@@ -184,6 +220,78 @@ export default function MessagesScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Image Picker Options Modal */}
+      <Modal
+        visible={isOptionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOptionModalVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setOptionModalVisible(false)}>
+          <View style={styles.optionModalContent}>
+            <Text style={styles.modalTitle}>Send Image</Text>
+            <Text style={styles.modalSubtitle}>Choose a source for your image</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={async () => {
+                setOptionModalVisible(false);
+                await pickFromCamera();
+              }}
+            >
+              <Ionicons name="camera" size={24} color="#06888C" />
+              <Text style={styles.optionButtonText}>Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={async () => {
+                setOptionModalVisible(false);
+                await pickFromGallery();
+              }}
+            >
+              <Ionicons name="images" size={24} color="#06888C" />
+              <Text style={styles.optionButtonText}>Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.optionButton, styles.cancelOptionButton]} 
+              onPress={() => setOptionModalVisible(false)}
+            >
+              <Text style={styles.cancelOptionText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={!!selectedImage}
+        transparent
+        animationType="slide"
+        onRequestClose={resetImage}
+      >
+        <View style={styles.previewOverlay}>
+          <View style={styles.previewContainer}>
+            <Text style={styles.previewTitle}>Preview Image</Text>
+            <Image source={{ uri: selectedImage?.uri }} style={styles.previewFullImage} resizeMode="contain" />
+            
+            <View style={styles.previewActions}>
+              <TouchableOpacity style={styles.previewCancelButton} onPress={resetImage}>
+                <Text style={styles.previewCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.previewSendButton} onPress={handleSendImage}>
+                {sendMessageMutation.isPending ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.previewSendText}>Send Image</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -280,6 +388,33 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 4,
   },
+  imageBubble: {
+    padding: 4,
+  },
+  imageContainerMessage: {
+    width: 200,
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  chatImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -307,5 +442,104 @@ const styles = StyleSheet.create({
     backgroundColor: '#F48022', // App's orange color
     borderRadius: 20,
     padding: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  optionModalContent: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Raleway-Bold',
+    color: '#100A37',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Regular',
+    color: '#7C7B7B',
+    marginBottom: 24,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#F8F9FA',
+    marginBottom: 12,
+    gap: 12,
+  },
+  optionButtonText: {
+    fontSize: 16,
+    fontFamily: 'OpenSans-SemiBold',
+    color: '#100A37',
+  },
+  cancelOptionButton: {
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  cancelOptionText: {
+    fontSize: 16,
+    fontFamily: 'Raleway-Bold',
+    color: '#FF4444',
+  },
+  previewContainer: {
+    width: '100%',
+    height: '80%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 20,
+    alignItems: 'center',
+  },
+  previewTitle: {
+    fontSize: 18,
+    fontFamily: 'Raleway-Bold',
+    color: '#100A37',
+    marginBottom: 20,
+  },
+  previewFullImage: {
+    flex: 1,
+    width: '100%',
+    borderRadius: 12,
+  },
+  previewActions: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+    marginTop: 20,
+  },
+  previewCancelButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    alignItems: 'center',
+  },
+  previewCancelText: {
+    color: '#484C52',
+    fontFamily: 'OpenSans-SemiBold',
+  },
+  previewSendButton: {
+    flex: 2,
+    backgroundColor: '#06888C',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  previewSendText: {
+    color: '#FFF',
+    fontFamily: 'Raleway-Bold',
   },
 });

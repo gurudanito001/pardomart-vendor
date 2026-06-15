@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **string** |  | [optional] [default to undefined]
 **content** | **string** |  | [optional] [default to undefined]
+**type** | [**MessageType**](MessageType.md) |  | [optional] [default to undefined]
 **senderId** | **string** |  | [optional] [default to undefined]
 **recipientId** | **string** |  | [optional] [default to undefined]
 **orderId** | **string** |  | [optional] [default to undefined]
@@ -22,6 +23,7 @@ import { Message } from './api';
 const instance: Message = {
     id,
     content,
+    type,
     senderId,
     recipientId,
     orderId,

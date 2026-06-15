@@ -13,21 +13,14 @@
  */
 
 
-// May contain unused imports in some cases
-// @ts-ignore
-import type { MessageType } from './message-type';
 
-export interface Message {
-    'id'?: string;
-    'content'?: string;
-    'type'?: MessageType;
-    'senderId'?: string;
-    'recipientId'?: string;
-    'orderId'?: string;
-    'readAt'?: string | null;
-    'createdAt'?: string;
-    'updatedAt'?: string;
-}
+
+export const MessageType = {
+    Text: 'text',
+    Image: 'image'
+} as const;
+
+export type MessageType = typeof MessageType[keyof typeof MessageType];
 
 
 

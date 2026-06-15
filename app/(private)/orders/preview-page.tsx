@@ -1,6 +1,7 @@
 import { OrderApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import type { OrderItem, OrderStatus } from '@/api/models';
+import { ArrowBackButtonSVG, ChatFilledSVG, PhoneOutlineSVG } from '@/components/icons';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -8,6 +9,7 @@ import React, { useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -93,6 +95,25 @@ export default function PreviewPage() {
     router.back();
   };
 
+  const handleChatCustomer = () => {
+    if (!order?.user) {
+      toast.error('Customer details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+    });
+  };
+
+  const handleCallCustomer = () => {
+    if (order?.user?.mobileNumber) {
+      Linking.openURL(`tel:${order.user.mobileNumber}`);
+    } else {
+      toast.error('Customer phone number is not available.');
+    }
+  };
+
   const handleNotifications = () => {
     console.log('Open notifications');
   };
@@ -142,12 +163,7 @@ export default function PreviewPage() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-          <Svg width="30" height="30" viewBox="0 0 31 30" fill="none">
-            <Path 
-              d="M20.1278 21.993C20.3661 22.2135 20.5 22.5125 20.5 22.8243C20.5 23.1361 20.3661 23.4352 20.1278 23.6556C19.8895 23.8761 19.5662 24 19.2292 24C18.8921 24 18.5689 23.8761 18.3306 23.6556L9.87313 15.8313C9.75486 15.7223 9.66102 15.5927 9.59699 15.4501C9.53296 15.3074 9.5 15.1545 9.5 15C9.5 14.8455 9.53296 14.6926 9.59699 14.5499C9.66102 14.4073 9.75486 14.2777 9.87313 14.1687L18.3306 6.34435C18.5689 6.12387 18.8921 6 19.2292 6C19.5662 6 19.8895 6.12387 20.1278 6.34435C20.3661 6.56483 20.5 6.86387 20.5 7.17568C20.5 7.48749 20.3661 7.78653 20.1278 8.00702L12.57 14.999L20.1278 21.993Z" 
-              fill="white"
-            />
-          </Svg>
+          <ArrowBackButtonSVG width={30} height={30} color="white" />
         </TouchableOpacity>
         
         <Text style={styles.headerTitle}>Preview</Text>
@@ -164,6 +180,23 @@ export default function PreviewPage() {
         </View>
       </View>
 
+      {/* Customer Contact Card */}
+      <View style={styles.customerCard}>
+        <View style={styles.customerInfo}>
+          <Image
+            source={{ uri: order?.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order?.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
+            style={styles.customerAvatar}
+          />
+          <View style={styles.customerDetailsMain}>
+            <Text style={styles.customerNameText}>{order?.user?.name ?? 'Customer'}</Text>
+          </View>
+          <View style={styles.customerActions}>
+            <TouchableOpacity onPress={handleChatCustomer}><ChatFilledSVG width={30} height={30} /></TouchableOpacity>
+            <TouchableOpacity onPress={handleCallCustomer}><PhoneOutlineSVG width={30} height={30} /></TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
       <View style={{ flex: 1, backgroundColor: colors.background }}>
       {isLoading ? (
         <View style={styles.centered}>
@@ -176,7 +209,7 @@ export default function PreviewPage() {
       ) : (
         <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            {/* Tip Card */}
+            {/* Instructions Card */}
             <View style={styles.tipCard}>
               <View style={styles.tipContent}>
                 <InfoIcon />
@@ -234,62 +267,92 @@ interface PreviewItemCardProps {
 }
 
 const PreviewItemCard = ({ item }: PreviewItemCardProps) => {
-  return (
-    <View style={styles.itemCard}>
-      <View style={styles.itemContent}>
-        <View style={styles.itemImageContainer}>
-          <Image source={{ uri: item.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} style={styles.itemImage} />
-        </View>
-        
-        <View style={styles.itemDetails}>
-          <View style={styles.itemHeader}>
-            {item.status === 'NOT_FOUND' ? (
-              <>
-                <View style={styles.notFoundBadge}>
-                  <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <Path 
-                      d="M6 0C2.68629 0 0 2.68629 0 6C0 9.31371 2.68629 12 6 12C9.31371 12 12 9.31371 12 6C12 2.68629 9.31371 0 6 0ZM8.48528 7.07107L7.07107 8.48528L6 7.41421L4.92893 8.48528L3.51472 7.07107L4.58579 6L3.51472 4.92893L4.92893 3.51472L6 4.58579L7.07107 3.51472L8.48528 4.92893L7.41421 6L8.48528 7.07107Z"
-                      fill="#C70000"
-                    />
-                  </Svg>
-                  <Text style={styles.notFoundText}>Not Found</Text>
-                </View>
-                <Text style={styles.foundText}>
-                  0 of {item.quantity} found
-                </Text>
-                </>
+  const isReplaced = item.status === 'REPLACED';
+  const replacementProduct = (item as any).chosenReplacement;
+
+  const renderContent = (product: any, badgeText: string, badgeColor: string, showQty: boolean, isReplacement: boolean) => (
+    <View style={styles.itemContent}>
+      <View style={styles.itemImageContainer}>
+        <Image
+          source={{
+            uri:
+              product?.images?.[0] ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                product?.name || 'Item'
+              )}&background=F0F0F0&color=06888C&size=100`,
+          }}
+          style={styles.itemImage}
+        />
+      </View>
+
+      <View style={styles.itemDetails}>
+        <View style={styles.itemHeader}>
+          <View style={[styles.confirmedBadge, !isReplacement && isReplaced && { backgroundColor: '#F0F0F1' }]}>
+            {item.status === 'NOT_FOUND' && !isReplacement ? (
+              <Svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <Path
+                  d="M6 0C2.68629 0 0 2.68629 0 6C0 9.31371 2.68629 12 6 12C9.31371 12 12 9.31371 12 6C12 2.68629 9.31371 0 6 0ZM8.48528 7.07107L7.07107 8.48528L6 7.41421L4.92893 8.48528L3.51472 7.07107L4.58579 6L3.51472 4.92893L4.92893 3.51472L6 4.58579L7.07107 3.51472L8.48528 4.92893L7.41421 6L8.48528 7.07107Z"
+                  fill="#C70000"
+                />
+              </Svg>
             ) : (
-              <>
-                <View style={styles.confirmedBadge}>
-                  <Svg width="12" height="12" viewBox="0 0 13 12" fill="none">
-                    <Path 
-                      fillRule="evenodd" 
-                      clipRule="evenodd" 
-                      d="M6.01626 12C6.80633 12 7.58866 11.8448 8.31858 11.5433C9.04851 11.2417 9.71174 10.7998 10.2704 10.2426C10.8291 9.68549 11.2722 9.02405 11.5746 8.2961C11.8769 7.56815 12.0325 6.78793 12.0325 6C12.0325 5.21207 11.8769 4.43185 11.5746 3.7039C11.2722 2.97595 10.8291 2.31451 10.2704 1.75736C9.71174 1.20021 9.04851 0.758251 8.31858 0.456723C7.58866 0.155195 6.80633 -1.17411e-08 6.01626 0C4.42065 2.37122e-08 2.89039 0.632141 1.76212 1.75736C0.633854 2.88258 0 4.4087 0 6C0 7.5913 0.633854 9.11742 1.76212 10.2426C2.89039 11.3679 4.42065 12 6.01626 12ZM5.86117 8.42667L9.20354 4.42667L8.17677 3.57333L5.30233 7.01267L3.81498 5.52867L2.86976 6.47133L4.87518 8.47133L5.39257 8.98733L5.86117 8.42667Z" 
-                      fill="#01891C"
-                    />
-                  </Svg>
-                  <Text style={styles.confirmedText}>Confirmed</Text>
-                </View>
-                <Text style={styles.foundText}>
-                  {item.quantityFound ?? item.quantity} of {item.quantity} found
-                </Text>
-              </>
+              <Svg width="12" height="12" viewBox="0 0 13 12" fill="none">
+                <Path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M6.01626 12C6.80633 12 7.58866 11.8448 8.31858 11.5433C9.04851 11.2417 9.71174 10.7998 10.2704 10.2426C10.8291 9.68549 11.2722 9.02405 11.5746 8.2961C11.8769 7.56815 12.0325 6.78793 12.0325 6C12.0325 5.21207 11.8769 4.43185 11.5746 3.7039C11.2722 2.97595 10.8291 2.31451 10.2704 1.75736C9.71174 1.20021 9.04851 0.758251 8.31858 0.456723C7.58866 0.155195 6.80633 -1.17411e-08 6.01626 0C4.42065 2.37122e-08 2.89039 0.632141 1.76212 1.75736C0.633854 2.88258 0 4.4087 0 6C0 7.5913 0.633854 9.11742 1.76212 10.2426C2.89039 11.3679 4.42065 12 6.01626 12ZM5.86117 8.42667L9.20354 4.42667L8.17677 3.57333L5.30233 7.01267L3.81498 5.52867L2.86976 6.47133L4.87518 8.47133L5.39257 8.98733L5.86117 8.42667Z"
+                  fill={badgeColor}
+                />
+              </Svg>
             )}
+            <Text style={[styles.confirmedText, !isReplacement && isReplaced && { color: '#7C7B7B' }]}>
+              {badgeText}
+            </Text>
           </View>
-          
-          <Text style={styles.itemName} numberOfLines={2}>{item.vendorProduct?.name}</Text>
-          
-          <View style={styles.itemFooter}>
-            <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
-            {(item.vendorProduct as any)?.isPerishable && (
-              <View style={styles.perishableBadge}>
-                <Text style={styles.perishableText}>Perishable</Text>
-              </View>
-            )}
-          </View>
+
+          {showQty && (
+            <Text style={styles.foundText}>
+              {item.status === 'NOT_FOUND' ? '0' : item.quantityFound ?? item.quantity} of{' '}
+              {item.quantity} found
+            </Text>
+          )}
+        </View>
+
+        <Text style={styles.itemName} numberOfLines={2}>
+          {product?.name}
+        </Text>
+
+        <View style={styles.itemFooter}>
+          <Text style={styles.itemPrice}>
+            ${(product?.discountedPrice || product?.price)?.toFixed(2)}
+          </Text>
+          {product?.isPerishable && (
+            <View style={styles.perishableBadge}>
+              <Text style={styles.perishableText}>Perishable</Text>
+            </View>
+          )}
         </View>
       </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.itemCard}>
+      {isReplaced ? (
+        <>
+          {renderContent(replacementProduct, 'Substituted Item', '#01891C', true, true)}
+          <View style={styles.subDivider} />
+          {renderContent(item.vendorProduct, 'Original Item', '#7C7B7B', false, false)}
+        </>
+      ) : (
+        renderContent(
+          item.vendorProduct,
+          item.status === 'NOT_FOUND' ? 'Not Found' : 'Confirmed',
+          item.status === 'NOT_FOUND' ? '#C70000' : '#01891C',
+          true,
+          false
+        )
+      )}
     </View>
   );
 };
@@ -338,6 +401,40 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     fontFamily: typography.families.accent,
     lineHeight: 22,
+  },
+  customerCard: {
+    marginHorizontal: 27,
+    marginTop: -20,
+    marginBottom: 5,
+    padding: 15,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#B4BED4',
+    backgroundColor: '#FBFBFB',
+    zIndex: 10,
+  },
+  customerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  customerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  customerDetailsMain: {
+    flex: 1,
+  },
+  customerNameText: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+    color: '#000',
+  },
+  customerActions: {
+    flexDirection: 'row',
+    gap: 10,
   },
   headerActions: {
     flexDirection: 'row',
@@ -521,5 +618,11 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     backgroundColor: '#A9A9A9',
+  },
+  subDivider: {
+    height: 1,
+    backgroundColor: '#B4BED4',
+    marginVertical: 12,
+    opacity: 0.5,
   },
 });

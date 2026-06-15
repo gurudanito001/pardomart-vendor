@@ -41,6 +41,7 @@ Name | Type | Description | Notes
 **measurementUnit** | **string** | Snapshot of customer units at checkout. | [optional] [default to undefined]
 **shopperId** | **string** |  | [optional] [default to undefined]
 **shoppingStartTime** | **string** |  | [optional] [default to undefined]
+**orderAcceptedAt** | **string** |  | [optional] [default to undefined]
 **scheduledDeliveryTime** | **string** |  | [optional] [default to undefined]
 **actualDeliveryTime** | **string** |  | [optional] [default to undefined]
 **pickupOtpVerifiedAt** | **string** |  | [optional] [default to undefined]
@@ -87,6 +88,7 @@ const instance: Order = {
     measurementUnit,
     shopperId,
     shoppingStartTime,
+    orderAcceptedAt,
     scheduledDeliveryTime,
     actualDeliveryTime,
     pickupOtpVerifiedAt,

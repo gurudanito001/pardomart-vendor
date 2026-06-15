@@ -27,6 +27,10 @@ export interface UsersMeSettingsPatchRequest {
      * Whether FaceID/Biometrics is enabled for login.
      */
     'biometricEnabled'?: boolean;
+    /**
+     * Whether Dark Mode is enabled.
+     */
+    'darkMode'?: boolean;
 }
 
 export const UsersMeSettingsPatchRequestReplacementPreferenceEnum = {

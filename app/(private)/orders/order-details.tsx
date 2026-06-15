@@ -156,28 +156,76 @@ export default function OrderDetailsScreen() {
     return groups;
   }, {} as Record<string, (OrderItem | CartItem)[]>);
 
-  const renderOrderItem = (item: OrderItem | CartItem) => (
-    <View key={item.id} style={styles.orderItem}>
-      <View style={styles.itemImageContainer}>
-        <Image source={{ uri: item?.vendorProduct?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item?.vendorProduct?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} style={styles.itemImage} />
-      </View>
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemName}>{item.vendorProduct?.name}</Text>
-        <View style={styles.itemFooter}>
-          {/* Assuming perishable is a property on the product */}
-          {(item.vendorProduct as any)?.isPerishable && (
-            <View style={styles.perishableBadge}>
-              <Text style={styles.perishableText}>Perishable</Text>
+  const renderOrderItem = (item: OrderItem | CartItem) => {
+    const replacement = (item as any).chosenReplacement;
+    const isReplacementApproved = (item as any).isReplacementApproved;
+
+    const getReplacementStatus = () => {
+      if (isReplacementApproved === true) return { text: 'Approved', color: '#01891C', bg: 'rgba(1, 137, 28, 0.1)' };
+      if (isReplacementApproved === false) return { text: 'Rejected', color: '#C43D28', bg: 'rgba(196, 61, 40, 0.1)' };
+      return { text: 'Not Approved', color: '#F48022', bg: 'rgba(244, 128, 34, 0.1)' };
+    };
+
+    const renderProductInfo = (product: any, isRepl: boolean = false) => {
+      const status = getReplacementStatus();
+      return (
+        <View style={styles.productRow}>
+          <View style={styles.itemImageContainer}>
+            <Image 
+              source={{ uri: product?.images?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(product?.name || 'Item')}&background=F0F0F0&color=06888C&size=100` }} 
+              style={styles.itemImage} 
+            />
+          </View>
+          <View style={styles.itemDetails}>
+            <View style={styles.itemHeaderRow}>
+              <Text style={styles.itemName} numberOfLines={1}>{product?.name}</Text>
+              {isRepl && (
+                <View style={[styles.replBadge, { backgroundColor: status.bg }]}>
+                  <Text style={[styles.replBadgeText, { color: status.color }]}>{status.text}</Text>
+                </View>
+              )}
             </View>
-          )}
-          <View style={styles.itemPricing}>
-            <Text style={styles.itemQuantity}>qty {item.quantity ?? 1}</Text>
-            <Text style={styles.itemPrice}>${(item.vendorProduct?.discountedPrice || item.vendorProduct?.price)?.toFixed(2)}</Text>
+            
+            <View style={styles.itemFooter}>
+              {/* Assuming perishable is a property on the product */}
+              {(product as any)?.isPerishable && (
+                <View style={styles.perishableBadge}>
+                  <Text style={styles.perishableText}>Perishable</Text>
+                </View>
+              )}
+              <View style={styles.itemPricing}>
+                <Text style={styles.itemQuantity}>Requested: {item.quantity ?? 1}</Text>
+                {(!isRepl || isReplacementApproved === true) && (
+                  <Text style={styles.itemQuantity}>
+                    {item.quantityFound ?? 0}/{item.quantity} found
+                  </Text>
+                )}
+                <Text style={styles.itemPrice}>${(product?.discountedPrice || product?.price)?.toFixed(2)}</Text>
+              </View>
+            </View>
           </View>
         </View>
+      );
+    };
+
+    return (
+      <View key={item.id} style={styles.orderItem}>
+        {replacement ? (
+          <View style={styles.replacementStack}>
+            {renderProductInfo(replacement, true)}
+            <View style={styles.internalDivider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ORIGINAL ITEM</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            {renderProductInfo(item.vendorProduct, false)}
+          </View>
+        ) : (
+          renderProductInfo(item.vendorProduct, false)
+        )}
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -863,6 +911,55 @@ const styles = StyleSheet.create({
     fontFamily: 'Open Sans',
     color: '#000',
     lineHeight: 18,
+  },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  replBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  replBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Open Sans',
+  },
+  replacementStack: {
+    flex: 1,
+    gap: 8,
+  },
+  internalDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+    paddingHorizontal: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#D9D9D9',
+  },
+  dividerText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#BBB',
+    marginHorizontal: 8,
+    fontFamily: 'Raleway',
+  },
+  itemPricing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   actionButtons: {
     gap: 16,

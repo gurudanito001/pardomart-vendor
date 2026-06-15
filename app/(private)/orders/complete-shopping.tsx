@@ -2,10 +2,15 @@ import { OrderApi } from '@/api';
 import { apiConfig } from '@/api/config';
 import { OrderStatus } from '@/api/models';
 import { useOrderDetails } from '@/hooks/api/useOrderDetails';
+import { useImagePicker } from '@/hooks/useImagePicker';
+import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
+  Linking,
+  Modal,
   StatusBar,
   StyleSheet,
   Text,
@@ -18,7 +23,7 @@ import { toast } from 'sonner-native';
 import { Path, Svg } from 'react-native-svg';
 
 // Import existing components
-import { ArrowBackSVG, NotificationSVG } from '@/components/icons';
+import { ArrowBackSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { colors, shadows, spacing, typography } from '@/styles/theme';
 
@@ -50,6 +55,13 @@ export default function CompleteShoppingScreen() {
   const { data: order, isLoading } = useOrderDetails(orderId);
   const queryClient = useQueryClient();
   const orderApi = useMemo(() => new OrderApi(apiConfig), []);
+  const [isOptionModalVisible, setOptionModalVisible] = useState(false);
+
+  const { selectedImage, pickFromGallery, pickFromCamera, reset: resetImage } = useImagePicker({
+    base64: true,
+    allowsEditing: true,
+    quality: 0.7,
+  });
 
   // State guard: If order is already completed, skip to success screen
   useEffect(() => {
@@ -66,9 +78,10 @@ export default function CompleteShoppingScreen() {
   }, [order, isLoading, orderId]);
 
   const updateOrderStatusMutation = useMutation({
-    mutationFn: ({ status }: { status: OrderStatus }) => {
+    mutationFn: (payload: { orderStatus: OrderStatus; proofOfDeliveryImageUrl?: string }) => {
       if (!orderId) throw new Error('Order ID is missing');
-      return orderApi.orderIdStatusPatch({ status }, orderId);
+      // Use the generic update order endpoint as requested
+      return orderApi.orderIdPatch(payload as any, orderId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orderDetails', orderId] });
@@ -87,6 +100,25 @@ export default function CompleteShoppingScreen() {
     router.back();
   };
 
+  const handleChatCustomer = () => {
+    if (!order?.user) {
+      toast.error('Customer details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(order.user) },
+    });
+  };
+
+  const handleCallCustomer = () => {
+    if (order?.user?.mobileNumber) {
+      Linking.openURL(`tel:${order.user.mobileNumber}`);
+    } else {
+      toast.error('Customer phone number is not available.');
+    }
+  };
+
   const handleCompleteShoppingPress = () => {
     if (!order) return;
 
@@ -98,7 +130,11 @@ export default function CompleteShoppingScreen() {
     }
 
     if (nextStatus) {
-      updateOrderStatusMutation.mutate({ status: nextStatus });
+      const payload: any = { orderStatus: nextStatus };
+      if (selectedImage?.base64) {
+        payload.proofOfDeliveryImageUrl = `data:image/jpeg;base64,${selectedImage.base64}`;
+      }
+      updateOrderStatusMutation.mutate(payload);
     } else {
       toast.error('Invalid delivery method');
     }
@@ -117,6 +153,12 @@ export default function CompleteShoppingScreen() {
         <Text style={styles.headerTitle}>Complete Shopping</Text>
         
         <View style={styles.headerIcons}>
+          <TouchableOpacity style={styles.iconButton} onPress={handleChatCustomer}>
+            <ChatFilledSVG width={24} height={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton} onPress={handleCallCustomer}>
+            <PhoneOutlineSVG width={24} height={24} color="white" />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <NotificationSVG width={24} height={24} color="white" />
           </TouchableOpacity>
@@ -126,12 +168,39 @@ export default function CompleteShoppingScreen() {
       <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Main Content */}
       <View style={styles.content}>
-        {/* Delivery Icon */}
-        <View style={styles.iconContainer}>
-          <View style={styles.deliveryIconCircle}>
-            <DeliveryMethodIcon method={order?.deliveryMethod} />
+        {/* Bagging Proof Section */}
+        {order?.deliveryMethod === 'customer_pickup' && (
+          <View style={styles.uploadSection}>
+            <Text style={styles.uploadTitle}>Photo of items</Text>
+            <Text style={styles.uploadSubtitle}>
+              (Optional) Upload a photo of the bagged items to provide confirmation to the customer.
+            </Text>
+
+            <TouchableOpacity 
+              style={[styles.uploadBox, selectedImage && styles.uploadBoxActive]} 
+              onPress={() => setOptionModalVisible(true)}
+            >
+              {selectedImage ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
+                  <TouchableOpacity style={styles.changeImageBtn} onPress={() => setOptionModalVisible(true)}>
+                    <Text style={styles.changeImageText}>Change Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.removeImageBadge} onPress={resetImage}>
+                    <Ionicons name="close" size={20} color="white" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.uploadPlaceholder}>
+                  <View style={styles.cameraIconContainer}>
+                    <Ionicons name="camera-outline" size={40} color={colors.primary} />
+                  </View>
+                  <Text style={styles.uploadPlaceholderText}>Take or choose a bagging photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
+        )}
 
         {/* Information Card */}
         <View style={styles.infoCard}>
@@ -143,7 +212,7 @@ export default function CompleteShoppingScreen() {
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoText}>
               {order?.deliveryMethod === 'customer_pickup'
-                ? 'The customer will come to pick up his order.'
+                ? 'The customer will come to pick up their order.'
                 : 'The order will be pushed to delivery persons to deliver to the customer.'}
             </Text>
           </View>
@@ -163,6 +232,54 @@ export default function CompleteShoppingScreen() {
           disabled={updateOrderStatusMutation.isPending}
         />
       </View>
+
+      {/* Selection Modal */}
+      <Modal
+        visible={isOptionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOptionModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setOptionModalVisible(false)}
+        >
+          <View style={styles.optionModalContent}>
+            <Text style={styles.modalTitle}>Proof of Bagging</Text>
+            <Text style={styles.modalSubtitle}>Select a source for your image</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={async () => {
+                setOptionModalVisible(false);
+                await pickFromCamera();
+              }}
+            >
+              <Ionicons name="camera" size={24} color={colors.primary} />
+              <Text style={styles.optionButtonText}>Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={async () => {
+                setOptionModalVisible(false);
+                await pickFromGallery();
+              }}
+            >
+              <Ionicons name="images" size={24} color={colors.primary} />
+              <Text style={styles.optionButtonText}>Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.cancelOptionButton} 
+              onPress={() => setOptionModalVisible(false)}
+            >
+              <Text style={styles.cancelOptionText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
       </View>
     </SafeAreaView>
   );
@@ -204,21 +321,95 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 40,
     paddingHorizontal: spacing.lg,
   },
-  iconContainer: {
-    alignItems: 'center',
-    marginBottom: 35,
+  uploadSection: {
+    marginBottom: 40,
   },
-  deliveryIconCircle: {
-    width: 180,
-    height: 180,
-    backgroundColor: '#BFE3C6',
-    borderRadius: 90,
+  uploadTitle: {
+    fontSize: 22,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  uploadSubtitle: {
+    fontSize: 14,
+    fontFamily: typography.families.secondary,
+    color: '#7C7B7B',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  uploadBox: {
+    width: '100%',
+    height: 240,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: '#FAFAFB',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  uploadBoxActive: {
+    borderStyle: 'solid',
+    borderColor: colors.primary,
+  },
+  uploadPlaceholder: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  cameraIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(6, 136, 140, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadPlaceholderText: {
+    fontSize: 14,
+    fontFamily: typography.families.secondary,
+    color: colors.primary,
+    fontWeight: typography.weights.semibold,
+  },
+  imagePreviewContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  changeImageBtn: {
+    position: 'absolute',
+    bottom: 16,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  changeImageText: {
+    color: 'white',
+    fontFamily: typography.families.secondary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  removeImageBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.sm,
   },
   infoCard: {
     flexDirection: 'row',
@@ -260,5 +451,61 @@ const styles = StyleSheet.create({
   },
   completeButton: {
     paddingVertical: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  optionModalContent: {
+    width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    fontFamily: typography.families.secondary,
+    color: '#7C7B7B',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  optionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    padding: 18,
+    borderRadius: 16,
+    backgroundColor: '#F8F9FA',
+    marginBottom: 12,
+    gap: 16,
+  },
+  optionButtonText: {
+    fontSize: 16,
+    fontFamily: typography.families.secondary,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+  },
+  cancelOptionButton: {
+    width: '100%',
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  cancelOptionText: {
+    fontSize: 16,
+    fontFamily: typography.families.accent,
+    fontWeight: typography.weights.bold,
+    color: '#FF4444',
   },
 });

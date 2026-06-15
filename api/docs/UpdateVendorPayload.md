@@ -15,9 +15,11 @@ Name | Type | Description | Notes
 **latitude** | **number** |  | [optional] [default to undefined]
 **isVerified** | **boolean** |  | [optional] [default to undefined]
 **meta** | **{ [key: string]: any; }** |  | [optional] [default to undefined]
+**timezone** | **string** |  | [optional] [default to undefined]
 **mobileNumber** | **string** |  | [optional] [default to undefined]
 **mobileVerified** | **boolean** |  | [optional] [default to undefined]
 **availableForShopping** | **boolean** |  | [optional] [default to undefined]
+**openingHours** | [**Array&lt;UpdateOpeningHoursPayload&gt;**](UpdateOpeningHoursPayload.md) |  | [optional] [default to undefined]
 
 ## Example
 
@@ -35,9 +37,11 @@ const instance: UpdateVendorPayload = {
     latitude,
     isVerified,
     meta,
+    timezone,
     mobileNumber,
     mobileVerified,
     availableForShopping,
+    openingHours,
 };
 ```
 

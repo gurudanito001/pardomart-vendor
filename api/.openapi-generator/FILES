@@ -35,6 +35,7 @@ docs/CategoryOverview.md
 docs/CategorySummary.md
 docs/ContentApi.md
 docs/ContentType.md
+docs/Country.md
 docs/CreateCategoriesBulkPayload.md
 docs/CreateCategoryPayload.md
 docs/CreateDeliveryAddressPayload.md
@@ -99,6 +100,7 @@ docs/InitiateLogin.md
 docs/MediaApi.md
 docs/MediaUploadPost201Response.md
 docs/Message.md
+docs/MessageType.md
 docs/MessageWithRelations.md
 docs/MessagingApi.md
 docs/Notification.md
@@ -297,6 +299,7 @@ models/category-overview.ts
 models/category-summary.ts
 models/category.ts
 models/content-type.ts
+models/country.ts
 models/create-categories-bulk-payload.ts
 models/create-category-payload.ts
 models/create-delivery-address-payload.ts
@@ -348,6 +351,7 @@ models/health-get200-response.ts
 models/index.ts
 models/initiate-login.ts
 models/media-upload-post201-response.ts
+models/message-type.ts
 models/message-with-relations.ts
 models/message.ts
 models/notification-type.ts

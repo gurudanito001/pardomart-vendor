@@ -59,21 +59,93 @@ export default function ReceiptScreen() {
     hour12: true,
   });
 
+  const renderItemDetails = (product: any, orderItem: any, isReplacement: boolean, isApproved?: boolean | null) => {
+    const qty = orderItem.quantityFound ?? orderItem.quantity ?? 1;
+    const price = product.discountedPrice || product.price || 0;
+    const lineTotal = qty * price;
+
+    let statusText = '';
+    let statusColor = '#7C7B7B'; // Default for original item or pending replacement
+    if (isReplacement) {
+      if (isApproved === true) {
+        statusText = 'Approved';
+        statusColor = '#01891C';
+      } else if (isApproved === false) {
+        statusText = 'Rejected';
+        statusColor = '#C43D28';
+      } else {
+        statusText = 'Not Approved'; // Pending
+        statusColor = '#F48022';
+      }
+    }
+
+    return (
+      <View style={styles.itemRow}>
+        <View style={styles.itemDetails}>
+          <Text style={styles.itemName}>{product.name || 'Product'}</Text>
+          {isReplacement && (
+            <Text style={[styles.itemStatus, { color: statusColor }]}>{statusText}</Text>
+          )}
+          <Text style={styles.itemQty}>{qty} x ${price.toFixed(2)}</Text>
+        </View>
+        <Text style={styles.itemLineTotal}>${lineTotal.toFixed(2)}</Text>
+      </View>
+    );
+  };
+
   const generateReceiptHtml = () => {
-    const itemsHtml = order?.orderItems?.map((item: any) => {
-      const product = item.chosenReplacement?.vendorProduct || item.vendorProduct || {};
-      const qty = item.quantityFound ?? item.quantity ?? 1;
+    const renderSingleProductHtml = (product: any, orderItem: any, isReplacement: boolean, isApproved?: boolean | null) => {
+      const qty = orderItem.quantityFound ?? orderItem.quantity ?? 1;
       const price = product.discountedPrice || product.price || 0;
       const lineTotal = qty * price;
+
+      let statusHtml = '';
+      if (isReplacement) {
+        let statusText = '';
+        let statusColor = '#7C7B7B';
+        if (isApproved === true) {
+          statusText = 'Approved';
+          statusColor = '#01891C';
+        } else if (isApproved === false) {
+          statusText = 'Rejected';
+          statusColor = '#C43D28';
+        } else {
+          statusText = 'Not Approved';
+          statusColor = '#F48022';
+        }
+        statusHtml = `<div style="font-size: 10px; color: ${statusColor}; margin-top: 2px;">${statusText}</div>`;
+      }
+
       return `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
           <div style="flex: 1;">
             <div style="font-size: 14px; font-weight: 600;">${product.name || 'Product'}</div>
+            ${statusHtml}
             <div style="font-size: 12px; color: #7C7B7B;">${qty} x $${price.toFixed(2)}</div>
           </div>
           <div style="font-size: 14px; font-weight: 600;">$${lineTotal.toFixed(2)}</div>
         </div>
       `;
+    };
+
+    const itemsHtml = order?.orderItems?.map((item: any) => {
+      const replacementProduct = item.chosenReplacement?.vendorProduct;
+      const originalProduct = item.vendorProduct || {};
+      const isReplaced = item.status === 'REPLACED' && replacementProduct;
+      const isReplacementApproved = item.isReplacementApproved;
+
+      if (isReplaced) {
+        return `
+          <div style="margin-bottom: 15px;">
+            <div style="font-size: 12px; font-weight: bold; color: #06888C; margin-bottom: 5px;">Substituted Item</div>
+            ${renderSingleProductHtml(replacementProduct, item, true, isReplacementApproved)}
+            <div style="text-align: center; font-size: 10px; color: #BBB; margin: 10px 0; border-bottom: 1px dashed #E0E9F5; padding-bottom: 5px;">ORIGINAL ITEM</div>
+            ${renderSingleProductHtml(originalProduct, item, false)}
+          </div>
+        `;
+      } else {
+        return renderSingleProductHtml(originalProduct, item, false);
+      }
     }).join('') || '';
 
     return `
@@ -173,9 +245,9 @@ export default function ReceiptScreen() {
     }
   };
 
-    const handleBackPress = () => {
-        router.back();
-    };
+  const handleBackPress = () => {
+    router.back();
+  };
 
   if (isLoading) {
     return (
@@ -204,9 +276,9 @@ export default function ReceiptScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-                  <ArrowBackButtonSVG width={30} height={30} color="white" />
-                </TouchableOpacity>
-        <Text style={styles.headerTitle}>E-Receipt</Text>
+          <ArrowBackButtonSVG width={30} height={30} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>E- Receipt</Text>
         <View style={{ width: 30 }} />
         {/* Spacer to center the title */}
       </View>
@@ -251,18 +323,25 @@ export default function ReceiptScreen() {
           <View style={styles.itemsSection}>
             <Text style={styles.sectionTitle}>Items</Text>
             {order.orderItems?.map((item: any) => {
-              const product = item.chosenReplacement?.vendorProduct || item.vendorProduct || {};
-              const qty = item.quantityFound ?? item.quantity ?? 1;
-              const price = product.discountedPrice || product.price || 0;
-              const lineTotal = qty * price;
+              const replacementProduct = item.chosenReplacement;
+              const originalProduct = item.vendorProduct || {};
+              const isReplaced = item.status === 'REPLACED' && replacementProduct;
+              const isReplacementApproved = item.isReplacementApproved; // true, false, or null
               
               return (
-                <View key={item.id} style={styles.itemRow}>
-                  <View style={styles.itemDetails}>
-                    <Text style={styles.itemName}>{product.name || 'Product'}</Text>
-                    <Text style={styles.itemQty}>{qty} x ${price.toFixed(2)}</Text>
-                  </View>
-                  <Text style={styles.itemLineTotal}>${lineTotal.toFixed(2)}</Text>
+                <View key={item.id} style={styles.receiptItemContainer}>
+                  {isReplaced ? (
+                    <>
+                      <Text style={styles.replacementHeader}>Substituted Item</Text>
+                      {renderItemDetails(replacementProduct, item, true, isReplacementApproved)}
+                      <View style={styles.subItemDivider}>
+                        <Text style={styles.subItemDividerText}>ORIGINAL ITEM</Text>
+                      </View>
+                      {renderItemDetails(originalProduct, item, false)}
+                    </>
+                  ) : (
+                    renderItemDetails(originalProduct, item, false)
+                  )}
                 </View>
               );
             })}
@@ -409,7 +488,39 @@ const styles = StyleSheet.create({
   breakdownValue: { fontSize: 12, fontFamily: 'OpenSans-SemiBold', color: '#100A37' },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   totalLabel: { fontSize: 16, fontFamily: 'OpenSans-Bold', color: '#100A37' },
-  totalValue: { fontSize: 18, fontFamily: 'OpenSans-Bold', color: '#06888C' },
+  totalValue: { fontSize: 18, fontFamily: 'OpenSans-Bold', color: '#06888C', fontWeight: '700' },
+  receiptItemContainer: {
+    marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 0, // No border for individual items, handled by divider
+  },
+  replacementHeader: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-Bold',
+    color: '#06888C',
+    marginBottom: 5,
+  },
+  itemStatus: {
+    fontSize: 10,
+    fontFamily: 'OpenSans-SemiBold',
+    marginTop: 2,
+  },
+  subItemDivider: {
+    height: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E9F5',
+    borderStyle: 'dashed',
+    marginVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subItemDividerText: {
+    backgroundColor: '#FFF', // To make the text background white over the dashed line
+    paddingHorizontal: 5,
+    fontSize: 10,
+    fontFamily: 'Raleway-Bold',
+    color: '#7C7B7B',
+  },
   shareButtonsContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 5 },
   shareButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 6, paddingHorizontal: 5 },
   shareButtonText: { color: '#06888C', fontSize: 14, fontFamily: 'Raleway-Bold' },

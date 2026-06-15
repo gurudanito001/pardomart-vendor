@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StatusBar,
@@ -208,6 +209,25 @@ export default function VerifyOrderCode() {
     router.back();
   };
 
+  const handleCallUser = (phone?: string) => {
+    if (phone) {
+      Linking.openURL(`tel:${phone}`);
+    } else {
+      toast.error('Phone number is not available.');
+    }
+  };
+
+  const handleMessageUser = (user?: any) => {
+    if (!user) {
+      toast.error('Contact details not available');
+      return;
+    }
+    router.push({
+      pathname: '/(private)/orders/chat',
+      params: { orderId: orderId!, customer: JSON.stringify(user) },
+    });
+  };
+
   const handleVerifyOrder = () => {
     const otpCode = otpValues.join('');
     console.log('Verifying OTP Code:', otpCode);
@@ -357,10 +377,10 @@ export default function VerifyOrderCode() {
               <Text style={styles.personName}>{order.user?.name ?? 'Customer'}</Text>
             </View>
             <View style={styles.contactActions}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleMessageUser(order.user)}>
                 <ChatIcon />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleCallUser(order.user?.mobileNumber)}>
                 <PhoneIcon />
               </TouchableOpacity>
             </View>
@@ -379,10 +399,10 @@ export default function VerifyOrderCode() {
               <Text style={styles.personName}>{order.shopper?.name ?? 'Not Assigned'}</Text>
             </View>
             <View style={styles.contactActions}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleMessageUser(order.shopper)}>
                 <ChatIcon />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => handleCallUser(order.shopper?.mobileNumber)}>
                 <PhoneIcon />
               </TouchableOpacity>
             </View>

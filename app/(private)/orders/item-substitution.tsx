@@ -15,21 +15,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
 import { toast } from 'sonner-native';
-import { ArrowBackButtonSVG, NotificationSVG } from '../../../components/icons';
-
-const ChatIcon = () => (
-  <Svg width="23" height="22" viewBox="0 0 23 22" fill="none">
-    <Path d="M4.27376 17.4166L3.42126 17.0775C3.36034 17.2307 3.34191 17.3976 3.3679 17.5604C3.39388 17.7233 3.46333 17.8762 3.56891 18.0029C3.67449 18.1296 3.8123 18.2254 3.96781 18.2804C4.12332 18.3353 4.29077 18.3472 4.45251 18.315L4.27376 17.4166ZM8.58759 16.5586L9.02209 15.751L8.73151 15.5952L8.40884 15.6594L8.58759 16.5586ZM5.76242 13.6739L6.61492 14.013L6.76434 13.6335L6.58467 13.2678L5.76242 13.6739ZM18.0238 11C18.0238 13.9755 15.4085 16.5 12.0379 16.5V18.3333C16.2922 18.3333 19.8571 15.1121 19.8571 11H18.0238ZM6.05301 11C6.05301 8.02446 8.66917 5.49996 12.0388 5.49996V3.66663C7.78459 3.66663 4.21876 6.88779 4.21876 11H6.05301ZM12.0388 5.49996C15.4085 5.49996 18.0238 8.02446 18.0238 11H19.8571C19.8571 6.88779 16.2931 3.66663 12.0388 3.66663V5.49996ZM12.0379 16.5C10.9333 16.5 9.90484 16.225 9.02209 15.751L8.15309 17.3653C9.34781 18.0058 10.6824 18.3385 12.0379 18.3333V16.5ZM4.45251 18.315L8.76634 17.457L8.40884 15.6594L4.09501 16.5174L4.45251 18.3159V18.315ZM6.58467 13.2678C6.2357 12.5627 6.0544 11.7867 6.05301 11H4.21876C4.21876 12.1 4.47726 13.1431 4.93926 14.08L6.58467 13.2678ZM4.91084 13.3347L3.42126 17.0784L5.12442 17.7549L6.61309 14.0121L4.90992 13.3347H4.91084Z" fill="white"/>
-    <Path d="M8.8571 11.9166C9.36336 11.9166 9.77376 11.5062 9.77376 10.9999C9.77376 10.4937 9.36336 10.0833 8.8571 10.0833C8.35084 10.0833 7.94043 10.4937 7.94043 10.9999C7.94043 11.5062 8.35084 11.9166 8.8571 11.9166Z" fill="white"/>
-    <Path d="M12.0651 11.9166C12.5714 11.9166 12.9818 11.5062 12.9818 10.9999C12.9818 10.4937 12.5714 10.0833 12.0651 10.0833C11.5588 10.0833 11.1484 10.4937 11.1484 10.9999C11.1484 11.5062 11.5588 11.9166 12.0651 11.9166Z" fill="white"/>
-    <Path d="M15.2741 11.9166C15.7803 11.9166 16.1908 11.5062 16.1908 10.9999C16.1908 10.4937 15.7803 10.0833 15.2741 10.0833C14.7678 10.0833 14.3574 10.4937 14.3574 10.9999C14.3574 11.5062 14.7678 11.9166 15.2741 11.9166Z" fill="white"/>
-  </Svg>
-);
+import { ArrowBackButtonSVG, ChatFilledSVG, NotificationSVG, PhoneOutlineSVG } from '../../../components/icons';
 
 const ScanIcon = () => (
   <Svg width="18" height="19" viewBox="0 0 18 19" fill="none" stroke="#FFF" strokeWidth="2">
@@ -171,6 +162,23 @@ export default function ItemSubstitutionScreen() {
           </View>
       </View>
 
+      {/* Customer Contact Card */}
+      <View style={styles.customerCard}>
+        <View style={styles.customerInfo}>
+          <Image
+            source={{ uri: order?.user?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(order?.user?.name || 'Customer')}&background=06888C&color=fff&size=60` }}
+            style={styles.customerAvatar}
+          />
+          <View style={styles.customerDetailsMain}>
+            <Text style={styles.customerNameText}>{order?.user?.name ?? 'Customer'}</Text>
+          </View>
+          <View style={styles.customerActions}>
+            <TouchableOpacity onPress={handleChatCustomer}><ChatFilledSVG width={30} height={30} /></TouchableOpacity>
+            <TouchableOpacity onPress={handleCallCustomer}><PhoneOutlineSVG width={30} height={30} /></TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
       <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       {isLoading ? (
         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -248,12 +256,16 @@ export default function ItemSubstitutionScreen() {
           {/* Chat Customer Section */}
           <View style={styles.chatSection}>
             <Text style={styles.chatText}>
-              Feeling unsure about what to pick? you can always chat the customer
+              Feeling unsure about what to pick? You can always contact the customer
             </Text>
-            <TouchableOpacity style={styles.chatButton} onPress={handleChatCustomer}>
-              <ChatIcon />
-              <Text style={styles.chatButtonText}>Chat</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity style={styles.chatButton} onPress={handleChatCustomer}>
+                <ChatFilledSVG width={24} height={24} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.chatButton} onPress={handleCallCustomer}>
+                <PhoneOutlineSVG width={24} height={24} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>

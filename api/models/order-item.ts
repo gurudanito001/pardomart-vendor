@@ -16,13 +16,11 @@
 // May contain unused imports in some cases
 // @ts-ignore
 import type { OrderItemStatus } from './order-item-status';
-import { VendorProduct } from './vendor-product';
 
 export interface OrderItem {
     'id'?: string;
     'orderId'?: string;
     'vendorProductId'?: string;
-    'vendorProduct'?: VendorProduct | null;
     'quantity'?: number;
     'instructions'?: string | null;
     'status'?: OrderItemStatus;

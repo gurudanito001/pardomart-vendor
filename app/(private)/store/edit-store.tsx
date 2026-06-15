@@ -1,4 +1,5 @@
-import { UpdateVendorPayload } from '@/api';
+import { GeneralApi, UpdateVendorPayload } from '@/api';
+import { apiConfig } from '@/api/config';
 import AddressAutocompleteEnhanced from '@/components/AddressAutocompleteEnhanced';
 import PhoneInputWithCountry from '@/components/PhoneInputWithCountry';
 import { Input } from '@/components/ui/Input';
@@ -10,11 +11,12 @@ import { GooglePlacesSuggestion } from '@/utils/googleMapsLocation';
 import { toast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   RefreshControl,
   ScrollView,
@@ -27,12 +29,25 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Path, Svg } from 'react-native-svg';
+import Accordion from '../../../components/ui/Accordion';
+import OpeningHoursInput from '../../../components/ui/OpeningHoursInput';
 
 export default function EditStoreScreen() {
   const { storeId } = useLocalSearchParams<{ storeId: string }>();
   const { getVendorById, updateVendor } = useVendor();
+  const generalApi = useMemo(() => new GeneralApi(apiConfig), []);
 
   // Data fetching
+  const { data: timezones } = useQuery({
+    queryKey: ['timezones'],
+    queryFn: async () => {
+      const res = await generalApi.authTimeZonesGet();
+      // Based on the API response structure: { message: "...", data: ["...", ...] }
+      return res.data.data as string[] || [];
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
   const { data: vendor, isLoading: isLoadingVendor, refetch } = useQuery({
     queryKey: ['vendor', storeId],
     queryFn: () => getVendorById(storeId!),
@@ -46,6 +61,23 @@ export default function EditStoreScreen() {
   const [initialCountry, setInitialCountry] = useState<Country | undefined>();
   const [availableForShopping, setAvailableForShopping] = useState(true);
   const [isPublished, setIsPublished] = useState(false);
+  const [timezone, setTimezone] = useState('');
+  const [isTimezoneModalVisible, setIsTimezoneModalVisible] = useState(false);
+
+  type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+  interface VendorOpeningHoursState {
+    day: DayOfWeek;
+    label: string;
+    open: string;
+    close: string;
+    isClosed: boolean;
+  }
+  const daysOfWeek: { day: DayOfWeek; label: string }[] = [
+    { day: 'MONDAY', label: 'Monday' }, { day: 'TUESDAY', label: 'Tuesday' }, { day: 'WEDNESDAY', label: 'Wednesday' },
+    { day: 'THURSDAY', label: 'Thursday' }, { day: 'FRIDAY', label: 'Friday' }, { day: 'SATURDAY', label: 'Saturday' },
+    { day: 'SUNDAY', label: 'Sunday' },
+  ];
+  const [openingHours, setOpeningHours] = useState<VendorOpeningHoursState[]>([]);
   const [tagline, setTagline] = useState('');
   const [details, setDetails] = useState('');
   const [addressSearch, setAddressSearch] = useState('');
@@ -96,12 +128,47 @@ export default function EditStoreScreen() {
       setAddressSearch(vendor.address || '');
       setLatitude(vendor.latitude || null); 
       setLongitude(vendor.longitude || null);
+
+      // Timezone detection and initialization
+      if ((vendor as any).timezone) {
+        setTimezone((vendor as any).timezone);
+      } else if (!timezone) {
+        try {
+          const deviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          setTimezone(deviceTimezone);
+        } catch (e) {
+          console.error('Failed to detect device timezone', e);
+        }
+      }
+
+
+      // Populate opening hours
+      const fetchedOpeningHours = (vendor as any).openingHours || [];
+      const newOpeningHours: VendorOpeningHoursState[] = daysOfWeek.map(d => {
+        // Ensure case-insensitive matching between API (e.g., "monday") and local state (e.g., "MONDAY")
+        const existing = fetchedOpeningHours.find((oh: { day: string }) => 
+          oh.day.toUpperCase() === d.day.toUpperCase());
+        return {
+          day: d.day,
+          label: d.label,
+          open: existing?.open || '09:00',
+          close: existing?.close || '21:00',
+          isClosed: existing ? (!existing.open || !existing.close) : false,
+        };
+      });
+      setOpeningHours(newOpeningHours);
+
     }
-  }, [vendor]);
+  }, [vendor, timezones]);
 
   const handleBack = () => {
     router.back();
   };
+
+    const handleOpeningHoursChange = (dayLabel: string, open: string, close: string, isClosed: boolean) => {
+    setOpeningHours(prevHours => prevHours.map(oh => oh.label === dayLabel ? { ...oh, open, close, isClosed } : oh));
+  };
+
 
   const handleSaveChanges = async () => {
     
@@ -111,6 +178,11 @@ export default function EditStoreScreen() {
     }
     if (!storeId) {
       toast.error('Store ID is missing. Cannot update.');
+      return;
+    }
+    // Basic validation for opening hours
+    if (openingHours.some(oh => !oh.isClosed && (!oh.open || !oh.close || oh.open >= oh.close))) {
+      toast.error('Please ensure all opening hours are valid (Open time before Close time).');
       return;
     }
 
@@ -127,7 +199,13 @@ export default function EditStoreScreen() {
         address: storeAddress,
         latitude: latitude === null ? undefined : latitude,
         longitude: longitude === null ? undefined : longitude,
-        ...({ isPublished } as any),
+        openingHours: openingHours.map(oh => ({
+          day: oh.day,
+          open: oh.isClosed ? null : oh.open,
+          close: oh.isClosed ? null : oh.close,
+          // id, vendorId, createdAt, updatedAt will be handled by the backend
+        })),
+        ...({ isPublished, timezone } as any),
       };
 
       // Only include the image if a new one was selected
@@ -312,6 +390,39 @@ export default function EditStoreScreen() {
                 />
               </View>
 
+                {/* Vendor Opening Times */}
+              <Accordion title="Vendor Opening Hours">
+                {openingHours.map((oh) => (
+                  <OpeningHoursInput
+                    key={oh.day}
+                    dayLabel={oh.label}
+                    initialOpenTime={oh.open}
+                    initialCloseTime={oh.close}
+                    initialIsClosed={oh.isClosed}
+                    onTimeChange={handleOpeningHoursChange}
+                  />
+                ))}
+              </Accordion>
+
+
+              {/* Store Timezone */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Store Time Zone</Text>
+                <TouchableOpacity 
+                  style={styles.inputContainer} 
+                  onPress={() => setIsTimezoneModalVisible(true)}
+                >
+                  <View style={{ padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, color: timezone ? '#000' : '#7C8BA0', fontFamily: 'Open Sans' }}>
+                      {timezone || 'Select Time Zone'}
+                    </Text>
+                    <Svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                      <Path d="M1 1.5L6 6.5L11 1.5" stroke="#484C52" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
               {/* Available For Shopping */}
               <View style={[styles.inputGroup, styles.switchContainer]}>
                 <Text style={styles.inputLabel}>Available for Shopping</Text>
@@ -346,6 +457,40 @@ export default function EditStoreScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       )}
+
+      {/* Timezone Select Modal */}
+      <Modal 
+        transparent 
+        visible={isTimezoneModalVisible} 
+        animationType="fade" 
+        onRequestClose={() => setIsTimezoneModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setIsTimezoneModalVisible(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Select Time Zone</Text>
+            <ScrollView style={{ maxHeight: 400 }}>
+              {timezones?.map((tz) => (
+                <TouchableOpacity
+                  key={tz}
+                  style={[styles.optionItem, timezone === tz && styles.selectedOption]}
+                  onPress={() => {
+                    setTimezone(tz);
+                    setIsTimezoneModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.optionText, timezone === tz && styles.selectedOptionText]}>
+                    {tz}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {(submitting || imageLoading) && (
         <LoadingSpinner overlay message={submitting ? 'Saving changes...' : 'Processing image...'} />
@@ -530,5 +675,47 @@ const styles = StyleSheet.create({
     color: '#FF4D4F',
     marginTop: 8,
     fontSize: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxHeight: '80%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: 'Raleway',
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  optionText: {
+    fontSize: 14,
+    color: '#111827',
+    fontFamily: 'Open Sans',
+  },
+  selectedOption: {
+    backgroundColor: '#06888C',
+  },
+  selectedOptionText: {
+    color: '#FFF',
+    fontWeight: '600',
   },
 });

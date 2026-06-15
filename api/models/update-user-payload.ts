@@ -35,6 +35,7 @@ export interface UpdateUserPayload {
     'replacementPreference'?: UpdateUserPayloadReplacementPreferenceEnum;
     'measurementUnit'?: UpdateUserPayloadMeasurementUnitEnum;
     'biometricEnabled'?: boolean;
+    'darkMode'?: boolean;
 }
 
 export const UpdateUserPayloadReplacementPreferenceEnum = {

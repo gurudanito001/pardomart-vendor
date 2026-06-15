@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **replacementPreference** | **string** |  | [optional] [default to ReplacementPreferenceEnum_SendRequest]
 **measurementUnit** | **string** |  | [optional] [default to MeasurementUnitEnum_Metric]
 **biometricEnabled** | **boolean** |  | [optional] [default to false]
+**darkMode** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -40,6 +41,7 @@ const instance: UpdateUserPayload = {
     replacementPreference,
     measurementUnit,
     biometricEnabled,
+    darkMode,
 };
 ```
 
